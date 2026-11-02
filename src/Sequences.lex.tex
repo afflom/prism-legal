@@ -1,0 +1,153 @@
+\begin{lexlean}{Sequences}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: Sequence,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: lexeme, type: String},
+    {name: lean, type: String},
+    {name: parameters, type: (List Nat)},
+    {name: kappa, type: String},
+    {name: window, type: (List Nat)}
+  ]
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => ((not (memberString head tail)) && (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: windowLength,
+  parameters: [],
+  result: Nat,
+  body: 64,
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: sequences,
+  parameters: [],
+  result: (List Sequence),
+  body: (cons (record Sequence {id := "one", lexeme := "lexlean.std.bool::true", lean := "Bool.true", parameters := (nil Nat), kappa := "sha256:38ff7ae89d6d95c44da0bf7996bb067c7ff75ed6c766ba266a41e4e917bf19da", window := (cons 4294967295 (cons 4294967295 (nil Nat)))}) (cons (record Sequence {id := "equal-overnights", lexeme := "prism.legal::equal-overnights", lean := "PrismLegal.Parenting.equalOvernights", parameters := (nil Nat), kappa := "sha256:f7fcb60ff84b62efc46fdf56268e0a8cede7261317744fe8cd84036dcb29d711", window := (cons 2863311530 (cons 2863311530 (nil Nat)))}) (cons (record Sequence {id := "week-parity", lexeme := "prism.legal::overnights-of", lean := "PrismLegal.Parenting.overnightsOf", parameters := (cons 7 (nil Nat)), kappa := "sha256:ed27121b27553552f1de6cd1e366a39a71dca90771d238fe38a8a252d3fe1488", window := (cons 3435973836 (cons 3435973836 (nil Nat)))}) (cons (record Sequence {id := "routine-continuity", lexeme := "prism.legal::routine-continuity", lean := "PrismLegal.Parenting.routineContinuity", parameters := (nil Nat), kappa := "sha256:beb0d8ae924a735b05031da82fcbde3478b413aa5119519821598c34262b7651", window := (cons 2004318071 (cons 2004318071 (nil Nat)))}) (cons (record Sequence {id := "corroborated-finding", lexeme := "prism.legal::corroborated-finding", lean := "PrismLegal.Litigation.corroboratedFinding", parameters := (nil Nat), kappa := "sha256:a7268cee1c358e75649ca429946f0d65e1c7c500bc88841038549cf4b906f685", window := (cons 3722304989 (cons 3722304989 (nil Nat)))}) (cons (record Sequence {id := "joint-governance", lexeme := "prism.legal::joint-governance", lean := "PrismLegal.Governance.jointGovernance", parameters := (nil Nat), kappa := "sha256:70de484c4a4d1235190a022b583f4c98d0f1a985a038427f3893e8196638e4ad", window := (cons 3681400539 (cons 3067833782 (nil Nat)))}) (cons (record Sequence {id := "unilateral-act", lexeme := "prism.legal::unilateral-action", lean := "PrismLegal.Governance.unilateralAction", parameters := (nil Nat), kappa := "sha256:6dc7a08a0cce3eadf249fd48676ffd762136c76ddf244a4007046f0a94e48745", window := (cons 613566756 (cons 1227133513 (nil Nat)))}) (cons (record Sequence {id := "stipulated-income", lexeme := "prism.legal::stipulated-income", lean := "PrismLegal.Remedies.stipulatedIncome", parameters := (nil Nat), kappa := "sha256:d91f536810b848daf1d2fc7d3809e991180bd3a5c812e269dbaf34d8147a02d4", window := (cons 4294967295 (cons 4294967295 (nil Nat)))}) (cons (record Sequence {id := "statutory-benefit", lexeme := "prism.legal::statutory-benefit-covered", lean := "PrismLegal.Remedies.statutoryBenefitCovered", parameters := (nil Nat), kappa := "sha256:b0d64c3deff69787235b260fedde9f5ce7261595dc808bf71e39dd0ff034a3d4", window := (cons 4294967295 (cons 4294967295 (nil Nat)))}) (cons (record Sequence {id := "duplicate-expense", lexeme := "prism.legal::duplicate-expense-addon", lean := "PrismLegal.Remedies.duplicateExpenseAddon", parameters := (nil Nat), kappa := "sha256:ea3eade39e77f1ba78955913fe33d5017fcca2bba28d3c313dfc840c4af3363f", window := (cons 0 (cons 0 (nil Nat)))}) (cons (record Sequence {id := "reserve-omission", lexeme := "prism.legal::undisclosed-balance", lean := "PrismLegal.Disclosure.undisclosedBalance", parameters := (nil Nat), kappa := "sha256:95da94b2517d1768b61eb41b9629a849def70b5e736727324e9707f112d2a0f3", window := (cons 1801115317 (cons 1524020653 (nil Nat)))}) (cons (record Sequence {id := "disclosure-reopening", lexeme := "prism.legal::mandatory-disclosure-reopening", lean := "PrismLegal.Disclosure.mandatoryDisclosureReopening", parameters := (nil Nat), kappa := "sha256:3b7bb1a8f6c83be2723735f1da3cae02b8184dd059145031621fcd63fc4b5651", window := (cons 1801115317 (cons 1524020653 (nil Nat)))}) (cons (record Sequence {id := "order-compliant", lexeme := "prism.legal::court-order-compliant", lean := "PrismLegal.Compliance.courtOrderCompliant", parameters := (nil Nat), kappa := "sha256:b67547d79617b39cf4f09e3147fad5c9cb1180eb4ba069c07acc3969b96643bb", window := (cons 3722304989 (cons 3722304989 (nil Nat)))}) (nil Sequence)))))))))))))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: windows,
+  parameters: [],
+  result: (List (List Nat)),
+  body: (cons (cons 4294967295 (cons 4294967295 (nil Nat))) (cons (cons 2863311530 (cons 2863311530 (nil Nat))) (cons (cons 3435973836 (cons 3435973836 (nil Nat))) (cons (cons 2004318071 (cons 2004318071 (nil Nat))) (cons (cons 3722304989 (cons 3722304989 (nil Nat))) (cons (cons 3681400539 (cons 3067833782 (nil Nat))) (cons (cons 613566756 (cons 1227133513 (nil Nat))) (cons (cons 4294967295 (cons 4294967295 (nil Nat))) (cons (cons 4294967295 (cons 4294967295 (nil Nat))) (cons (cons 0 (cons 0 (nil Nat))) (cons (cons 1801115317 (cons 1524020653 (nil Nat))) (cons (cons 1801115317 (cons 1524020653 (nil Nat))) (cons (cons 3722304989 (cons 3722304989 (nil Nat))) (nil (List Nat))))))))))))))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: idsOf,
+  parameters: [xs : (List Sequence)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (idsOf tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: kappasOf,
+  parameters: [xs : (List Sequence)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head kappa) (kappasOf tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: wordsBelow,
+  parameters: [ws : (List Nat)],
+  result: Bool,
+  body: (match ws
+    | List.nil => true
+    | List.cons head tail => ((head <? 4294967296) && (wordsBelow tail))),
+  axioms: [],
+  recursive_argument: ws
+}
+
+definition{
+  name: windowsValid,
+  parameters: [xs : (List Sequence)],
+  result: Bool,
+  body: (match xs
+    | List.nil => true
+    | List.cons head tail => ((((prim length (project head window) : Nat) =? 2) && (wordsBelow (project head window))) && (windowsValid tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: sequenceCount,
+  parameters: [],
+  result: Nat,
+  body: (prim length (sequences) : Nat),
+  axioms: []
+}
+
+theorem{
+  name: sequenceIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (idsOf (sequences))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: sequenceKappasDistinct,
+  parameters: [],
+  statement: ((distinctStrings (kappasOf (sequences))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everyWindowValid,
+  parameters: [],
+  statement: ((windowsValid (sequences)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: sequenceCountIs,
+  parameters: [],
+  statement: ((sequenceCount) = 13),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

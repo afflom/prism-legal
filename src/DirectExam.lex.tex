@@ -1,0 +1,287 @@
+\begin{lexlean}{DirectExam}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: DirectExamChapter,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: title, type: String},
+    {name: pageRange, type: String},
+    {name: pillarId, type: String}
+  ]
+}
+
+structure{
+  name: DirectExamQuestion,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: chapterId, type: String},
+    {name: page, type: Nat},
+    {name: visualCue, type: String},
+    {name: question, type: String},
+    {name: fullTestimony, type: String},
+    {name: exhibitId, type: String},
+    {name: movesToAdmit, type: Bool},
+    {name: statutoryId, type: String}
+  ]
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: allMembers,
+  parameters: [values : (List String), ids : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head ids) then (allMembers tail ids) else false)),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head tail) then false else (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: visualCues,
+  parameters: [],
+  result: (List String),
+  body: (cons "standard" (cons "yellow-highlight" (cons "red-strikethrough" (nil String)))),
+  axioms: []
+}
+
+definition{
+  name: chapters,
+  parameters: [],
+  result: (List DirectExamChapter),
+  body: (cons (record DirectExamChapter {id := "CH-01", title := "Chapter 1: Beneficiaries, Household History & 10-Year Public Service Career", pageRange := "pp. 1-3", pillarId := "OS-1"}) (cons (record DirectExamChapter {id := "CH-02", title := "Chapter 2: Equal Caregiving (2020-2027), Sabbatical Solo Care & 2027 Medical Leave", pageRange := "pp. 3-5", pillarId := "OS-2"}) (cons (record DirectExamChapter {id := "CH-03", title := "Chapter 3: Disability Retirement, Zero-Revenue Civic Writing & 2026-2029 Tax Records", pageRange := "pp. 5-8", pillarId := "OS-3"}) (cons (record DirectExamChapter {id := "CH-04", title := "Chapter 4: 2029 De-Escalation Videos, Transit Telemetry & Stipulated Dismissal", pageRange := "pp. 8-11", pillarId := "OS-4"}) (cons (record DirectExamChapter {id := "CH-05", title := "Chapter 5: Townhouse Environment, 90-Day 50/50 Execution & Photo Walkthrough", pageRange := "pp. 11-14", pillarId := "OS-3"}) (cons (record DirectExamChapter {id := "CH-06", title := "Chapter 6: Early Seminar Completion (Ex. M), 50/50 Plan (Ex. L) & Guideline Support (Ex. N)", pageRange := "pp. 14-17", pillarId := "OS-5"}) (nil DirectExamChapter))))))),
+  axioms: []
+}
+
+definition{
+  name: questions,
+  parameters: [],
+  result: (List DirectExamQuestion),
+  body: (prim append (cons (record DirectExamQuestion {id := "DX-001", chapterId := "CH-01", page := 1, visualCue := "standard", question := "Please state your role as Respondent and your relationship to the three minor children.", fullTestimony := "I am the Respondent in this proceeding and the devoted parent of our three minor children, ages 15, 11, and 6.", exhibitId := "NONE", movesToAdmit := false, statutoryId := "SF-01"}) (cons (record DirectExamQuestion {id := "DX-002", chapterId := "CH-01", page := 1, visualCue := "yellow-highlight", question := "How do you view Petitioner's role in the children's lives?", fullTestimony := "Petitioner is a dedicated parent and a skilled professional. A choice between parents is unnecessary when both of us love and are dedicated to our three children.", exhibitId := "NONE", movesToAdmit := false, statutoryId := "SF-01"}) (cons (record DirectExamQuestion {id := "DX-003", chapterId := "CH-01", page := 2, visualCue := "standard", question := "Summarize your 10 years of public administration and civil service from 2010 to 2020.", fullTestimony := "I served 10 years in regional public administration from 2010 to 2020 before transitioning to flexible work so I could be home daily with our growing family.", exhibitId := "Ex-E", movesToAdmit := false, statutoryId := "SF-07"}) (cons (record DirectExamQuestion {id := "DX-004", chapterId := "CH-01", page := 2, visualCue := "standard", question := "Describe each child's current school, grade, and academic interests.", fullTestimony := "Our oldest child is 15 and in 10th grade; our middle child is 11 and in 6th grade; and our youngest child is 6 and in 1st grade at the unified district schools 8 minutes from our townhouse.", exhibitId := "Ex-I", movesToAdmit := false, statutoryId := "SF-02"}) (cons (record DirectExamQuestion {id := "DX-005", chapterId := "CH-01", page := 3, visualCue := "standard", question := "How did you and Petitioner divide caregiving from 2020 onward?", fullTestimony := "From 2020 onward, we shared all parenting duties equally\u2014morning routines, school drop-offs, meals, homework, and bedtime.", exhibitId := "Ex-I", movesToAdmit := false, statutoryId := "SF-03"}) (cons (record DirectExamQuestion {id := "DX-006", chapterId := "CH-01", page := 3, visualCue := "red-strikethrough", question := "[Stricken in Script] Historical pre-2020 lease renewal discussion.", fullTestimony := "I am focused on the children's present routine and future stability.", exhibitId := "NONE", movesToAdmit := false, statutoryId := "SF-01"}) (cons (record DirectExamQuestion {id := "DX-007", chapterId := "CH-02", page := 3, visualCue := "yellow-highlight", question := "Who cared for the three children during Petitioner's four-month out-of-region training sabbatical?", fullTestimony := "I served as the sole primary day-to-day caregiver for all three children during those four months while supporting Petitioner's professional fellowship.", exhibitId := "Ex-C", movesToAdmit := false, statutoryId := "SF-07"}) (cons (record DirectExamQuestion {id := "DX-008", chapterId := "CH-02", page := 4, visualCue := "standard", question := "How were Petitioner's graduate credentials funded during the household partnership?", fullTestimony := "We funded Petitioner's graduate credentials together using our joint savings, education stipends, and my prior consulting salary so our family would have long-term security.", exhibitId := "Ex-C", movesToAdmit := true, statutoryId := "SF-07"}) (cons (record DirectExamQuestion {id := "DX-009", chapterId := "CH-02", page := 4, visualCue := "yellow-highlight", question := "What happened in Autumn 2027 that affected your health and commercial consulting career?", fullTestimony := "In Autumn 2027, a chronic occupational health condition ended my ability to work in high-travel commercial systems consulting.", exhibitId := "Ex-E", movesToAdmit := false, statutoryId := "SF-05"}) (cons (record DirectExamQuestion {id := "DX-010", chapterId := "CH-02", page := 5, visualCue := "standard", question := "What determination did the retirement board make regarding your disability in November 2028?", fullTestimony := "Effective November 12, 2028, I received a certified full disability retirement determination, as documented in Exhibit E.", exhibitId := "Ex-E", movesToAdmit := true, statutoryId := "SF-10"}) (cons (record DirectExamQuestion {id := "DX-011", chapterId := "CH-02", page := 5, visualCue := "standard", question := "Does your disability retirement rating impair your ability to care for the three children at home?", fullTestimony := "No. While I cannot work in high-travel commercial consulting, caring for our three children in our calm home routine is my greatest strength.", exhibitId := "Ex-E", movesToAdmit := false, statutoryId := "SF-05"}) (cons (record DirectExamQuestion {id := "DX-012", chapterId := "CH-02", page := 5, visualCue := "standard", question := "What medical benefits does Exhibit E provide for the three children?", fullTestimony := "Exhibit E provides comprehensive statutory medical coverage for all three minor children at $0 monthly premium.", exhibitId := "Ex-E", movesToAdmit := false, statutoryId := "SF-10"}) (cons (record DirectExamQuestion {id := "DX-013", chapterId := "CH-03", page := 6, visualCue := "yellow-highlight", question := "Have you received any wages, salary, or distributions from open-source civic curriculum research?", fullTestimony := "No. As verified by our certified 2028 and 2029 IRS transcripts in Exhibit D, those civic curriculum projects have generated $0.00 in revenue, wages, or distributions.", exhibitId := "Ex-D", movesToAdmit := true, statutoryId := "SF-10"}) (cons (record DirectExamQuestion {id := "DX-014", chapterId := "CH-03", page := 6, visualCue := "standard", question := "Why do you engage in self-paced educational curriculum writing at home?", fullTestimony := "It serves as self-paced intellectual activity that I can pause at any moment whenever any of our three children need me.", exhibitId := "Ex-D", movesToAdmit := false, statutoryId := "SF-03"}) (cons (record DirectExamQuestion {id := "DX-015", chapterId := "CH-03", page := 7, visualCue := "standard", question := "What is your exact stipulated monthly income on your Sworn Financial Statement (Exhibit F)?", fullTestimony := "My total monthly income is $5,000.00 per month from my disability retirement benefits, as shown on Exhibit F.", exhibitId := "Ex-F", movesToAdmit := true, statutoryId := "SF-10"}) (cons (record DirectExamQuestion {id := "DX-016", chapterId := "CH-03", page := 7, visualCue := "standard", question := "What is Petitioner's stipulated monthly income in Exhibit B?", fullTestimony := "Petitioner's stipulated gross monthly salary is $8,000.00 per month, as shown in Exhibit B.", exhibitId := "Ex-B", movesToAdmit := true, statutoryId := "SF-10"}) (cons (record DirectExamQuestion {id := "DX-017", chapterId := "CH-03", page := 8, visualCue := "red-strikethrough", question := "[Stricken in Script] Secondary pre-2024 credit union account closure.", fullTestimony := "All current accounts are fully disclosed on Exhibit F.", exhibitId := "Ex-F", movesToAdmit := false, statutoryId := "SF-10"}) (cons (record DirectExamQuestion {id := "DX-018", chapterId := "CH-03", page := 8, visualCue := "yellow-highlight", question := "What did Exhibit G and Exhibit H reveal regarding Petitioner's initial financial disclosures?", fullTestimony := "Exhibit G is Petitioner's initial Sworn Financial Statement, which omitted Escrow Checking x4102 and Reserve Savings x4109. Subpoenaed statements in Exhibit H proved those accounts held $30,000.00.", exhibitId := "Ex-H", movesToAdmit := true, statutoryId := "SF-11"}) (cons (record DirectExamQuestion {id := "DX-019", chapterId := "CH-04", page := 9, visualCue := "standard", question := "Turning to 2029, what do the unedited home videos in Exhibit K show?", fullTestimony := "Exhibit K shows our calm daily interactions with the children and my efforts to de-escalate tension respectfully.", exhibitId := "Ex-K", movesToAdmit := true, statutoryId := "SF-06"}) (cons (record DirectExamQuestion {id := "DX-020", chapterId := "CH-04", page := 9, visualCue := "yellow-highlight", question := "How was the October 2029 interim administrative petition resolved on November 18, 2029?", fullTestimony := "We resolved and dismissed it by joint stipulation on November 18, 2029 in Exhibit J, with zero findings of fault, and agreed to structured co-parenting protocols.", exhibitId := "Ex-J", movesToAdmit := true, statutoryId := "SF-09"}) (cons (record DirectExamQuestion {id := "DX-021", chapterId := "CH-04", page := 10, visualCue := "yellow-highlight", question := "What does the transit telemetry log in Exhibit A prove regarding the school corridor allegation?", fullTestimony := "Exhibit A is the verified transit telemetry log proving I remained more than 512 yards away on a public arterial boulevard and complied strictly with the 500-yard buffer.", exhibitId := "Ex-A", movesToAdmit := true, statutoryId := "SF-09"}) (cons (record DirectExamQuestion {id := "DX-022", chapterId := "CH-04", page := 10, visualCue := "standard", question := "Have there been any household incidents in the nine months since you separated on November 1, 2029?", fullTestimony := "None at all. Every exchange and communication over the past nine months has been completely peaceful and incident-free.", exhibitId := "Ex-O", movesToAdmit := false, statutoryId := "SF-06"}) (cons (record DirectExamQuestion {id := "DX-023", chapterId := "CH-04", page := 11, visualCue := "standard", question := "If opposing counsel points to page 6 of your 2028 homework study log (OP Ex. 13), what does the full page say?", fullTestimony := "Lines 15 through 28 on that exact same page from October 14, 2028 record our commitment to positive reinforcement, structured study breaks, and patient explanation.", exhibitId := "OP-Ex-13", movesToAdmit := false, statutoryId := "SF-05"}) (cons (record DirectExamQuestion {id := "DX-024", chapterId := "CH-04", page := 11, visualCue := "red-strikethrough", question := "[Stricken in Script] Collateral dispute over 2028 winter break travel.", fullTestimony := "Our proposed plan sets clear holiday schedules going forward.", exhibitId := "Ex-L", movesToAdmit := false, statutoryId := "SF-01"}) (cons (record DirectExamQuestion {id := "DX-025", chapterId := "CH-05", page := 12, visualCue := "yellow-highlight", question := "Please walk the Court through the townhouse photographs in Exhibit I (pages 1 through 11).", fullTestimony := "Exhibit I shows our three-bedroom townhouse 8 minutes from the children's schools, including each of the three children's bedrooms, their study desks, our kitchen, and the greenbelt courtyard where we play and study together.", exhibitId := "Ex-I", movesToAdmit := true, statutoryId := "SF-04"}) (cons (record DirectExamQuestion {id := "DX-026", chapterId := "CH-05", page := 12, visualCue := "standard", question := "What community support network surrounds your townhouse neighborhood?", fullTestimony := "Our townhouse community includes long-standing neighborhood families and a retired school librarian next door who regularly sees our children's calm after-school routine.", exhibitId := "Ex-I", movesToAdmit := false, statutoryId := "SF-03"}) (cons (record DirectExamQuestion {id := "DX-027", chapterId := "CH-05", page := 13, visualCue := "yellow-highlight", question := "How did the equal 50/50 2-2-5-5 schedule work during the 90-day summer period?", fullTestimony := "From mid-May through mid-August 2030, we practiced an equal 50/50 parenting schedule. All three children thrived, and every exchange went smoothly.", exhibitId := "Ex-L", movesToAdmit := false, statutoryId := "SF-04"}) (cons (record DirectExamQuestion {id := "DX-028", chapterId := "CH-05", page := 13, visualCue := "standard", question := "What did the Court find at Temporary Orders (Exhibit N \u00b6 8) regarding your parenting time?", fullTestimony := "In Paragraph 8 of Temporary Orders, the Court found no basis to restrict my parenting time.", exhibitId := "Ex-N", movesToAdmit := false, statutoryId := "SF-01"}) (cons (record DirectExamQuestion {id := "DX-029", chapterId := "CH-05", page := 13, visualCue := "yellow-highlight", question := "Are you available to care for the three children during Petitioner's regional travel weeks?", fullTestimony := "Yes. Because I am retired on disability pension, I am available to care for our three children during every regional travel block for $0, rather than placing them with a $2,400-per-month commercial agency.", exhibitId := "Ex-L", movesToAdmit := false, statutoryId := "SF-10"}) (cons (record DirectExamQuestion {id := "DX-030", chapterId := "CH-05", page := 14, visualCue := "standard", question := "What have the three children expressed about the parenting schedule?", fullTestimony := "All three children have consistently asked to continue our equal 50/50 parenting schedule.", exhibitId := "OP-Ex-14", movesToAdmit := false, statutoryId := "SF-02"}) (cons (record DirectExamQuestion {id := "DX-031", chapterId := "CH-06", page := 14, visualCue := "yellow-highlight", question := "Did you complete the court-ordered Collaborative Co-Parenting Seminar?", fullTestimony := "Yes. I completed the entire seminar on August 15, 2030\u2014thirty days ahead of the Court's deadline\u2014as shown in Exhibit M.", exhibitId := "Ex-M", movesToAdmit := true, statutoryId := "SF-06"}) (cons (record DirectExamQuestion {id := "DX-032", chapterId := "CH-06", page := 15, visualCue := "standard", question := "How have you and Petitioner communicated since November 2029?", fullTestimony := "We have communicated exclusively through the co-parenting platform in Exhibit O in a polite, brief, child-focused manner.", exhibitId := "Ex-O", movesToAdmit := true, statutoryId := "SF-09"}) (cons (record DirectExamQuestion {id := "DX-033", chapterId := "CH-06", page := 15, visualCue := "yellow-highlight", question := "What parenting schedule and decision-making framework are you asking the Court to adopt in Exhibit L?", fullTestimony := "In Exhibit L, we ask for an equal 50/50 schedule with Wednesday school exchanges, plus joint major decision-making with mediation before court.", exhibitId := "Ex-L", movesToAdmit := true, statutoryId := "SF-01"}) (cons (record DirectExamQuestion {id := "DX-034", chapterId := "CH-06", page := 16, visualCue := "yellow-highlight", question := "What is the guideline child support result in Exhibit N based on your stipulated incomes?", fullTestimony := "Using our stipulated incomes of $8,000 and $5,000 per month and 182.5 overnights each, the guideline worksheet in Exhibit N results in $250.00 per month from Petitioner to me.", exhibitId := "Ex-N", movesToAdmit := true, statutoryId := "SF-10"}) (cons (record DirectExamQuestion {id := "DX-035", chapterId := "CH-06", page := 16, visualCue := "yellow-highlight", question := "Why should the Court deny Petitioner's request for retroactive support from November 2029 through May 2030?", fullTestimony := "At Temporary Orders (Exhibit N \u00b6\u00b6 24-26), the Court ruled that the interim expense stipulation was unconscionable because Petitioner had omitted $30,000.00 in escrow accounts from the initial Sworn Financial Statement.", exhibitId := "Ex-N", movesToAdmit := false, statutoryId := "SF-11"}) (nil DirectExamQuestion)))))))))))))))))))))))))))))))))))) (cons (record DirectExamQuestion {id := "DX-036", chapterId := "CH-06", page := 17, visualCue := "standard", question := "In one sentence, why is your proposed plan in the best interests of the three minor children?", fullTestimony := "Our three children thrive when they have equal, loving time with both of their capable parents in a calm, predictable 50/50 routine.", exhibitId := "Ex-L", movesToAdmit := false, statutoryId := "SF-01"}) (nil DirectExamQuestion)) : (List DirectExamQuestion)),
+  axioms: []
+}
+
+definition{
+  name: validExhibitIds,
+  parameters: [],
+  result: (List String),
+  body: (cons "NONE" (cons "Ex-A" (cons "Ex-B" (cons "Ex-C" (cons "Ex-D" (cons "Ex-E" (cons "Ex-F" (cons "Ex-G" (cons "Ex-H" (cons "Ex-I" (cons "Ex-J" (cons "Ex-K" (cons "Ex-L" (cons "Ex-M" (cons "Ex-N" (cons "Ex-O" (cons "OP-Ex-01" (cons "OP-Ex-02" (cons "OP-Ex-03" (cons "OP-Ex-04" (cons "OP-Ex-05" (cons "OP-Ex-06" (cons "OP-Ex-07" (cons "OP-Ex-08" (cons "OP-Ex-09" (cons "OP-Ex-10" (cons "OP-Ex-11" (cons "OP-Ex-12" (cons "OP-Ex-13" (cons "OP-Ex-14" (cons "OP-Ex-15" (nil String)))))))))))))))))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: validFactorIds,
+  parameters: [],
+  result: (List String),
+  body: (cons "SF-01" (cons "SF-02" (cons "SF-03" (cons "SF-04" (cons "SF-05" (cons "SF-06" (cons "SF-07" (cons "SF-08" (cons "SF-09" (cons "SF-10" (cons "SF-11" (nil String)))))))))))),
+  axioms: []
+}
+
+definition{
+  name: chapterIds,
+  parameters: [xs : (List DirectExamChapter)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (chapterIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: questionIds,
+  parameters: [xs : (List DirectExamQuestion)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (questionIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: questionChapterIds,
+  parameters: [xs : (List DirectExamQuestion)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head chapterId) (questionChapterIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: questionVisualCues,
+  parameters: [xs : (List DirectExamQuestion)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head visualCue) (questionVisualCues tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: questionExhibitIds,
+  parameters: [xs : (List DirectExamQuestion)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head exhibitId) (questionExhibitIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: questionStatutoryIds,
+  parameters: [xs : (List DirectExamQuestion)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head statutoryId) (questionStatutoryIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: allQuestionsHaveTestimony,
+  parameters: [xs : (List DirectExamQuestion)],
+  result: Bool,
+  body: (match xs
+    | List.nil => true
+    | List.cons head tail => (if (prim equal (project head fullTestimony) "" : Bool) then false else (allQuestionsHaveTestimony tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: countByVisualCue,
+  parameters: [cue : String, xs : (List DirectExamQuestion)],
+  result: Nat,
+  body: (match xs
+    | List.nil => 0
+    | List.cons head tail => (if (prim equal (project head visualCue) cue : Bool) then (1 + (countByVisualCue cue tail)) else (countByVisualCue cue tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: countAdmissionMoves,
+  parameters: [xs : (List DirectExamQuestion)],
+  result: Nat,
+  body: (match xs
+    | List.nil => 0
+    | List.cons head tail => (if (project head movesToAdmit) then (1 + (countAdmissionMoves tail)) else (countAdmissionMoves tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+theorem{
+  name: directExamChapterIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (chapterIds (chapters))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: directExamQuestionIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (questionIds (questions))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: directExamQuestionChaptersResolve,
+  parameters: [],
+  statement: ((allMembers (questionChapterIds (questions)) (chapterIds (chapters))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: directExamVisualCuesValid,
+  parameters: [],
+  statement: ((allMembers (questionVisualCues (questions)) (visualCues)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: directExamQuestionExhibitsResolve,
+  parameters: [],
+  statement: ((allMembers (questionExhibitIds (questions)) (validExhibitIds)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: directExamQuestionStatutesResolve,
+  parameters: [],
+  statement: ((allMembers (questionStatutoryIds (questions)) (validFactorIds)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everyDirectExamQuestionHasFullTestimony,
+  parameters: [],
+  statement: ((allQuestionsHaveTestimony (questions)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: directExamYellowHighlightCount,
+  parameters: [],
+  statement: ((countByVisualCue "yellow-highlight" (questions)) = 14),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: directExamRedStrikethroughCount,
+  parameters: [],
+  statement: ((countByVisualCue "red-strikethrough" (questions)) = 3),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: directExamAdmissionMoveCount,
+  parameters: [],
+  statement: ((countAdmissionMoves (questions)) = 14),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

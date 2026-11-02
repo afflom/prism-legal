@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "guideline-remedy"
+category = "function"
+signature = "(pi ((explicit m (const lexlean.std.nat::nat)) (explicit f (const lexlean.std.nat::nat))) (const lexlean.std.nat::nat))"
+surface_arity = 2
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Remedies"
+name = "PrismLegal.Remedies.guidelineRemedy"
+
+[[form]]
+id = "guideline-remedy"
+channel = "math"
+surface = "guidelineRemedy"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name guidelineRemedy) (paren (seq (slot 0) (token comma) (space) (slot 1))))"

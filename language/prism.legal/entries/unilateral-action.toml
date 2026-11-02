@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "unilateral-action"
+category = "function"
+signature = "(pi ((explicit d (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Governance"
+name = "PrismLegal.Governance.unilateralAction"
+
+[[form]]
+id = "unilateral-action"
+channel = "math"
+surface = "unilateralAction"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name unilateralAction) (paren (seq (slot 0))))"

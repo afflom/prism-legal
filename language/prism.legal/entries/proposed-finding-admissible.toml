@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "proposed-finding-admissible"
+category = "function"
+signature = "(pi ((explicit f (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Procedure"
+name = "PrismLegal.Procedure.proposedFindingAdmissible"
+
+[[form]]
+id = "proposed-finding-admissible"
+channel = "math"
+surface = "proposedFindingAdmissible"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name proposedFindingAdmissible) (paren (seq (slot 0))))"

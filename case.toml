@@ -1,0 +1,190 @@
+spec = "prism-legal/register/1"
+case_number = "2030-FAM-9010"
+court = "Superior Court \u2014 Family & Civil Trial Division 7C"
+hearing_date = "2030-09-18"
+
+[[beneficiary]]
+id = "ben-child-1"
+name = "Older Minor Child (Age 15)"
+age = 15
+school = "Regional High School (10th Grade)"
+
+[[beneficiary]]
+id = "ben-child-2"
+name = "Middle Minor Child (Age 11)"
+age = 11
+school = "Suburban Middle School (6th Grade)"
+
+[[beneficiary]]
+id = "ben-child-3"
+name = "Youngest Minor Child (Age 6)"
+age = 6
+school = "Neighborhood Elementary Academy (1st Grade)"
+
+[[claim]]
+id = "CLM-01"
+title = "Equal 50/50 Parenting Time (182.5 Overnights) Serves Best Interests"
+statutory = "UniformBest-Interests Standard \u00a7 402(a)"
+status = "corroborated"
+exhibits = ["Ex-B", "Ex-K", "Ex-L", "Ex-O"]
+
+[[claim]]
+id = "CLM-02"
+title = "Six-Year Primary Hands-On Caregiving & 2028 Four-Month Solo Parenting"
+statutory = "Uniform Best-Interests Standard \u00a7 402(a)(3), (7)"
+status = "corroborated"
+exhibits = ["Ex-B", "Ex-K", "Ex-O"]
+
+[[claim]]
+id = "CLM-03"
+title = "Zero Tardies & Academic Excellence During 2030 90-Day 50/50 Period"
+statutory = "Uniform Best-Interests Standard \u00a7 402(a)(4)"
+status = "corroborated"
+exhibits = ["Ex-B", "Ex-K", "Ex-L"]
+
+[[claim]]
+id = "CLM-04"
+title = "School-Zone Residential Proximity Enables Seamless Exchanges"
+statutory = "Uniform Best-Interests Standard \u00a7 402(a)(4), (8)"
+status = "stipulated"
+exhibits = ["Ex-L", "Ex-O"]
+
+[[claim]]
+id = "CLM-05"
+title = "Joint Major Decision-Making with Mediation-First Protocol"
+statutory = "Uniform Best-Interests Standard \u00a7 402(b)"
+status = "corroborated"
+exhibits = ["Ex-A", "Ex-B", "Ex-D", "Ex-L"]
+
+[[claim]]
+id = "CLM-06"
+title = "Early Completion of Certified Co-Parenting & Communication Seminar"
+statutory = "Uniform Best-Interests Standard \u00a7 402(a)(6), (9)"
+status = "corroborated"
+exhibits = ["Ex-D"]
+
+[[claim]]
+id = "CLM-07"
+title = "Stipulated Monthly Income Baseline ($8,000/mo vs. $5,000/mo)"
+statutory = "Uniform Support Guidelines \u00a7 305(2)"
+status = "stipulated"
+exhibits = ["Ex-E", "Ex-I", "Ex-N"]
+
+[[claim]]
+id = "CLM-08"
+title = "Guideline Support Transfer ($250.00/mo Petitioner to Respondent)"
+statutory = "Uniform Support Guidelines \u00a7 305(8)"
+status = "corroborated"
+exhibits = ["Ex-E", "Ex-L", "Ex-N"]
+
+[[claim]]
+id = "CLM-09"
+title = "Statutory Prohibition on Imputing Income Above Disability Pension"
+statutory = "Uniform Support Guidelines \u00a7 305(5)(b)"
+status = "stipulated"
+exhibits = ["Ex-E", "Ex-I", "Ex-N"]
+
+[[claim]]
+id = "CLM-10"
+title = "Zero Commercial Revenue from Open-Source Civic Research (2026-2029)"
+statutory = "IRC \u00a7 61 & Support Guidelines \u00a7 305"
+status = "stipulated"
+exhibits = ["Ex-I", "Ex-N"]
+
+[[claim]]
+id = "CLM-11"
+title = "Zero-Premium Dependent Healthcare Eliminates Duplicate $180/mo Add-On"
+statutory = "38 U.S.C. \u00a7 1781 & Support Guidelines \u00a7 305(10)"
+status = "stipulated"
+exhibits = ["Ex-E", "Ex-N"]
+
+[[claim]]
+id = "CLM-12"
+title = "Full-Time Parental Availability Eliminates $1,500/mo Commercial Care Add-On"
+statutory = "Uniform Support Guidelines \u00a7 305(9)"
+status = "corroborated"
+exhibits = ["Ex-B", "Ex-E", "Ex-L", "Ex-N"]
+
+[[claim]]
+id = "CLM-13"
+title = "Mandatory Disclosure Omission of $30,000.00 in Escrow Reserve Accounts"
+statutory = "FRCP 26(e) / Mandatory Disclosure Rule 16.2(e)(10)"
+status = "corroborated"
+exhibits = ["Ex-G", "Ex-H", "Ex-N"]
+
+[[claim]]
+id = "CLM-14"
+title = "Rule 16.2(e)(10) Bars Retroactive Interim Expense Demand"
+statutory = "Mandatory Disclosure Rule 16.2(e)(10)"
+status = "corroborated"
+exhibits = ["Ex-G", "Ex-H", "Ex-J", "Ex-N"]
+
+[[claim]]
+id = "CLM-15"
+title = "FRE 106 Completeness Rebuts Selective Excerpt from 2028 Homework Study Log"
+statutory = "FRE 106 (Rule of Completeness)"
+status = "corroborated"
+exhibits = ["Ex-D", "OP-Ex-13"]
+
+[[claim]]
+id = "CLM-16"
+title = "FRE 106 Complete Portal Thread Proves Respectful Co-Parenting"
+statutory = "FRE 106 & Uniform Act \u00a7 402(a)(2), (6)"
+status = "corroborated"
+exhibits = ["Ex-A", "Ex-B", "OP-Ex-05", "OP-Ex-14"]
+
+[[claim]]
+id = "CLM-17"
+title = "Collateral Relative Witnesses Lack Post-2028 Personal Knowledge Under FRE 602"
+statutory = "FRE 602 & FRE 802"
+status = "corroborated"
+exhibits = ["Ex-B", "Ex-K", "Ex-O"]
+
+[[claim]]
+id = "CLM-18"
+title = "Verified 512-Yard School-Zone Transit Log Proves Full Buffer Compliance"
+statutory = "FRE 901(b)(9) & Uniform Act \u00a7 402(a)(9)"
+status = "corroborated"
+exhibits = ["Ex-F", "Ex-L", "Ex-M"]
+
+[[claim]]
+id = "CLM-19"
+title = "October 1, 2029 Stipulated Dismissal With Prejudice of Interim Restriction Motion"
+statutory = "Doctrine of Issue Preclusion & Stipulation (Ex. C)"
+status = "stipulated"
+exhibits = ["Ex-C", "Ex-F", "Ex-L"]
+
+[[claim]]
+id = "CLM-20"
+title = "First Right of Refusal During Multi-Day Regional Logistics Travel Shifts"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)(3), (9)"
+status = "corroborated"
+exhibits = ["Ex-B", "Ex-L", "OP-Ex-03"]
+
+[[claim]]
+id = "CLM-21"
+title = "Suburban Residence With Dedicated Bedrooms & Study Space"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)(4)"
+status = "corroborated"
+exhibits = ["Ex-K", "Ex-L", "Ex-O"]
+
+[[claim]]
+id = "CLM-22"
+title = "Equitable Credit for Unilateral Joint-Account Withdrawal ($6,400.00)"
+statutory = "Uniform Marital Property & Equitable Offset Principles"
+status = "corroborated"
+exhibits = ["Ex-G", "Ex-H", "Ex-J", "Ex-N"]
+
+[[claim]]
+id = "CLM-23"
+title = "Equal Statutory Access to School, Medical & Extracurricular Portals (\u00a7 408)"
+statutory = "Uniform Domestic Relations Act \u00a7 408"
+status = "corroborated"
+exhibits = ["Ex-B", "Ex-K", "Ex-L"]
+
+[[claim]]
+id = "CLM-24"
+title = "Rebuttal of Proposed 90-Overnight Restriction Across All Statutory Factors"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)(1)-(11)"
+status = "contested"
+exhibits = ["Ex-B", "Ex-F", "Ex-K", "Ex-L", "Ex-O", "OP-Ex-01"]

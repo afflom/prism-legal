@@ -1,0 +1,521 @@
+\begin{lexlean}{Portal}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: ClientEntity,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: name, type: String}
+  ]
+}
+
+structure{
+  name: LawyerEntity,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: name, type: String},
+    {name: firmId, type: String},
+    {name: barNumber, type: String}
+  ]
+}
+
+structure{
+  name: FirmEntity,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: name, type: String},
+    {name: kind, type: String}
+  ]
+}
+
+structure{
+  name: CourtEntity,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: name, type: String},
+    {name: rulesFramework, type: String}
+  ]
+}
+
+structure{
+  name: FrameworkEntity,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: name, type: String},
+    {name: domain, type: String}
+  ]
+}
+
+structure{
+  name: CaseEntity,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: docketNumber, type: String},
+    {name: practiceArea, type: String},
+    {name: courtId, type: String},
+    {name: frameworkId, type: String}
+  ]
+}
+
+structure{
+  name: EngagementEntity,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: clientId, type: String},
+    {name: lawyerId, type: String},
+    {name: caseId, type: String},
+    {name: role, type: String}
+  ]
+}
+
+structure{
+  name: ShareGrantEntity,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: caseId, type: String},
+    {name: granterId, type: String},
+    {name: granteeId, type: String},
+    {name: capability, type: String}
+  ]
+}
+
+structure{
+  name: PortalViewEntity,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: audience, type: String},
+    {name: route, type: String},
+    {name: title, type: String}
+  ]
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: allMembers,
+  parameters: [values : (List String), ids : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head ids) then (allMembers tail ids) else false)),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head tail) then false else (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: clients,
+  parameters: [],
+  result: (List ClientEntity),
+  body: (cons (record ClientEntity {id := "CLIENT-DOM-RESPONDENT", name := "Respondent (Client Litigant)"}) (cons (record ClientEntity {id := "CLIENT-ADA-CLAIMANT", name := "Employee Civil Rights Claimant"}) (cons (record ClientEntity {id := "CLIENT-HOUSING-TENANTS", name := "Residential Tenant Association Household"}) (nil ClientEntity)))),
+  axioms: []
+}
+
+definition{
+  name: lawyers,
+  parameters: [],
+  result: (List LawyerEntity),
+  body: (cons (record LawyerEntity {id := "LAWYER-LEAD-TRIAL", name := "Lead Domestic Relations Trial Counsel", firmId := "FIRM-CIVIC-ADVOCACY", barNumber := "BAR-44109"}) (cons (record LawyerEntity {id := "LAWYER-VET-BENEFITS", name := "Statutory & Administrative Benefits Counsel", firmId := "FIRM-VET-CLINIC", barNumber := "BAR-31892"}) (cons (record LawyerEntity {id := "LAWYER-COMMERCIAL-TAX", name := "Commercial, Entity Governance & Tax Counsel", firmId := "FIRM-PACIFIC-COMMERCIAL", barNumber := "BAR-52904"}) (cons (record LawyerEntity {id := "LAWYER-PUBLIC-DEFENSE", name := "Public-Benefit Employment & Housing Defense Counsel", firmId := "FIRM-METRO-LEGAL-AID", barNumber := "BAR-60218"}) (nil LawyerEntity))))),
+  axioms: []
+}
+
+definition{
+  name: firms,
+  parameters: [],
+  result: (List FirmEntity),
+  body: (cons (record FirmEntity {id := "FIRM-CIVIC-ADVOCACY", name := "Civic Justice & Trial Advocacy LLP", kind := "Litigation & Family Law Firm"}) (cons (record FirmEntity {id := "FIRM-VET-CLINIC", name := "Statutory & Federal Benefits Public Law Clinic", kind := "Non-Profit Legal Aid Clinic"}) (cons (record FirmEntity {id := "FIRM-PACIFIC-COMMERCIAL", name := "Meridian Commercial, IP & Fiduciary Law Group", kind := "Civil & Commercial Boutique"}) (cons (record FirmEntity {id := "FIRM-METRO-LEGAL-AID", name := "Metro Access-to-Justice Legal Aid Society", kind := "Community Legal Aid Clinic"}) (nil FirmEntity))))),
+  axioms: []
+}
+
+definition{
+  name: courts,
+  parameters: [],
+  result: (List CourtEntity),
+  body: (cons (record CourtEntity {id := "COURT-STATE-DIST", name := "State District Court \u2014 Civil & Domestic Relations Division", rulesFramework := "FW-UNIFORM-DOM"}) (cons (record CourtEntity {id := "COURT-FED-DIST", name := "United States District Court \u2014 Civil & Constitutional Docket", rulesFramework := "FW-FRCP"}) (cons (record CourtEntity {id := "COURT-BVA-FED", name := "Federal Administrative & Pension Appeals Tribunal", rulesFramework := "FW-USC-38-ADA"}) (cons (record CourtEntity {id := "COURT-ADMIN-CIV", name := "Office of Administrative Courts \u2014 Employment & Housing Division", rulesFramework := "FW-UCC-REST2D"}) (nil CourtEntity))))),
+  axioms: []
+}
+
+definition{
+  name: frameworks,
+  parameters: [],
+  result: (List FrameworkEntity),
+  body: (cons (record FrameworkEntity {id := "FW-FRE", name := "Federal & Uniform Rules of Evidence (FRE 106, 401-403, 602, 608, 613, 801, 901)", domain := "Evidentiary Admissibility & Impeachment"}) (cons (record FrameworkEntity {id := "FW-FRCP", name := "Federal & State Rules of Civil Procedure (FRCP 16, 26(a)/(e), 37 & Rule 16.2)", domain := "Civil Procedure & Mandatory Disclosures"}) (cons (record FrameworkEntity {id := "FW-UNIFORM-DOM", name := "Uniform Domestic Relations, Best-Interests (\u00a7 402) & Support Guidelines (\u00a7 305)", domain := "Family & Domestic Relations Law"}) (cons (record FrameworkEntity {id := "FW-USC-38-ADA", name := "38 U.S.C. Ch. 11 & \u00a7 1781 Statutory Benefits / 42 U.S.C. \u00a7 12101 ADA Rights", domain := "Statutory Benefits, Disability & Civil Rights"}) (cons (record FrameworkEntity {id := "FW-UCC-REST2D", name := "UCC Article 2, Restatement (Second) of Contracts & Fiduciary Accounting", domain := "Commercial, Contract, Housing & Trust Law"}) (cons (record FrameworkEntity {id := "FW-CRIM-CONST", name := "U.S. Constitution Amends. IV, V, VI, XIV & Brady Evidentiary Standards", domain := "Constitutional & Criminal Defense"}) (nil FrameworkEntity))))))),
+  axioms: []
+}
+
+definition{
+  name: cases,
+  parameters: [],
+  result: (List CaseEntity),
+  body: (cons (record CaseEntity {id := "CASE-2030-FAM-9010", docketNumber := "2030-FAM-9010", practiceArea := "Family & Domestic Relations", courtId := "COURT-STATE-DIST", frameworkId := "FW-UNIFORM-DOM"}) (cons (record CaseEntity {id := "CASE-2030-ADM-9020", docketNumber := "2030-ADM-9020", practiceArea := "Administrative & Benefits Law", courtId := "COURT-BVA-FED", frameworkId := "FW-USC-38-ADA"}) (cons (record CaseEntity {id := "CASE-2030-COM-9030", docketNumber := "2030-COM-9030", practiceArea := "Commercial & Non-Profit Governance", courtId := "COURT-FED-DIST", frameworkId := "FW-UCC-REST2D"}) (cons (record CaseEntity {id := "CASE-2030-EMP-9040", docketNumber := "2030-EMP-9040", practiceArea := "Employment & Civil Rights Law", courtId := "COURT-ADMIN-CIV", frameworkId := "FW-USC-38-ADA"}) (cons (record CaseEntity {id := "CASE-2030-CON-9050", docketNumber := "2030-CON-9050", practiceArea := "Civil & Commercial Litigation", courtId := "COURT-FED-DIST", frameworkId := "FW-UCC-REST2D"}) (cons (record CaseEntity {id := "CASE-2030-HSG-9060", docketNumber := "2030-HSG-9060", practiceArea := "Housing & Real Property Law", courtId := "COURT-ADMIN-CIV", frameworkId := "FW-UCC-REST2D"}) (nil CaseEntity))))))),
+  axioms: []
+}
+
+definition{
+  name: engagements,
+  parameters: [],
+  result: (List EngagementEntity),
+  body: (cons (record EngagementEntity {id := "ENG-01", clientId := "CLIENT-DOM-RESPONDENT", lawyerId := "LAWYER-LEAD-TRIAL", caseId := "CASE-2030-FAM-9010", role := "Lead Trial Counsel"}) (cons (record EngagementEntity {id := "ENG-02", clientId := "CLIENT-DOM-RESPONDENT", lawyerId := "LAWYER-VET-BENEFITS", caseId := "CASE-2030-ADM-9020", role := "Specialized Statutory Benefits Counsel"}) (cons (record EngagementEntity {id := "ENG-03", clientId := "CLIENT-DOM-RESPONDENT", lawyerId := "LAWYER-VET-BENEFITS", caseId := "CASE-2030-FAM-9010", role := "Consulting Co-Counsel (Statutory Exemption)"}) (cons (record EngagementEntity {id := "ENG-04", clientId := "CLIENT-DOM-RESPONDENT", lawyerId := "LAWYER-COMMERCIAL-TAX", caseId := "CASE-2030-COM-9030", role := "Corporate & Tax Compliance Counsel"}) (cons (record EngagementEntity {id := "ENG-05", clientId := "CLIENT-ADA-CLAIMANT", lawyerId := "LAWYER-PUBLIC-DEFENSE", caseId := "CASE-2030-EMP-9040", role := "Lead Civil Rights Counsel"}) (cons (record EngagementEntity {id := "ENG-06", clientId := "CLIENT-ADA-CLAIMANT", lawyerId := "LAWYER-COMMERCIAL-TAX", caseId := "CASE-2030-CON-9050", role := "Commercial Litigation Counsel"}) (cons (record EngagementEntity {id := "ENG-07", clientId := "CLIENT-HOUSING-TENANTS", lawyerId := "LAWYER-PUBLIC-DEFENSE", caseId := "CASE-2030-HSG-9060", role := "Pro Bono Legal Aid Lead Counsel"}) (cons (record EngagementEntity {id := "ENG-08", clientId := "CLIENT-HOUSING-TENANTS", lawyerId := "LAWYER-LEAD-TRIAL", caseId := "CASE-2030-HSG-9060", role := "Pro Bono Trial Co-Counsel"}) (nil EngagementEntity))))))))),
+  axioms: []
+}
+
+definition{
+  name: shareGrants,
+  parameters: [],
+  result: (List ShareGrantEntity),
+  body: (cons (record ShareGrantEntity {id := "SHARE-01", caseId := "CASE-2030-FAM-9010", granterId := "CLIENT-DOM-RESPONDENT", granteeId := "LAWYER-LEAD-TRIAL", capability := "cap-lead-counsel-codesign"}) (cons (record ShareGrantEntity {id := "SHARE-02", caseId := "CASE-2030-ADM-9020", granterId := "CLIENT-DOM-RESPONDENT", granteeId := "LAWYER-VET-BENEFITS", capability := "cap-scoped-benefits-counsel"}) (cons (record ShareGrantEntity {id := "SHARE-03", caseId := "CASE-2030-COM-9030", granterId := "CLIENT-DOM-RESPONDENT", granteeId := "LAWYER-COMMERCIAL-TAX", capability := "cap-commercial-fiduciary-counsel"}) (cons (record ShareGrantEntity {id := "SHARE-04", caseId := "CASE-2030-EMP-9040", granterId := "CLIENT-ADA-CLAIMANT", granteeId := "LAWYER-PUBLIC-DEFENSE", capability := "cap-employment-civil-rights"}) (cons (record ShareGrantEntity {id := "SHARE-05", caseId := "CASE-2030-HSG-9060", granterId := "CLIENT-HOUSING-TENANTS", granteeId := "LAWYER-PUBLIC-DEFENSE", capability := "cap-housing-clinic-defense"}) (nil ShareGrantEntity)))))),
+  axioms: []
+}
+
+definition{
+  name: portalViews,
+  parameters: [],
+  result: (List PortalViewEntity),
+  body: (cons (record PortalViewEntity {id := "PV-CLIENT-GOALS", audience := "client", route := "client.html", title := "Step 1: Relief Goals & 6 Narrative Pillars"}) (cons (record PortalViewEntity {id := "PV-CLIENT-DIRECT", audience := "client", route := "client.html", title := "Step 2: Direct Testimony Walkthrough & Photo Guide"}) (cons (record PortalViewEntity {id := "PV-CLIENT-REHEARSAL", audience := "client", route := "client.html", title := "Step 3: Cross-Examination Flashcard Trainer & Study Log Completeness"}) (cons (record PortalViewEntity {id := "PV-CLIENT-COUNSEL", audience := "client", route := "client.html", title := "Step 4: My Matters, Engaged Counsel & Secure Case Sharing"}) (cons (record PortalViewEntity {id := "PV-LAWYER-ROSTER", audience := "lawyer", route := "lawyer.html", title := "Workspace 1: Firm Roster, Courts, Frameworks & Participants"}) (cons (record PortalViewEntity {id := "PV-LAWYER-BENCH", audience := "lawyer", route := "lawyer.html", title := "Workspace 2: Statutory Proof, Remedies Calculator & Disclosure Impeachment"}) (cons (record PortalViewEntity {id := "PV-LAWYER-EXAMS", audience := "lawyer", route := "lawyer.html", title := "Workspace 3: Witness Examinations, 360-Min Trial Clock & FRE Objections"}) (cons (record PortalViewEntity {id := "PV-LAWYER-VAULT", audience := "lawyer", route := "lawyer.html", title := "Workspace 4: Master Exhibit Vault, Visual Forensics & Chain of Custody"}) (nil PortalViewEntity))))))))),
+  axioms: []
+}
+
+definition{
+  name: clientIds,
+  parameters: [xs : (List ClientEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (clientIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: lawyerIds,
+  parameters: [xs : (List LawyerEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (lawyerIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: firmIds,
+  parameters: [xs : (List FirmEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (firmIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: courtIds,
+  parameters: [xs : (List CourtEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (courtIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: frameworkIds,
+  parameters: [xs : (List FrameworkEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (frameworkIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: caseIds,
+  parameters: [xs : (List CaseEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (caseIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: engagementIds,
+  parameters: [xs : (List EngagementEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (engagementIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: shareGrantIds,
+  parameters: [xs : (List ShareGrantEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (shareGrantIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: portalViewIds,
+  parameters: [xs : (List PortalViewEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (portalViewIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: lawyerFirmIds,
+  parameters: [xs : (List LawyerEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head firmId) (lawyerFirmIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: caseCourtIds,
+  parameters: [xs : (List CaseEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head courtId) (caseCourtIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: caseFrameworkIds,
+  parameters: [xs : (List CaseEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head frameworkId) (caseFrameworkIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: engClientIds,
+  parameters: [xs : (List EngagementEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head clientId) (engClientIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: engLawyerIds,
+  parameters: [xs : (List EngagementEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head lawyerId) (engLawyerIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: engCaseIds,
+  parameters: [xs : (List EngagementEntity)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head caseId) (engCaseIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: viewsAudienceRouteWellFormed,
+  parameters: [xs : (List PortalViewEntity)],
+  result: Bool,
+  body: (match xs
+    | List.nil => true
+    | List.cons head tail => (if (if (prim equal (project head audience) "client" : Bool) then (prim equal (project head route) "client.html" : Bool) else (prim equal (project head route) "lawyer.html" : Bool)) then (viewsAudienceRouteWellFormed tail) else false)),
+  axioms: [],
+  recursive_argument: xs
+}
+
+theorem{
+  name: portalClientIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (clientIds (clients))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: portalLawyerIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (lawyerIds (lawyers))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: portalFirmIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (firmIds (firms))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: portalCourtIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (courtIds (courts))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: portalFrameworkIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (frameworkIds (frameworks))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: portalCaseIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (caseIds (cases))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: portalEngagementIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (engagementIds (engagements))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: portalShareGrantIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (shareGrantIds (shareGrants))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: portalViewIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (portalViewIds (portalViews))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: lawyersResolveToFirms,
+  parameters: [],
+  statement: ((allMembers (lawyerFirmIds (lawyers)) (firmIds (firms))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: casesResolveToCourts,
+  parameters: [],
+  statement: ((allMembers (caseCourtIds (cases)) (courtIds (courts))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: casesResolveToFrameworks,
+  parameters: [],
+  statement: ((allMembers (caseFrameworkIds (cases)) (frameworkIds (frameworks))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: engagementsResolveClients,
+  parameters: [],
+  statement: ((allMembers (engClientIds (engagements)) (clientIds (clients))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: engagementsResolveLawyers,
+  parameters: [],
+  statement: ((allMembers (engLawyerIds (engagements)) (lawyerIds (lawyers))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: engagementsResolveCases,
+  parameters: [],
+  statement: ((allMembers (engCaseIds (engagements)) (caseIds (cases))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: clientAndLawyerPortalViewsDisjoint,
+  parameters: [],
+  statement: ((viewsAudienceRouteWellFormed (portalViews)) = true),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

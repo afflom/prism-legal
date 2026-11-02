@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "sha256-custody-verified"
+category = "function"
+signature = "(pi ((explicit x (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Evidence"
+name = "PrismLegal.Evidence.sha256CustodyVerified"
+
+[[form]]
+id = "sha256-custody-verified"
+channel = "math"
+surface = "sha256CustodyVerified"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name sha256CustodyVerified) (paren (seq (slot 0))))"

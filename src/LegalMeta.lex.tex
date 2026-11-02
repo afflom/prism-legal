@@ -1,0 +1,315 @@
+\begin{lexlean}{LegalMeta}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: HohfeldRelation,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: dominantPosition, type: String},
+    {name: correlativePosition, type: String},
+    {name: backingExhibits, type: (List String)}
+  ]
+}
+
+structure{
+  name: LegalRule,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: strength, type: String},
+    {name: deonticModality, type: String},
+    {name: statutorySource, type: String}
+  ]
+}
+
+structure{
+  name: SuperiorityOverride,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: superiorRuleId, type: String},
+    {name: inferiorRuleId, type: String}
+  ]
+}
+
+structure{
+  name: AknDocument,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: workUri, type: String},
+    {name: title, type: String}
+  ]
+}
+
+structure{
+  name: ChainOfCustodyRecord,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: exhibitId, type: String},
+    {name: iso15489Class, type: String}
+  ]
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: allMembers,
+  parameters: [values : (List String), ids : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head ids) then (allMembers tail ids) else false)),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head tail) then false else (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: hohfeldRelations,
+  parameters: [],
+  result: (List HohfeldRelation),
+  body: (cons (record HohfeldRelation {id := "HOH-01", dominantPosition := "Right", correlativePosition := "Duty", backingExhibits := (cons "Ex-I" (cons "Ex-L" (cons "Ex-N" (nil String))))}) (cons (record HohfeldRelation {id := "HOH-02", dominantPosition := "Power", correlativePosition := "Liability", backingExhibits := (cons "Ex-J" (cons "Ex-L" (cons "Ex-M" (cons "Ex-O" (nil String)))))}) (cons (record HohfeldRelation {id := "HOH-03", dominantPosition := "Immunity", correlativePosition := "Disability", backingExhibits := (cons "Ex-D" (cons "Ex-E" (cons "Ex-F" (cons "Ex-N" (nil String)))))}) (cons (record HohfeldRelation {id := "HOH-04", dominantPosition := "Right", correlativePosition := "Duty", backingExhibits := (cons "Ex-B" (cons "Ex-E" (cons "Ex-N" (nil String))))}) (cons (record HohfeldRelation {id := "HOH-05", dominantPosition := "Power", correlativePosition := "Liability", backingExhibits := (cons "Ex-G" (cons "Ex-H" (cons "Ex-J" (cons "Ex-N" (nil String)))))}) (cons (record HohfeldRelation {id := "HOH-06", dominantPosition := "Privilege", correlativePosition := "NoRight", backingExhibits := (cons "Ex-E" (cons "Ex-L" (cons "OP-Ex-04" (nil String))))}) (cons (record HohfeldRelation {id := "HOH-07", dominantPosition := "Right", correlativePosition := "Duty", backingExhibits := (cons "Ex-L" (nil String))}) (cons (record HohfeldRelation {id := "HOH-08", dominantPosition := "Immunity", correlativePosition := "Disability", backingExhibits := (cons "Ex-E" (cons "Ex-N" (nil String)))}) (cons (record HohfeldRelation {id := "HOH-09", dominantPosition := "Right", correlativePosition := "Duty", backingExhibits := (cons "Ex-O" (cons "OP-Ex-13" (cons "OP-Ex-14" (nil String))))}) (cons (record HohfeldRelation {id := "HOH-10", dominantPosition := "Power", correlativePosition := "Liability", backingExhibits := (cons "Ex-L" (cons "Ex-N" (nil String)))}) (nil HohfeldRelation))))))))))),
+  axioms: []
+}
+
+definition{
+  name: legalRules,
+  parameters: [],
+  result: (List LegalRule),
+  body: (cons (record LegalRule {id := "LRML-01", strength := "StrictRule", deonticModality := "Obligation", statutorySource := "Uniform Best-Interests \u00a7 402(a)"}) (cons (record LegalRule {id := "LRML-02", strength := "DefeasibleRule", deonticModality := "Obligation", statutorySource := "Uniform Support Guidelines \u00a7 305(5)(a)"}) (cons (record LegalRule {id := "LRML-03", strength := "StrictRule", deonticModality := "Prohibition", statutorySource := "Uniform Support Guidelines \u00a7 305(5)(b)"}) (cons (record LegalRule {id := "LRML-04", strength := "StrictRule", deonticModality := "Immunity", statutorySource := "38 U.S.C. \u00a7 1781 & Guidelines \u00a7 305(10)"}) (cons (record LegalRule {id := "LRML-05", strength := "DefeasibleRule", deonticModality := "Permission", statutorySource := "Uniform Support Guidelines \u00a7 305(9)"}) (cons (record LegalRule {id := "LRML-06", strength := "StrictRule", deonticModality := "Prohibition", statutorySource := "Uniform Support Guidelines \u00a7 305(9) & \u00a7 402(a)"}) (cons (record LegalRule {id := "LRML-07", strength := "DefeasibleRule", deonticModality := "Obligation", statutorySource := "Contract / Stipulation Baseline"}) (cons (record LegalRule {id := "LRML-08", strength := "StrictRule", deonticModality := "Power", statutorySource := "FRCP 26(e) / Mandatory Disclosure Rule 16.2(e)(10)"}) (cons (record LegalRule {id := "LRML-09", strength := "DefeasibleRule", deonticModality := "Prohibition", statutorySource := "Uniform Best-Interests \u00a7 402(b)"}) (cons (record LegalRule {id := "LRML-10", strength := "StrictRule", deonticModality := "Obligation", statutorySource := "Uniform Best-Interests \u00a7 402(b) & Ex-J"}) (cons (record LegalRule {id := "LRML-11", strength := "StrictRule", deonticModality := "Obligation", statutorySource := "FRE 106 (Rule of Completeness)"}) (cons (record LegalRule {id := "LRML-12", strength := "StrictRule", deonticModality := "Prohibition", statutorySource := "FRE 602 & FRE 802"}) (nil LegalRule))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: superiorityOverrides,
+  parameters: [],
+  result: (List SuperiorityOverride),
+  body: (cons (record SuperiorityOverride {id := "SUP-01", superiorRuleId := "LRML-03", inferiorRuleId := "LRML-02"}) (cons (record SuperiorityOverride {id := "SUP-02", superiorRuleId := "LRML-06", inferiorRuleId := "LRML-05"}) (cons (record SuperiorityOverride {id := "SUP-03", superiorRuleId := "LRML-08", inferiorRuleId := "LRML-07"}) (cons (record SuperiorityOverride {id := "SUP-04", superiorRuleId := "LRML-10", inferiorRuleId := "LRML-09"}) (cons (record SuperiorityOverride {id := "SUP-05", superiorRuleId := "LRML-04", inferiorRuleId := "LRML-02"}) (cons (record SuperiorityOverride {id := "SUP-06", superiorRuleId := "LRML-11", inferiorRuleId := "LRML-09"}) (nil SuperiorityOverride))))))),
+  axioms: []
+}
+
+definition{
+  name: aknDocuments,
+  parameters: [],
+  result: (List AknDocument),
+  body: (cons (record AknDocument {id := "AKN-01", workUri := "akn:/us-uniform/act/marriage-and-divorce/sec-402", title := "Uniform Best-Interests & Parenting Allocation Standard (\u00a7 402)"}) (cons (record AknDocument {id := "AKN-02", workUri := "akn:/us-uniform/act/child-support-guidelines/sec-305", title := "Uniform Child Support Guidelines & Disability Exception (\u00a7 305)"}) (cons (record AknDocument {id := "AKN-03", workUri := "akn:/us/act/usc-title-38/sec-1781", title := "38 U.S.C. \u00a7 1781 \u2014 Statutory Dependent Medical Coverage"}) (cons (record AknDocument {id := "AKN-04", workUri := "akn:/us/rule/frcp/rule-26-e", title := "FRCP 26(e) / Mandatory Financial Disclosure Rule 16.2(e)(10)"}) (cons (record AknDocument {id := "AKN-05", workUri := "akn:/us/rule/fre/rule-106", title := "Federal & Uniform Rule of Evidence 106 \u2014 Rule of Completeness"}) (cons (record AknDocument {id := "AKN-06", workUri := "akn:/us/rule/fre/rule-602", title := "Federal & Uniform Rule of Evidence 602 \u2014 Personal Knowledge"}) (cons (record AknDocument {id := "AKN-07", workUri := "akn:/us/rule/fre/rule-901", title := "Federal & Uniform Rule of Evidence 901 \u2014 Authentication"}) (cons (record AknDocument {id := "AKN-08", workUri := "akn:/us/rule/aba-model-rules/rule-1-2", title := "ABA Model Rules 1.2(c) & 1.16(a)(3) \u2014 Unbundled Counsel & Client Choice"}) (cons (record AknDocument {id := "AKN-09", workUri := "akn:/us-state/court/2030-fam-9010/order-temporary-2030-06-20", title := "Temporary Orders Ruling (Ex. N)"}) (cons (record AknDocument {id := "AKN-10", workUri := "akn:/us-state/court/2030-fam-9010/jtmc-2030-08-29", title := "Joint Pretrial Management Certificate"}) (nil AknDocument))))))))))),
+  axioms: []
+}
+
+definition{
+  name: chainOfCustody,
+  parameters: [],
+  result: (List ChainOfCustodyRecord),
+  body: (cons (record ChainOfCustodyRecord {id := "COC-01", exhibitId := "Ex-A", iso15489Class := "Authenticated Transit Telemetry Log"}) (cons (record ChainOfCustodyRecord {id := "COC-02", exhibitId := "Ex-B", iso15489Class := "Stipulated Payroll Advisory"}) (cons (record ChainOfCustodyRecord {id := "COC-03", exhibitId := "Ex-C", iso15489Class := "Joint Federal Tax Returns (2026-2027)"}) (cons (record ChainOfCustodyRecord {id := "COC-04", exhibitId := "Ex-D", iso15489Class := "Certified IRS Tax Transcripts (2028-2029)"}) (cons (record ChainOfCustodyRecord {id := "COC-05", exhibitId := "Ex-E", iso15489Class := "Disability Retirement Decision Letter"}) (cons (record ChainOfCustodyRecord {id := "COC-06", exhibitId := "Ex-G", iso15489Class := "Sworn Court Filing (Initial SFS)"}) (cons (record ChainOfCustodyRecord {id := "COC-07", exhibitId := "Ex-H", iso15489Class := "Subpoenaed Financial Institution Statements"}) (cons (record ChainOfCustodyRecord {id := "COC-08", exhibitId := "Ex-I", iso15489Class := "Townhouse Photographic Compendium"}) (cons (record ChainOfCustodyRecord {id := "COC-09", exhibitId := "Ex-J", iso15489Class := "Court-Approved Stipulation"}) (cons (record ChainOfCustodyRecord {id := "COC-10", exhibitId := "Ex-M", iso15489Class := "Seminar Completion Certificate"}) (cons (record ChainOfCustodyRecord {id := "COC-11", exhibitId := "Ex-N", iso15489Class := "Judicial Temporary Orders & Guideline Worksheet"}) (cons (record ChainOfCustodyRecord {id := "COC-12", exhibitId := "Ex-O", iso15489Class := "Co-Parenting Platform Export"}) (nil ChainOfCustodyRecord))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: validExhibitIds,
+  parameters: [],
+  result: (List String),
+  body: (cons "Ex-A" (cons "Ex-B" (cons "Ex-C" (cons "Ex-D" (cons "Ex-E" (cons "Ex-F" (cons "Ex-G" (cons "Ex-H" (cons "Ex-I" (cons "Ex-J" (cons "Ex-K" (cons "Ex-L" (cons "Ex-M" (cons "Ex-N" (cons "Ex-O" (cons "OP-Ex-01" (cons "OP-Ex-02" (cons "OP-Ex-03" (cons "OP-Ex-04" (cons "OP-Ex-05" (cons "OP-Ex-06" (cons "OP-Ex-07" (cons "OP-Ex-08" (cons "OP-Ex-09" (cons "OP-Ex-10" (cons "OP-Ex-11" (cons "OP-Ex-12" (cons "OP-Ex-13" (cons "OP-Ex-14" (cons "OP-Ex-15" (nil String))))))))))))))))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: hohfeldIds,
+  parameters: [xs : (List HohfeldRelation)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (hohfeldIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: legalRuleIds,
+  parameters: [xs : (List LegalRule)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (legalRuleIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: superiorityIds,
+  parameters: [xs : (List SuperiorityOverride)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (superiorityIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: supSuperiorIds,
+  parameters: [xs : (List SuperiorityOverride)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head superiorRuleId) (supSuperiorIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: supInferiorIds,
+  parameters: [xs : (List SuperiorityOverride)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head inferiorRuleId) (supInferiorIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: aknIds,
+  parameters: [xs : (List AknDocument)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (aknIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: aknWorkUris,
+  parameters: [xs : (List AknDocument)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head workUri) (aknWorkUris tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: cocIds,
+  parameters: [xs : (List ChainOfCustodyRecord)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (cocIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: cocExhibitIds,
+  parameters: [xs : (List ChainOfCustodyRecord)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head exhibitId) (cocExhibitIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+theorem{
+  name: hohfeldIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (hohfeldIds (hohfeldRelations))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: legalRuleIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (legalRuleIds (legalRules))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: superiorityIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (superiorityIds (superiorityOverrides))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: superioritySuperiorRulesResolve,
+  parameters: [],
+  statement: ((allMembers (supSuperiorIds (superiorityOverrides)) (legalRuleIds (legalRules))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: superiorityInferiorRulesResolve,
+  parameters: [],
+  statement: ((allMembers (supInferiorIds (superiorityOverrides)) (legalRuleIds (legalRules))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: aknIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (aknIds (aknDocuments))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: aknWorkUrisDistinct,
+  parameters: [],
+  statement: ((distinctStrings (aknWorkUris (aknDocuments))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: cocIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (cocIds (chainOfCustody))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: cocExhibitsResolve,
+  parameters: [],
+  statement: ((allMembers (cocExhibitIds (chainOfCustody)) (validExhibitIds)) = true),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

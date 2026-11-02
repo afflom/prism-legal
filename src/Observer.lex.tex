@@ -1,0 +1,68 @@
+\begin{lexlean}{Observer}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: ObserverQuadruple,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: observer, type: String},
+    {name: observed, type: String},
+    {name: vantage, type: String},
+    {name: focus, type: String}
+  ]
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head tail) then false else (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: quadruples,
+  parameters: [],
+  result: (List ObserverQuadruple),
+  body: (cons (record ObserverQuadruple {id := "OBS-CLIENT", observer := "Client Litigant (Respondent)", observed := "Direct Walkthrough, Cross-Exam Flashcards & Shared Strategy", vantage := "Client Workspace (client.html)", focus := "Calm testimony delivery, 50/50 parenting stability for the three minor children, and co-design with counsel."}) (cons (record ObserverQuadruple {id := "OBS-COUNSEL", observer := "Lead & Specialized Co-Counsel (Trial, Veterans, Commercial & Legal Aid)", observed := "Statutory Proof Matrix, 30-Exhibit Vault, Visual Forensics & Jural Tuner", vantage := "Counsel Workbench (lawyer.html)", focus := "Evidentiary foundation, FRE 106/602/613 objections, Rule 26(e)/16.2 impeachment, and 360-minute trial clock."}) (cons (record ObserverQuadruple {id := "OBS-BENCH", observer := "Presiding Judicial Fact-Finder (Division 7C)", observed := "Stipulated Pretrial Facts, Statutory Factors & Credibility", vantage := "Courtroom Hearing Mode (courtroom.html)", focus := "Best-interests compliance (\u00a7 402), guideline support accuracy (\u00a7 305), and clear documentary proof."}) (cons (record ObserverQuadruple {id := "OBS-BENEFICIARIES", observer := "Minor Beneficiaries (Ages 15, 11 & 6)", observed := "Equal 50/50 Routine & Wednesday School Exchanges", vantage := "Equal Parenting Schedule & Townhouse Environment", focus := "Loving access to both parents, continuity of school/friends, and zero exposure to parental conflict."}) (cons (record ObserverQuadruple {id := "OBS-CLINIC", observer := "Public-Benefit Legal Aid Clinic & Open-Source Adopters", observed := "Multi-Domain Legal Framework & Cryptographic Sharing", vantage := "Platform Hub (index.html)", focus := "Formally verified legal case preparation across family, civil, veterans, employment, and housing law."}) (nil ObserverQuadruple)))))),
+  axioms: []
+}
+
+definition{
+  name: quadrupleIds,
+  parameters: [xs : (List ObserverQuadruple)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (quadrupleIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+theorem{
+  name: observerQuadrupleIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (quadrupleIds (quadruples))) = true),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

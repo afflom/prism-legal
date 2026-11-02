@@ -1,0 +1,395 @@
+\begin{lexlean}{Register}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: Beneficiary,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: name, type: String},
+    {name: dob, type: String},
+    {name: age, type: Nat},
+    {name: grade, type: String}
+  ]
+}
+
+structure{
+  name: OpeningPillar,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: title, type: String},
+    {name: theme, type: String},
+    {name: statutory, type: String},
+    {name: exhibits, type: (List String)}
+  ]
+}
+
+structure{
+  name: StatutoryFactor,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: section, type: String},
+    {name: title, type: String},
+    {name: exhibits, type: (List String)}
+  ]
+}
+
+structure{
+  name: Claim,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: category, type: String},
+    {name: status, type: String},
+    {name: statutory, type: String},
+    {name: statement, type: String},
+    {name: exhibits, type: (List String)},
+    {name: depends, type: (List String)}
+  ]
+}
+
+structure{
+  name: Exhibit,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: label, type: String},
+    {name: party, type: String},
+    {name: title, type: String},
+    {name: category, type: String},
+    {name: status, type: String}
+  ]
+}
+
+structure{
+  name: Witness,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: name, type: String},
+    {name: relationship, type: String},
+    {name: party, type: String},
+    {name: callStatus, type: String}
+  ]
+}
+
+structure{
+  name: TimelineEvent,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: date, type: String},
+    {name: title, type: String},
+    {name: exhibits, type: (List String)}
+  ]
+}
+
+definition{
+  name: caseNumber,
+  parameters: [],
+  result: String,
+  body: "2030-FAM-9010",
+  axioms: []
+}
+
+definition{
+  name: hearingDate,
+  parameters: [],
+  result: String,
+  body: "2030-09-18",
+  axioms: []
+}
+
+definition{
+  name: validClaimStatuses,
+  parameters: [],
+  result: (List String),
+  body: (cons "stipulated" (cons "corroborated" (cons "contested" (nil String)))),
+  axioms: []
+}
+
+definition{
+  name: beneficiaries,
+  parameters: [],
+  result: (List Beneficiary),
+  body: (cons (record Beneficiary {id := "CH-01", name := "Minor Dependent 1 (Age 15)", dob := "2015-01-20", age := 15, grade := "10th Grade (Secondary Academy)"}) (cons (record Beneficiary {id := "CH-02", name := "Minor Dependent 2 (Age 11)", dob := "2019-06-15", age := 11, grade := "6th Grade (Middle Academy)"}) (cons (record Beneficiary {id := "CH-03", name := "Minor Dependent 3 (Age 6)", dob := "2024-02-10", age := 6, grade := "1st Grade (Elementary Academy)"}) (nil Beneficiary)))),
+  axioms: []
+}
+
+definition{
+  name: openingPillars,
+  parameters: [],
+  result: (List OpeningPillar),
+  body: (cons (record OpeningPillar {id := "OS-1", title := "Public-Service Career & Full-Time Caregiving Availability", theme := "Service & Devotion", statutory := "Uniform Domestic Relations Act \u00a7 402(a)(3), (5), (7)", exhibits := (cons "Ex-E" (cons "Ex-I" (cons "Ex-O" (nil String))))}) (cons (record OpeningPillar {id := "OS-2", title := "Six Years of Primary Hands-On Parenting & 2028 Solo Caregiving", theme := "Historical Continuity", statutory := "Uniform Domestic Relations Act \u00a7 402(a)(3), (4), (7)", exhibits := (cons "Ex-B" (cons "Ex-K" (cons "Ex-O" (nil String))))}) (cons (record OpeningPillar {id := "OS-3", title := "Proactive Seminar Completion & Constructive Co-Parenting", theme := "Accountability & Maturity", statutory := "Uniform Domestic Relations Act \u00a7 402(a)(6), (9), (11)", exhibits := (cons "Ex-A" (cons "Ex-B" (cons "Ex-D" (cons "Ex-F" (nil String)))))}) (cons (record OpeningPillar {id := "OS-4", title := "Equal 50/50 Week-On/Week-Off Schedule & Joint Governance", theme := "Stability & Parity", statutory := "Uniform Domestic Relations Act \u00a7 402(a)(1)\u2013(11) & \u00a7 402(b)", exhibits := (cons "Ex-B" (cons "Ex-K" (cons "Ex-L" (cons "Ex-O" (nil String)))))}) (cons (record OpeningPillar {id := "OS-5", title := "Stipulated Financial Baseline & Mandatory Disclosure Audit", theme := "Financial Integrity", statutory := "Uniform Support Guidelines \u00a7 305 & Civil Rule 16.2(e)(10)", exhibits := (cons "Ex-E" (cons "Ex-G" (cons "Ex-H" (cons "Ex-I" (cons "Ex-J" (cons "Ex-N" (nil String)))))))}) (cons (record OpeningPillar {id := "OS-6", title := "Neutral School-Zone Compliance & Unfounded Restriction Rebuttal", theme := "Objective Verification", statutory := "Uniform Domestic Relations Act \u00a7\u00a7 402(a)(9), 406 & FRE 901", exhibits := (cons "Ex-F" (cons "Ex-L" (cons "Ex-M" (nil String))))}) (nil OpeningPillar))))))),
+  axioms: []
+}
+
+definition{
+  name: statutoryFactors,
+  parameters: [],
+  result: (List StatutoryFactor),
+  body: (cons (record StatutoryFactor {id := "SF-01", section := "\u00a7 402(a)(1)", title := "Wishes of the Child's Parents as to Parenting Time", exhibits := (cons "Ex-L" (cons "OP-Ex-01" (nil String)))}) (cons (record StatutoryFactor {id := "SF-02", section := "\u00a7 402(a)(2)", title := "Wishes of the Child (Mature Expression)", exhibits := (cons "Ex-B" (cons "OP-Ex-14" (nil String)))}) (cons (record StatutoryFactor {id := "SF-03", section := "\u00a7 402(a)(3)", title := "Interaction & Interrelationship with Parents & Siblings", exhibits := (cons "Ex-B" (cons "Ex-K" (cons "Ex-O" (nil String))))}) (cons (record StatutoryFactor {id := "SF-04", section := "\u00a7 402(a)(4)", title := "Adjustment to Home, School, and Community", exhibits := (cons "Ex-K" (cons "Ex-L" (cons "Ex-O" (nil String))))}) (cons (record StatutoryFactor {id := "SF-05", section := "\u00a7 402(a)(5)", title := "Mental and Physical Health of All Individuals Involved", exhibits := (cons "Ex-D" (cons "Ex-E" (cons "OP-Ex-13" (nil String))))}) (cons (record StatutoryFactor {id := "SF-06", section := "\u00a7 402(a)(6)", title := "Ability to Encourage Love, Affection & Contact with Other Parent", exhibits := (cons "Ex-A" (cons "Ex-B" (cons "Ex-L" (cons "OP-Ex-14" (nil String)))))}) (cons (record StatutoryFactor {id := "SF-07", section := "\u00a7 402(a)(7)", title := "Past Pattern of Involvement Reflecting Values, Time & Mutual Support", exhibits := (cons "Ex-B" (cons "Ex-K" (cons "Ex-O" (nil String))))}) (cons (record StatutoryFactor {id := "SF-08", section := "\u00a7 402(a)(8)", title := "Physical Proximity of the Parties' Residences", exhibits := (cons "Ex-L" (cons "Ex-O" (nil String)))}) (cons (record StatutoryFactor {id := "SF-09", section := "\u00a7 402(a)(9)", title := "Ability to Place the Needs of the Child Ahead of Own Needs", exhibits := (cons "Ex-B" (cons "Ex-D" (cons "Ex-L" (cons "Ex-N" (nil String)))))}) (cons (record StatutoryFactor {id := "SF-10", section := "\u00a7 402(b)(1)", title := "Capacity to Cooperate & Make Joint Major Decisions", exhibits := (cons "Ex-A" (cons "Ex-B" (cons "Ex-D" (cons "Ex-L" (nil String)))))}) (cons (record StatutoryFactor {id := "SF-11", section := "\u00a7 305 & Rule 16.2", title := "Guideline Support Accuracy & Complete Financial Disclosure", exhibits := (cons "Ex-E" (cons "Ex-G" (cons "Ex-H" (cons "Ex-I" (cons "Ex-J" (cons "Ex-N" (cons "OP-Ex-02" (nil String))))))))}) (nil StatutoryFactor)))))))))))),
+  axioms: []
+}
+
+definition{
+  name: claims,
+  parameters: [],
+  result: (List Claim),
+  body: (cons (record Claim {id := "CLM-01", category := "parenting-time", status := "corroborated", statutory := "Uniform Domestic Relations Act \u00a7 402(a)(1)\u2013(11)", statement := "Under Uniform Domestic Relations Act \u00a7 402(a), an equal 50/50 week-on/week-off schedule (182.5 overnights each) with Wednesday school exchanges preserves caregiving continuity and emotional stability.", exhibits := (cons "Ex-B" (cons "Ex-K" (cons "Ex-L" (cons "Ex-O" (nil String))))), depends := (cons "CLM-02" (cons "CLM-03" (cons "CLM-04" (nil String))))}) (cons (record Claim {id := "CLM-02", category := "parenting-time", status := "corroborated", statutory := "Uniform Domestic Relations Act \u00a7 402(a)(3), (7)", statement := "From 2023 through 2029, Respondent handled daily school transport, homework, and pediatric care\u2014including four months of solo caregiving in 2028 while Petitioner was on a regional logistics rotation.", exhibits := (cons "Ex-B" (cons "Ex-K" (cons "Ex-O" (nil String)))), depends := (nil String)}) (cons (record Claim {id := "CLM-03", category := "parenting-time", status := "corroborated", statutory := "Uniform Domestic Relations Act \u00a7 402(a)(4)", statement := "Certified school attendance records (Ex. K) prove that during the 90-day equal 50/50 schedule in early 2030, all three dependents had zero tardies and strong academic evaluations.", exhibits := (cons "Ex-B" (cons "Ex-K" (cons "Ex-L" (nil String)))), depends := (nil String)}) (cons (record Claim {id := "CLM-04", category := "parenting-time", status := "stipulated", statutory := "Uniform Domestic Relations Act \u00a7 402(a)(4), (8)", statement := "Both parents reside within the same suburban school district attendance zone (10 minutes apart), enabling conflict-free curb exchanges at school.", exhibits := (cons "Ex-L" (cons "Ex-O" (nil String))), depends := (nil String)}) (cons (record Claim {id := "CLM-05", category := "decision-making", status := "corroborated", statutory := "Uniform Domestic Relations Act \u00a7 402(b)(1)\u2013(3)", statement := "Six years of cooperative educational and medical choices plus neutral portal communication support joint major decision-making with mediation prior to court intervention (Ex. L).", exhibits := (cons "Ex-A" (cons "Ex-B" (cons "Ex-D" (cons "Ex-L" (nil String))))), depends := (cons "CLM-06" (nil String))}) (cons (record Claim {id := "CLM-06", category := "decision-making", status := "corroborated", statutory := "Uniform Domestic Relations Act \u00a7 402(a)(6), (9)", statement := "Respondent completed the 16-hour certified Co-Parenting & Communication Seminar on June 1, 2030\u201430 days ahead of the judicial deadline (Ex. D).", exhibits := (cons "Ex-D" (nil String)), depends := (nil String)}) (cons (record Claim {id := "CLM-07", category := "child-support", status := "stipulated", statutory := "Uniform Support Guidelines \u00a7 305(2)", statement := "In the Joint Pretrial Stipulation (\u00b6 14), the parties stipulated to monthly gross incomes of $8,000.00/mo ($800,000 cents) for Petitioner and $5,000.00/mo ($500,000 cents) for Respondent.", exhibits := (cons "Ex-E" (cons "Ex-I" (cons "Ex-N" (nil String)))), depends := (nil String)}) (cons (record Claim {id := "CLM-08", category := "child-support", status := "corroborated", statutory := "Uniform Support Guidelines \u00a7 305(8)", statement := "Applying the $13,000.00/mo combined baseline, 182.5 equal overnights, and $0 medical/childcare add-ons on Worksheet Ex. N yields a net guideline transfer of $250.00/mo ($25,000 cents) from Petitioner to Respondent.", exhibits := (cons "Ex-E" (cons "Ex-N" (nil String))), depends := (cons "CLM-01" (cons "CLM-07" (cons "CLM-09" (cons "CLM-11" (cons "CLM-12" (nil String))))))}) (cons (record Claim {id := "CLM-09", category := "child-support", status := "corroborated", statutory := "Uniform Support Guidelines \u00a7 305(5)(b)", statement := "Under Uniform Support Guidelines \u00a7 305(5)(b), Respondent's certified permanent disability pension determination (Ex. E) bars imputing speculative commercial engineering wages.", exhibits := (cons "Ex-E" (cons "Ex-I" (cons "Ex-N" (nil String)))), depends := (nil String)}) (cons (record Claim {id := "CLM-10", category := "child-support", status := "corroborated", statutory := "Uniform Support Guidelines \u00a7 305(3) & FRE 803(8)", statement := "Certified IRS Tax Return Transcripts for 2026, 2027, 2028, and 2029 (Ex. I) prove Respondent received $0 in gross revenue, salary, or distributions from open-source civic software projects.", exhibits := (cons "Ex-I" (cons "Ex-N" (nil String))), depends := (nil String)}) (cons (record Claim {id := "CLM-11", category := "child-support", status := "corroborated", statutory := "38 U.S.C. \u00a7 1781 & Support Guidelines \u00a7 305(9)", statement := "All three dependents are enrolled in Respondent's statutory public-service dependent medical plan at $0 monthly premium (Ex. E), eliminating Petitioner's $180.00/mo duplicate insurance add-on on OP Ex. 2.", exhibits := (cons "Ex-E" (cons "Ex-N" (cons "OP-Ex-02" (nil String)))), depends := (nil String)}) (cons (record Claim {id := "CLM-12", category := "child-support", status := "corroborated", statutory := "Uniform Support Guidelines \u00a7 305(9)(a) & \u00a7 402(a)(9)", statement := "Respondent is available full-time before and after school and during Petitioner's regional travel shifts (Ex. L), eliminating the unnecessary $1,500/mo ($450/mo worksheet share) commercial after-school agency expense.", exhibits := (cons "Ex-E" (cons "Ex-L" (cons "Ex-N" (cons "OP-Ex-02" (cons "OP-Ex-08" (nil String)))))), depends := (nil String)}) (cons (record Claim {id := "CLM-13", category := "financial-disclosure", status := "corroborated", statutory := "FRCP 26(e) & Civil Rule 16.2(e)(10)", statement := "Comparison of Petitioner's June 10, 2029 Sworn Financial Statement (Ex. G) with subpoenaed bank statements (Ex. H) proves Petitioner omitted $30,000.00 ($3,000,000 cents) held in Escrow Checking x4102 and Reserve Savings x4109.", exhibits := (cons "Ex-G" (cons "Ex-H" (cons "Ex-J" (cons "Ex-N" (nil String))))), depends := (nil String)}) (cons (record Claim {id := "CLM-14", category := "financial-disclosure", status := "corroborated", statutory := "Civil Rule 16.2(e)(10)", statement := "Because Petitioner omitted $30,000.00 in liquid reserves while claiming financial hardship during interim proceedings, Civil Rule 16.2(e)(10) bars retroactive expense shifting (Ex. G, Ex. H, Ex. J, Ex. N \u00b6\u00b6 24\u201326).", exhibits := (cons "Ex-G" (cons "Ex-H" (cons "Ex-J" (cons "Ex-N" (cons "OP-Ex-11" (nil String)))))), depends := (cons "CLM-13" (nil String))}) (cons (record Claim {id := "CLM-15", category := "impeachment", status := "corroborated", statutory := "FRE 106 (Rule of Completeness)", statement := "Under FRE 106, page 4 lines 10\u201324 of the 2028 Co-Parenting & Homework Study Log (OP Ex. 13, dated October 12, 2028) proves both parents jointly agreed on calm, non-punitive homework tutoring and positive reinforcement.", exhibits := (cons "Ex-D" (cons "OP-Ex-13" (nil String))), depends := (nil String)}) (cons (record Claim {id := "CLM-16", category := "impeachment", status := "corroborated", statutory := "FRE 106 & Uniform Act \u00a7 402(a)(2), (6)", statement := "Admitting the complete 6-page co-parenting portal thread (OP Ex. 14, Ex. B) under FRE 106 shows Respondent calmly coordinating schedules and the 15-year-old asking to resume the 50/50 rotation.", exhibits := (cons "Ex-A" (cons "Ex-B" (cons "OP-Ex-05" (cons "OP-Ex-14" (nil String))))), depends := (nil String)}) (cons (record Claim {id := "CLM-17", category := "impeachment", status := "corroborated", statutory := "FRE 602 & FRE 802", statement := "Opposing lay witnesses W-07, W-08, and W-09 admit they have not visited Respondent's residence or observed his parenting since 2028, limiting their testimony under FRE 602 and FRE 802.", exhibits := (cons "Ex-B" (cons "Ex-K" (cons "Ex-O" (nil String)))), depends := (nil String)}) (cons (record Claim {id := "CLM-18", category := "protection-order", status := "corroborated", statutory := "FRE 901(b)(9) & Uniform Act \u00a7 402(a)(9)", statement := "Certified school check-in badge logs and transit telemetry (Ex. F, Ex. M) prove Respondent remained 512 yards from Petitioner's residence on the public arterial avenue during routine school drop-off.", exhibits := (cons "Ex-F" (cons "Ex-L" (cons "Ex-M" (cons "OP-Ex-06" (cons "OP-Ex-07" (nil String)))))), depends := (nil String)}) (cons (record Claim {id := "CLM-19", category := "protection-order", status := "stipulated", statutory := "Doctrine of Issue Preclusion & Stipulation (Ex. C)", statement := "On October 1, 2029, Petitioner stipulated to dismiss her interim restriction motion with prejudice (Ex. C) in exchange for neutral civil standby/school-curb exchange protocols.", exhibits := (cons "Ex-C" (cons "Ex-F" (cons "Ex-L" (nil String)))), depends := (nil String)}) (cons (record Claim {id := "CLM-20", category := "parenting-time", status := "corroborated", statutory := "Uniform Domestic Relations Act \u00a7 402(a)(3), (9)", statement := "When Petitioner travels on multi-day regional logistics shifts, the Proposed Parenting Plan (Ex. L \u00a7 4.3) grants Respondent the first right of refusal so the dependents stay with a parent rather than a commercial vendor.", exhibits := (cons "Ex-B" (cons "Ex-L" (cons "OP-Ex-03" (nil String)))), depends := (cons "CLM-01" (cons "CLM-12" (nil String)))}) (cons (record Claim {id := "CLM-21", category := "parenting-time", status := "corroborated", statutory := "Uniform Domestic Relations Act \u00a7 402(a)(4)", statement := "Photographic and property records (Ex. O) establish that Respondent's suburban residence inside the school district provides dedicated bedrooms, study desks, and a fenced yard 8 minutes from school.", exhibits := (cons "Ex-K" (cons "Ex-L" (cons "Ex-O" (nil String)))), depends := (nil String)}) (cons (record Claim {id := "CLM-22", category := "financial-disclosure", status := "corroborated", statutory := "Uniform Marital Property & Equitable Offset Principles", statement := "Certified joint checking statements (Ex. J) document Petitioner's unilateral $6,400.00 withdrawal on August 28, 2029, entitling Respondent to an equitable offset.", exhibits := (cons "Ex-G" (cons "Ex-H" (cons "Ex-J" (cons "Ex-N" (nil String))))), depends := (cons "CLM-13" (nil String))}) (cons (record Claim {id := "CLM-23", category := "decision-making", status := "corroborated", statutory := "Uniform Domestic Relations Act \u00a7 408", statement := "Under Uniform Domestic Relations Act \u00a7 408, both parents hold equal statutory access to all academic, medical, dental, and extracurricular records regardless of residential schedule.", exhibits := (cons "Ex-B" (cons "Ex-K" (cons "Ex-L" (nil String)))), depends := (nil String)}) (cons (record Claim {id := "CLM-24", category := "parenting-time", status := "contested", statutory := "Uniform Domestic Relations Act \u00a7 402(a)(1)\u2013(11)", statement := "Petitioner's proposal to cut Respondent to 90 overnights/year (OP Ex. 1) is contradicted by the 2030 zero-tardy school record (Ex. K), 6-year caregiving history (Ex. B), and 512-yard transit verification (Ex. F).", exhibits := (cons "Ex-B" (cons "Ex-F" (cons "Ex-K" (cons "Ex-L" (cons "Ex-O" (cons "OP-Ex-01" (nil String))))))), depends := (cons "CLM-01" (cons "CLM-02" (cons "CLM-03" (cons "CLM-18" (nil String)))))}) (nil Claim))))))))))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: exhibits,
+  parameters: [],
+  result: (List Exhibit),
+  body: (cons (record Exhibit {id := "Ex-A", label := "Exhibit A", party := "Respondent", title := "Co-Parenting Portal Communication Summary & Response-Time Audit (2029\u20132030)", category := "Co-Parenting Communications", status := "stipulated"}) (cons (record Exhibit {id := "Ex-B", label := "Exhibit B", party := "Respondent", title := "Verified 2023\u20132030 Caregiving Calendar, Medical Transport & 2028 Solo-Parenting Log", category := "Parenting History", status := "corroborated"}) (cons (record Exhibit {id := "Ex-C", label := "Exhibit C", party := "Respondent", title := "October 1, 2029 Stipulated Dismissal With Prejudice of Interim Restriction Motion", category := "Court Orders & Stipulations", status := "stipulated"}) (cons (record Exhibit {id := "Ex-D", label := "Exhibit D", party := "Respondent", title := "Certified 16-Hour Co-Parenting & Conflict-Resolution Seminar Completion Certificate (June 1, 2030)", category := "Compliance & Training", status := "stipulated"}) (cons (record Exhibit {id := "Ex-E", label := "Exhibit E", party := "Respondent", title := "Certified Public-Service Disability Pension Award ($5,000/mo) & $0-Premium Dependent Medical Plan", category := "Income & Benefits Verification", status := "stipulated"}) (cons (record Exhibit {id := "Ex-F", label := "Exhibit F", party := "Respondent", title := "Certified School Check-In Badge & Arterial Transit Telemetry Log (512 Yards Distance)", category := "Order Compliance Telemetry", status := "corroborated"}) (cons (record Exhibit {id := "Ex-G", label := "Exhibit G", party := "Respondent", title := "Petitioner's Initial Sworn Financial Statement (Filed June 10, 2029)", category := "Financial Disclosure", status := "stipulated"}) (cons (record Exhibit {id := "Ex-H", label := "Exhibit H", party := "Respondent", title := "Subpoenaed Statements for Escrow Checking x4102 & Reserve Savings x4109 ($30,000.00 Balance)", category := "Financial Disclosure Audit", status := "corroborated"}) (cons (record Exhibit {id := "Ex-I", label := "Exhibit I", party := "Respondent", title := "Certified IRS Tax Return Transcripts (2026, 2027, 2028 & 2029 \u2014 $0 Civic Software Revenue)", category := "Tax & Income Verification", status := "stipulated"}) (cons (record Exhibit {id := "Ex-J", label := "Exhibit J", party := "Respondent", title := "Joint Household Checking Reconciliation & August 28, 2029 $6,400.00 Withdrawal Audit", category := "Financial Accounting", status := "corroborated"}) (cons (record Exhibit {id := "Ex-K", label := "Exhibit K", party := "Respondent", title := "Certified School District Attendance, Grade & Zero-Tardy Records (2028\u20132030)", category := "Educational Records", status := "stipulated"}) (cons (record Exhibit {id := "Ex-L", label := "Exhibit L", party := "Respondent", title := "Respondent's Proposed Equal 50/50 Parenting Plan & Joint Governance Protocol", category := "Proposed Court Orders", status := "corroborated"}) (cons (record Exhibit {id := "Ex-M", label := "Exhibit M", party := "Respondent", title := "Municipal Subdivision Map & School-Route Corridor Diagram (512-Yard Buffer Proof)", category := "Demonstrative Map", status := "corroborated"}) (cons (record Exhibit {id := "Ex-N", label := "Exhibit N", party := "Respondent", title := "Verified Guideline Child Support Worksheet ($250.00/mo Petitioner -> Respondent) & Rule 16.2 Brief", category := "Support Guidelines Worksheet", status := "corroborated"}) (cons (record Exhibit {id := "Ex-O", label := "Exhibit O", party := "Respondent", title := "Suburban Residence Photographs, Bedrooms, Study Desks & Family Activities Portfolio", category := "Home Environment & Caregiving", status := "stipulated"}) (cons (record Exhibit {id := "OP-Ex-01", label := "OP Exhibit 1", party := "Petitioner", title := "Petitioner's Proposed Parenting Plan (90 Overnights / Alternating Weekends)", category := "Opposing Proposed Orders", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-02", label := "OP Exhibit 2", party := "Petitioner", title := "Petitioner's Proposed Support Worksheet ($750.00/mo Respondent -> Petitioner)", category := "Opposing Support Worksheet", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-03", label := "OP Exhibit 3", party := "Petitioner", title := "Petitioner's Regional Logistics Travel & Shift Calendar (2029\u20132030)", category := "Employment Schedule", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-04", label := "OP Exhibit 4", party := "Petitioner", title := "Petitioner's Amended Financial Statement (FiledMay 2030)", category := "Financial Disclosure", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-05", label := "OP Exhibit 5", party := "Petitioner", title := "Selected Co-Parenting Portal Screenshots (Cropped Logistics Thread)", category := "Communications", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-06", label := "OP Exhibit 6", party := "Petitioner", title := "Motion Regarding Arterial Avenue Proximity (Filed April 2030)", category := "Interim Pleadings", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-07", label := "OP Exhibit 7", party := "Petitioner", title := "Driveway Camera Still Frame of Arterial Intersection", category := "Photographs", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-08", label := "OP Exhibit 8", party := "Petitioner", title := "Commercial After-School Care Agency Brochure & Rate Sheet ($1,500/mo)", category := "Childcare Invoice", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-09", label := "OP Exhibit 9", party := "Petitioner", title := "Employer Health Plan Summary ($180/mo Optional Dependent Rider)", category := "Insurance Records", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-10", label := "OP Exhibit 10", party := "Petitioner", title := "Public Git Repository Commit Log Printouts (2028\u20132029)", category := "Imputation Allegation", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-11", label := "OP Exhibit 11", party := "Petitioner", title := "Interim Household Expense Summary Spreadsheet (Unverified)", category := "Financial Summary", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-12", label := "OP Exhibit 12", party := "Petitioner", title := "Suburban Residence Listing & Deed Printout", category := "Real Property", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-13", label := "OP Exhibit 13", party := "Petitioner", title := "2028 Handwritten Co-Parenting & Homework Study Log (12 Pages)", category := "Handwritten Notebook", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-14", label := "OP Exhibit 14", party := "Petitioner", title := "Family Group Message Thread Export (6 Pages, Spring 2030)", category := "Text Messages", status := "contested"}) (cons (record Exhibit {id := "OP-Ex-15", label := "OP Exhibit 15", party := "Petitioner", title := "Extracurricular Activity Registration Receipts (2029\u20132030)", category := "Activity Records", status := "contested"}) (nil Exhibit))))))))))))))))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: witnesses,
+  parameters: [],
+  result: (List Witness),
+  body: (cons (record Witness {id := "W-01", name := "Respondent Co-Parent (Party B)", relationship := "Respondent / Proponent Party", party := "Respondent", callStatus := "will-call"}) (cons (record Witness {id := "W-02", name := "Petitioner Co-Parent (Party A)", relationship := "Petitioner / Adverse Party", party := "Petitioner", callStatus := "will-call"}) (cons (record Witness {id := "W-03", name := "School District Attendance & Records Coordinator", relationship := "Neutral School Official", party := "Respondent", callStatus := "will-call"}) (cons (record Witness {id := "W-04", name := "Neighborhood Youth STEM & Athletics Coach", relationship := "Neutral Community Witness", party := "Respondent", callStatus := "will-call"}) (cons (record Witness {id := "W-05", name := "Certified Co-Parenting Seminar Facilitator", relationship := "Course Instructor (May-Call)", party := "Respondent", callStatus := "may-call"}) (cons (record Witness {id := "W-06", name := "Independent CPA & Financial Audit Specialist", relationship := "Financial Reconciliation Witness (May-Call)", party := "Respondent", callStatus := "may-call"}) (cons (record Witness {id := "W-07", name := "Out-of-Area Relative Fact Witness A", relationship := "Petitioner's Extended Relative", party := "Petitioner", callStatus := "may-call"}) (cons (record Witness {id := "W-08", name := "Out-of-Area Relative Fact Witness B", relationship := "Petitioner's Secondary Relative", party := "Petitioner", callStatus := "may-call"}) (cons (record Witness {id := "W-09", name := "Collateral Acquaintance Witness", relationship := "Petitioner's Social Acquaintance", party := "Petitioner", callStatus := "may-call"}) (cons (record Witness {id := "W-10", name := "Commercial After-School Program Administrator", relationship := "Third-Party Vendor Representative", party := "Petitioner", callStatus := "may-call"}) (nil Witness))))))))))),
+  axioms: []
+}
+
+definition{
+  name: timeline,
+  parameters: [],
+  result: (List TimelineEvent),
+  body: (cons (record TimelineEvent {id := "TL-01", date := "2023-09-01", title := "Six-Year Primary Hands-On Parenting Routine Begins", exhibits := (cons "Ex-B" (cons "Ex-K" (cons "Ex-O" (nil String))))}) (cons (record TimelineEvent {id := "TL-02", date := "2027-04-15", title := "Certified Public-Service Disability Pension & Dependent Medical Award", exhibits := (cons "Ex-E" (nil String))}) (cons (record TimelineEvent {id := "TL-03", date := "2028-03-01", title := "Four-Month Solo Parenting During Petitioner's Regional Logistics Rotation", exhibits := (cons "Ex-B" (cons "Ex-K" (cons "Ex-O" (nil String))))}) (cons (record TimelineEvent {id := "TL-04", date := "2028-10-12", title := "Joint Co-Parenting & Homework Study Log Entry (FRE 106 Anchor)", exhibits := (cons "OP-Ex-13" (nil String))}) (cons (record TimelineEvent {id := "TL-05", date := "2029-04-15", title := "2026\u20132029 IRS Tax Transcripts Confirm $0 Civic Software Revenue", exhibits := (cons "Ex-I" (nil String))}) (cons (record TimelineEvent {id := "TL-06", date := "2029-06-10", title := "Petitioner Files Initial Sworn Financial Statement Omitting $30,000.00", exhibits := (cons "Ex-G" (cons "Ex-H" (nil String)))}) (cons (record TimelineEvent {id := "TL-07", date := "2029-08-28", title := "Unilateral $6,400.00 Withdrawal from Joint Household Account", exhibits := (cons "Ex-J" (nil String))}) (cons (record TimelineEvent {id := "TL-08", date := "2029-09-01", title := "Physical Separation within Same School District Catchment", exhibits := (cons "Ex-L" (cons "Ex-O" (nil String)))}) (cons (record TimelineEvent {id := "TL-09", date := "2029-10-01", title := "Stipulated Dismissal With Prejudice of Interim Restriction Motion", exhibits := (cons "Ex-C" (cons "Ex-L" (nil String)))}) (cons (record TimelineEvent {id := "TL-10", date := "2029-11-15", title := "Subpoenaed Bank Production Exposes $30,000.00 Escrow Reserve", exhibits := (cons "Ex-G" (cons "Ex-H" (cons "Ex-N" (nil String))))}) (cons (record TimelineEvent {id := "TL-11", date := "2030-01-15", title := "90-Day Equal 50/50 Week-On/Week-Off Schedule Commences", exhibits := (cons "Ex-B" (cons "Ex-K" (cons "Ex-L" (nil String))))}) (cons (record TimelineEvent {id := "TL-12", date := "2030-04-10", title := "512-Yard School Transit Telemetry & Badge Log Verified", exhibits := (cons "Ex-F" (cons "Ex-M" (nil String)))}) (cons (record TimelineEvent {id := "TL-13", date := "2030-05-12", title := "Full Group Message Thread Confirms 15-Year-Old's Request for 50/50", exhibits := (cons "Ex-B" (cons "OP-Ex-14" (nil String)))}) (cons (record TimelineEvent {id := "TL-14", date := "2030-06-01", title := "Respondent Completes 16-Hour Co-Parenting Seminar 30 Days Early", exhibits := (cons "Ex-D" (nil String))}) (cons (record TimelineEvent {id := "TL-15", date := "2030-08-15", title := "Joint Pretrial Stipulation & Guideline Support Worksheet Filed", exhibits := (cons "Ex-L" (cons "Ex-N" (nil String)))}) (cons (record TimelineEvent {id := "TL-16", date := "2030-09-18", title := "Final Evidentiary Hearing (360-Minute Homeostatic Trial Clock)", exhibits := (cons "Ex-A" (cons "Ex-B" (cons "Ex-E" (cons "Ex-H" (cons "Ex-K" (cons "Ex-L" (cons "Ex-N" (nil String))))))))}) (nil TimelineEvent))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: allMembers,
+  parameters: [values : (List String), ids : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head ids) then (allMembers tail ids) else false)),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head tail) then false else (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: beneficiaryIds,
+  parameters: [xs : (List Beneficiary)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (beneficiaryIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: pillarIds,
+  parameters: [xs : (List OpeningPillar)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (pillarIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: factorIds,
+  parameters: [xs : (List StatutoryFactor)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (factorIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: claimIds,
+  parameters: [xs : (List Claim)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (claimIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: exhibitIds,
+  parameters: [xs : (List Exhibit)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (exhibitIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: witnessIds,
+  parameters: [xs : (List Witness)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (witnessIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: timelineIds,
+  parameters: [xs : (List TimelineEvent)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (timelineIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: claimsValid,
+  parameters: [cs : (List Claim)],
+  result: Bool,
+  body: (match cs
+    | List.nil => true
+    | List.cons head tail => (((memberString (project head status) (validClaimStatuses)) && ((allMembers (project head exhibits) (exhibitIds (exhibits))) && (allMembers (project head depends) (claimIds (claims))))) && (claimsValid tail))),
+  axioms: [],
+  recursive_argument: cs
+}
+
+theorem{
+  name: beneficiaryIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (beneficiaryIds (beneficiaries))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: pillarIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (pillarIds (openingPillars))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: factorIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (factorIds (statutoryFactors))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: claimIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (claimIds (claims))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: exhibitIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (exhibitIds (exhibits))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: witnessIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (witnessIds (witnesses))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: timelineIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (timelineIds (timeline))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: claimsResolvedAndBacked,
+  parameters: [],
+  statement: ((claimsValid (claims)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: beneficiaryCountIs3,
+  parameters: [],
+  statement: ((prim length (beneficiaries) : Nat) = 3),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: claimCountIs24,
+  parameters: [],
+  statement: ((prim length (claims) : Nat) = 24),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: exhibitCountIs30,
+  parameters: [],
+  statement: ((prim length (exhibits) : Nat) = 30),
+  proof: reflexivity{},
+  axioms: []
+}
+
+theorem{
+  name: witnessCountIs10,
+  parameters: [],
+  statement: ((prim length (witnesses) : Nat) = 10),
+  proof: reflexivity{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

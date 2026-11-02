@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "sworn-omission"
+category = "function"
+signature = "(pi ((explicit a (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Disclosure"
+name = "PrismLegal.Disclosure.swornOmission"
+
+[[form]]
+id = "sworn-omission"
+channel = "math"
+surface = "swornOmission"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name swornOmission) (paren (seq (slot 0))))"

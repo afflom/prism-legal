@@ -1,0 +1,503 @@
+# PrismPM Intake Classifiers & Per-Node Attention Heads (src/Intake.lex.tex)
+spec = "prism-legal/intake/1"
+feature_dim = 8
+max_channel = 255
+num_domain_classes = 6
+
+[[feature_channel]]
+index = 0
+id = "ch-family-custody"
+label = "Parenting, Custody & Support Signal"
+keywords = ["parenting", "custody", "overnight", "overnights", "child", "children", "dependent", "dependents", "school", "decision-making", "50/50", "support", "coparenting", "visitation", "parent", "guardian", "best interests", "402", "305"]
+
+[[feature_channel]]
+index = 1
+id = "ch-housing-habitability"
+label = "Housing, Lease & Habitability Signal"
+keywords = ["tenant", "landlord", "lease", "rent", "habitability", "eviction", "mold", "heat", "heating", "plumbing", "code", "inspection", "escrow", "abatement", "apartment", "premises", "retaliatory", "urlta", "repair"]
+
+[[feature_channel]]
+index = 2
+id = "ch-veterans-disability"
+label = "Veterans Benefits & Disability Rating Signal"
+keywords = ["veteran", "veterans", "va", "tdiu", "service-connected", "rating", "38 cfr", "bva", "nexus", "tinnitus", "lumbar", "unemployability", "c-file", "dbq", "benefit", "1781", "disability", "schedular"]
+
+[[feature_channel]]
+index = 3
+id = "ch-employment-ada"
+label = "Employment, ADA & Workplace Retaliation Signal"
+keywords = ["employment", "employer", "employee", "workplace", "ada", "accommodation", "ergonomic", "remote", "hr", "retaliation", "termination", "pip", "eeoc", "title vii", "fmla", "wage", "overtime", "interactive process"]
+
+[[feature_channel]]
+index = 4
+id = "ch-commercial-ucc"
+label = "Commercial Contract, Consumer & UCC Signal"
+keywords = ["commercial", "contract", "ucc", "buyer", "seller", "goods", "shipment", "delivery", "nonconforming", "rejection", "revocation", "cure", "warranty", "invoice", "purchase order", "breach", "cover", "fdcpa", "validation", "debt"]
+
+[[feature_channel]]
+index = 5
+id = "ch-fiduciary-governance"
+label = "Business Governance & Fiduciary Accounting Signal"
+keywords = ["fiduciary", "member", "llc", "corporation", "shareholder", "partner", "partnership", "dgcl", "books and records", "220", "accounting", "buyout", "diversion", "operating agreement", "board", "distribution", "k-1"]
+
+[[feature_channel]]
+index = 6
+id = "ch-corroboration-density"
+label = "Multi-Modal Documentary, Visual & Cryptographic Corroboration Density"
+keywords = ["exhibit", "certified", "bank", "tax", "ledger", "photo", "photograph", "image", "video", "audio", "pdf", "csv", "scan", "handwritten", "badge", "sha256", "statement", "receipt", "log", "email", "letter", "report", "stipulated", "contract", "notice", "medical", "record", "affidavit", "transcript", "upload"]
+
+[[feature_channel]]
+index = 7
+id = "ch-impeachment-completeness"
+label = "Impeachment, Completeness Context & Procedural Filing Urgency Signal"
+keywords = ["omission", "undisclosed", "contradiction", "inconsistent", "selective", "excerpt", "completeness", "106", "608", "613", "26(e)", "16.2", "rebuttal", "allegation", "disputed", "hostile", "impeach", "escrow", "deadline", "filing", "motion", "subpoena", "pretrial", "timely"]
+
+[[schema_classifier]]
+id = "schema-case-meta"
+schema_element = "caseMeta"
+title = "Case Front Matter & Jurisdiction Classifier"
+head_id = "HEAD-01"
+classes = ["DOM-FAM-103", "DOM-HOU-URLTA", "DOM-VET-38CFR", "DOM-EMP-ADA", "DOM-COM-UCC", "DOM-BIZ-DGCL"]
+extrapolation_target = "Infers governing legal framework and statutory authority strictly from non-empty user intake tokens."
+
+[[schema_classifier]]
+id = "schema-relief-goal"
+schema_element = "reliefGoals"
+title = "Relief Goals & Requested Judicial Orders Classifier"
+head_id = "HEAD-02"
+classes = ["relief-parenting-and-guideline-support", "relief-habitability-repairs-and-abatement", "relief-schedular-tdiu-and-effective-date", "relief-accommodation-and-wage-remedy", "relief-contract-rejection-or-validation", "relief-fiduciary-accounting-and-distributions"]
+extrapolation_target = "Synthesizes bespoke relief orders directly from the user's intake clauses, party names, and requested terms."
+
+[[schema_classifier]]
+id = "schema-timeline-event"
+schema_element = "timeline"
+title = "Chronological Event & Fact Intake Classifier"
+head_id = "HEAD-03"
+classes = ["event-caregiving-and-schedule-compliance", "event-repair-notice-and-escrow-deposit", "event-claim-filing-and-medical-opinion", "event-accommodation-request-and-response", "event-notice-of-dispute-or-nonconformity", "event-agreement-execution-and-audit"]
+extrapolation_target = "Extracts dated factual clauses from user intake into chronological timeline events linked to user exhibits."
+
+[[schema_classifier]]
+id = "schema-exhibit"
+schema_element = "exhibits"
+title = "Documentary & Visual Evidence Intake Classifier"
+head_id = "HEAD-04"
+classes = ["fre-901-authenticated-log", "fre-803-6-business-record", "fre-801d2-opposing-admission", "fre-106-completeness-context", "frcp-26e-disclosure-audit", "fre-1006-voluminous-summary"]
+extrapolation_target = "Computes bespoke evidentiary foundation, purpose, and visual callouts for each user-supplied document."
+
+[[schema_classifier]]
+id = "schema-claim"
+schema_element = "claims"
+title = "Statutory Propositions & Proof Matrix Classifier"
+head_id = "HEAD-05"
+classes = ["claim-best-interests-allocation", "claim-warranty-habitability-breach", "claim-tdiu-service-connection", "claim-ada-reasonable-accommodation", "claim-ucc-or-fdcpa-compliance", "claim-fiduciary-duty-accounting"]
+extrapolation_target = "Synthesizes bespoke statutory claims and rule exceptions directly from the user's goals, timeline, and exhibits."
+
+[[schema_classifier]]
+id = "schema-witness"
+schema_element = "witnesses"
+title = "Witness Roster & Examination Scope Classifier"
+head_id = "HEAD-06"
+classes = ["witness-coparent-and-corroborator", "witness-tenant-and-code-inspector", "witness-claimant-and-medical-examiner", "witness-employee-and-hr-representative", "witness-contract-party-and-custodian", "witness-member-and-forensic-accountant"]
+extrapolation_target = "Builds bespoke witness examination scopes referencing the user's actual party names, dates, and exhibits."
+
+[[schema_classifier]]
+id = "schema-trap"
+schema_element = "traps"
+title = "Cross-Examination Trap & FRE 106 Rebuttal Classifier"
+head_id = "HEAD-07"
+classes = ["documentary-impeachment", "statutory-factor-deduction", "stipulated-anchor-lock", "calm-opening-pivot", "fre-106-completeness-restoration", "affirmative-cure-and-mitigation"]
+extrapolation_target = "Synthesizes bespoke anticipated cross-examination challenges and calm responses anchored to the user's exhibits."
+
+[[schema_classifier]]
+id = "schema-direct-exam"
+schema_element = "directExam"
+title = "Direct Examination Q&A Script Classifier"
+head_id = "HEAD-08"
+classes = ["dx-parenting-and-financial-walkthrough", "dx-habitability-notice-and-escrow", "dx-service-history-and-functional-limits", "dx-essential-duties-and-accommodation", "dx-contract-terms-and-validation-demand", "dx-governance-instrument-and-ledger-audit"]
+extrapolation_target = "Constructs bespoke Direct Examination Q&A scripts from the user's actual goals, timeline dates, and exhibits."
+
+[[schema_classifier]]
+id = "schema-visual-forensics"
+schema_element = "visualForensics"
+title = "Visual Evidence Callout & Proponent Intent Classifier"
+head_id = "HEAD-09"
+classes = ["vis-schedule-log-and-notebook-completeness", "vis-inspection-citation-and-escrow-receipts", "vis-rating-code-sheet-and-nexus-opinion", "vis-evaluation-metrics-and-hr-thread", "vis-validation-letter-and-assignment-gap", "vis-operating-clause-and-k1-reconciliation"]
+extrapolation_target = "Generates bespoke page/paragraph visual inspection notes tailored to each user exhibit's title and purpose."
+
+[[schema_classifier]]
+id = "schema-calculator"
+schema_element = "calculators"
+title = "Statutory & Financial Remedy Calculator Classifier"
+head_id = "HEAD-10"
+classes = ["calc-family-305-shared-support", "calc-housing-urlta-rent-abatement", "calc-veterans-38cfr-combined-rating", "calc-employment-backpay-and-damages", "calc-commercial-ucc-cover-damages", "calc-fiduciary-disgorgement-surcharge"]
+extrapolation_target = "Extracts monetary amounts, percentages, and durations from user intake into the governing statutory calculator."
+
+[[schema_classifier]]
+id = "schema-hearing-stage"
+schema_element = "hearingStages"
+title = "Homeostatic Hearing Clock Stage Classifier"
+head_id = "HEAD-11"
+classes = ["clock-evidentiary-Custody-hearing", "clock-housing-abatement-hearing", "clock-administrative-review-hearing", "clock-workplace-remedy-hearing", "clock-commercial-dispute-hearing", "clock-fiduciary-accounting-hearing"]
+extrapolation_target = "Allocates hearing-stage minute budgets proportional to the user's witness roster and hearing duration."
+
+[[schema_classifier]]
+id = "schema-agenda"
+schema_element = "agenda"
+title = "Client\u2013Counsel Strategy Co-Design Agenda Classifier"
+head_id = "HEAD-12"
+classes = ["agenda-stipulations-and-disclosure-audit", "agenda-escrow-release-and-inspection", "agenda-effective-date-and-nexus", "agenda-interactive-process-and-mitigation", "agenda-chain-of-title-and-hearsay-motion", "agenda-fre1006-summary-and-audit-scope"]
+extrapolation_target = "Generates bespoke Client\u2013Counsel alignment notes for actual exhibits and unbacked claims in the user's intake."
+
+[[schema_classifier]]
+id = "schema-multimodal-upload"
+schema_element = "multimodalUploads"
+title = "Multi-Modal Evidence Upload Parser & Case Linker Classifier"
+head_id = "HEAD-19"
+classes = ["modality-pleading-or-court-order", "modality-financial-ledger-or-tax-csv", "modality-visual-photo-or-premises-media", "modality-handwritten-notebook-or-scan", "modality-digital-message-or-email-thread", "modality-official-certificate-or-medical-record"]
+extrapolation_target = "Parses client-side PDF, image, CSV, text, email, and audio/video uploads, computes SHA-256 digests, and links extracted facts to case elements."
+
+[[schema_classifier]]
+id = "schema-jural-posture"
+schema_element = "juralPosture"
+title = "Enforceable Legal Right, Duty, Power & Immunity Classifier"
+head_id = "HEAD-20"
+classes = ["jural-enforceable-claim-right-and-duty", "jural-joint-governance-authority", "jural-statutory-benefit-immunity", "jural-disclosure-reopening-remedy", "jural-completeness-restoration-right", "jural-fiduciary-accounting-entitlement"]
+extrapolation_target = "Maps each synthesized statutory claim to its enforceable legal posture and controlling statutory exception."
+
+[[schema_classifier]]
+id = "schema-filing-artifact"
+schema_element = "filingArtifacts"
+title = "Court-Ready Filing Packet & Pleading Generator Classifier"
+head_id = "HEAD-21"
+classes = ["filing-parenting-and-support-position-statement", "filing-habitability-abatement-and-escrow-motion", "filing-veterans-tdiu-and-nexus-brief", "filing-workplace-accommodation-and-remedy-brief", "filing-commercial-validation-and-rejection-brief", "filing-fiduciary-accounting-and-audit-petition"]
+extrapolation_target = "Generates bespoke court-captioned pleadings, exhibit indexes, witness disclosures, and proposed findings from the user's matter."
+
+[[schema_classifier]]
+id = "schema-filing-deadline"
+schema_element = "filingDeadlines"
+title = "Procedural Timeline & On-Time Filing Schedule Classifier"
+head_id = "HEAD-22"
+classes = ["deadline-mandatory-financial-and-exhibit-disclosures", "deadline-municipal-inspection-and-escrow-notice", "deadline-administrative-record-and-medical-submission", "deadline-interactive-process-and-pretrial-exchange", "deadline-statutory-validation-and-cure-window", "deadline-books-and-records-and-summary-tieout"]
+extrapolation_target = "Computes backward-scheduled statutory filing deadlines from the user's hearing date and exports calendar reminders."
+
+[[attention_head]]
+id = "HEAD-01"
+node_id = "node-case-meta"
+schema_id = "schema-case-meta"
+title = "Front-Matter & Jurisdiction Attention Head"
+query = [4, 4, 4, 4, 4, 4, 2, 2]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["DOM-FAM-103", "DOM-HOU-URLTA", "DOM-VET-38CFR", "DOM-EMP-ADA", "DOM-COM-UCC", "DOM-BIZ-DGCL"]
+inductive_relation = "corroborated-finding = equal-overnights XOR routine-continuity"
+deductive_strategy = "statutory-factor-deduction"
+
+[[attention_head]]
+id = "HEAD-02"
+node_id = "node-relief-goal"
+schema_id = "schema-relief-goal"
+title = "Relief Posture & Requested Orders Attention Head"
+query = [4, 4, 4, 4, 4, 4, 3, 2]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["relief-parenting-and-guideline-support", "relief-habitability-repairs-and-abatement", "relief-schedular-tdiu-and-effective-date", "relief-accommodation-and-wage-remedy", "relief-contract-rejection-or-validation", "relief-fiduciary-accounting-and-distributions"]
+inductive_relation = "order-compliant = one XOR (equal-overnights AND routine-continuity)"
+deductive_strategy = "stipulated-anchor-lock"
+
+[[attention_head]]
+id = "HEAD-03"
+node_id = "node-timeline-event"
+schema_id = "schema-timeline-event"
+title = "Chronological Fact & Sequence Attention Head"
+query = [4, 4, 4, 4, 4, 4, 4, 2]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["event-caregiving-and-schedule-compliance", "event-repair-notice-and-escrow-deposit", "event-claim-filing-and-medical-opinion", "event-accommodation-request-and-response", "event-notice-of-dispute-or-nonconformity", "event-agreement-execution-and-audit"]
+inductive_relation = "equalOvernights recurrence c(D) = [1, 0, 1]"
+deductive_strategy = "statutory-factor-deduction"
+
+[[attention_head]]
+id = "HEAD-04"
+node_id = "node-exhibit-intake"
+schema_id = "schema-exhibit"
+title = "Evidence Intake & Admissibility Foundation Attention Head"
+query = [3, 3, 3, 3, 3, 3, 5, 4]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["fre-901-authenticated-log", "fre-803-6-business-record", "fre-801d2-opposing-admission", "fre-106-completeness-context", "frcp-26e-disclosure-audit", "fre-1006-voluminous-summary"]
+inductive_relation = "disclosure-reopening = reserve-omission"
+deductive_strategy = "documentary-impeachment"
+
+[[attention_head]]
+id = "HEAD-05"
+node_id = "node-claim-synthesis"
+schema_id = "schema-claim"
+title = "Statutory Claim & Proof Matrix Attention Head"
+query = [4, 4, 4, 4, 4, 4, 4, 3]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["claim-best-interests-allocation", "claim-warranty-habitability-breach", "claim-tdiu-service-connection", "claim-ada-reasonable-accommodation", "claim-ucc-or-fdcpa-compliance", "claim-fiduciary-duty-accounting"]
+inductive_relation = "corroborated-finding = equal-overnights XOR routine-continuity"
+deductive_strategy = "statutory-factor-deduction"
+
+[[attention_head]]
+id = "HEAD-06"
+node_id = "node-witness-plan"
+schema_id = "schema-witness"
+title = "Witness Roster & Scope Allocation Attention Head"
+query = [4, 4, 4, 4, 4, 4, 3, 3]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["witness-coparent-and-corroborator", "witness-tenant-and-code-inspector", "witness-claimant-and-medical-examiner", "witness-employee-and-hr-representative", "witness-contract-party-and-custodian", "witness-member-and-forensic-accountant"]
+inductive_relation = "jointGovernance recurrence c(D) = [1, 1, 1]"
+deductive_strategy = "calm-opening-pivot"
+
+[[attention_head]]
+id = "HEAD-07"
+node_id = "node-trap-rebuttal"
+schema_id = "schema-trap"
+title = "Cross-Examination Trap & Pivot Attention Head"
+query = [3, 3, 3, 3, 3, 3, 4, 5]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["documentary-impeachment", "statutory-factor-deduction", "stipulated-anchor-lock", "calm-opening-pivot", "fre-106-completeness-restoration", "affirmative-cure-and-mitigation"]
+inductive_relation = "unilateral-act = one XOR joint-governance"
+deductive_strategy = "documentary-impeachment"
+
+[[attention_head]]
+id = "HEAD-08"
+node_id = "node-direct-script"
+schema_id = "schema-direct-exam"
+title = "Direct Examination Q&A Synthesis Attention Head"
+query = [4, 4, 4, 4, 4, 4, 4, 2]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["dx-parenting-and-financial-walkthrough", "dx-habitability-notice-and-escrow", "dx-service-history-and-functional-limits", "dx-essential-duties-and-accommodation", "dx-contract-terms-and-validation-demand", "dx-governance-instrument-and-ledger-audit"]
+inductive_relation = "weekParity recurrence c(D) = [1, 1, 1, 1]"
+deductive_strategy = "statutory-factor-deduction"
+
+[[attention_head]]
+id = "HEAD-09"
+node_id = "node-visual-callout"
+schema_id = "schema-visual-forensics"
+title = "Visual Evidence Callout & Intent Attention Head"
+query = [4, 4, 4, 4, 4, 4, 5, 3]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["vis-schedule-log-and-notebook-completeness", "vis-inspection-citation-and-escrow-receipts", "vis-rating-code-sheet-and-nexus-opinion", "vis-evaluation-metrics-and-hr-thread", "vis-validation-letter-and-assignment-gap", "vis-operating-clause-and-k1-reconciliation"]
+inductive_relation = "disclosure-reopening = reserve-omission"
+deductive_strategy = "documentary-impeachment"
+
+[[attention_head]]
+id = "HEAD-10"
+node_id = "node-remedy-calc"
+schema_id = "schema-calculator"
+title = "Statutory & Financial Calculator Attention Head"
+query = [4, 4, 4, 4, 4, 4, 3, 2]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["calc-family-305-shared-support", "calc-housing-urlta-rent-abatement", "calc-veterans-38cfr-combined-rating", "calc-employment-backpay-and-damages", "calc-commercial-ucc-cover-damages", "calc-fiduciary-disgorgement-surcharge"]
+inductive_relation = "one = statutory-benefit"
+deductive_strategy = "stipulated-anchor-lock"
+
+[[attention_head]]
+id = "HEAD-11"
+node_id = "node-hearing-clock"
+schema_id = "schema-hearing-stage"
+title = "Homeostatic Hearing Clock Budget Attention Head"
+query = [4, 4, 4, 4, 4, 4, 2, 3]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["clock-evidentiary-Custody-hearing", "clock-housing-abatement-hearing", "clock-administrative-review-hearing", "clock-workplace-remedy-hearing", "clock-commercial-dispute-hearing", "clock-fiduciary-accounting-hearing"]
+inductive_relation = "stageBudgetsFillTheTick = 360"
+deductive_strategy = "calm-opening-pivot"
+
+[[attention_head]]
+id = "HEAD-12"
+node_id = "node-counsel-agenda"
+schema_id = "schema-agenda"
+title = "Client\u2013Counsel Strategy Agenda Attention Head"
+query = [4, 4, 4, 4, 4, 4, 3, 4]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["agenda-stipulations-and-disclosure-audit", "agenda-escrow-release-and-inspection", "agenda-effective-date-and-nexus", "agenda-interactive-process-and-mitigation", "agenda-chain-of-title-and-hearsay-motion", "agenda-fre1006-summary-and-audit-scope"]
+inductive_relation = "corroborated-finding = equal-overnights XOR routine-continuity"
+deductive_strategy = "statutory-factor-deduction"
+
+[[attention_head]]
+id = "HEAD-13"
+node_id = "node-domain-family"
+schema_id = "schema-case-meta"
+title = "Family Law & Parental Responsibilities Domain Node Head"
+query = [6, 1, 2, 1, 1, 1, 3, 3]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["DOM-FAM-103", "DOM-HOU-URLTA", "DOM-VET-38CFR", "DOM-EMP-ADA", "DOM-COM-UCC", "DOM-BIZ-DGCL"]
+inductive_relation = "corroborated-finding = equal-overnights XOR routine-continuity"
+deductive_strategy = "statutory-factor-deduction"
+
+[[attention_head]]
+id = "HEAD-14"
+node_id = "node-domain-housing"
+schema_id = "schema-case-meta"
+title = "Housing Defense & Habitability Domain Node Head"
+query = [1, 6, 1, 1, 2, 1, 3, 3]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["DOM-FAM-103", "DOM-HOU-URLTA", "DOM-VET-38CFR", "DOM-EMP-ADA", "DOM-COM-UCC", "DOM-BIZ-DGCL"]
+inductive_relation = "order-compliant = one XOR (equal-overnights AND routine-continuity)"
+deductive_strategy = "documentary-impeachment"
+
+[[attention_head]]
+id = "HEAD-15"
+node_id = "node-domain-veterans"
+schema_id = "schema-case-meta"
+title = "Veterans Benefits & 38 CFR Appeals Domain Node Head"
+query = [2, 1, 6, 2, 1, 1, 3, 2]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["DOM-FAM-103", "DOM-HOU-URLTA", "DOM-VET-38CFR", "DOM-EMP-ADA", "DOM-COM-UCC", "DOM-BIZ-DGCL"]
+inductive_relation = "one = statutory-benefit"
+deductive_strategy = "stipulated-anchor-lock"
+
+[[attention_head]]
+id = "HEAD-16"
+node_id = "node-domain-employment"
+schema_id = "schema-case-meta"
+title = "Employment Law & ADA Accommodation Domain Node Head"
+query = [1, 1, 2, 6, 1, 2, 3, 3]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["DOM-FAM-103", "DOM-HOU-URLTA", "DOM-VET-38CFR", "DOM-EMP-ADA", "DOM-COM-UCC", "DOM-BIZ-DGCL"]
+inductive_relation = "unilateral-act = one XOR joint-governance"
+deductive_strategy = "documentary-impeachment"
+
+[[attention_head]]
+id = "HEAD-17"
+node_id = "node-domain-commercial"
+schema_id = "schema-case-meta"
+title = "Commercial Contract & UCC Article 2 Domain Node Head"
+query = [1, 2, 1, 1, 6, 2, 3, 3]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["DOM-FAM-103", "DOM-HOU-URLTA", "DOM-VET-38CFR", "DOM-EMP-ADA", "DOM-COM-UCC", "DOM-BIZ-DGCL"]
+inductive_relation = "disclosure-reopening = reserve-omission"
+deductive_strategy = "documentary-impeachment"
+
+[[attention_head]]
+id = "HEAD-18"
+node_id = "node-domain-business"
+schema_id = "schema-case-meta"
+title = "Business Governance & Fiduciary Accounting Domain Node Head"
+query = [1, 1, 1, 2, 2, 6, 3, 4]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["DOM-FAM-103", "DOM-HOU-URLTA", "DOM-VET-38CFR", "DOM-EMP-ADA", "DOM-COM-UCC", "DOM-BIZ-DGCL"]
+inductive_relation = "disclosure-reopening = reserve-omission"
+deductive_strategy = "stipulated-anchor-lock"
+
+[[attention_head]]
+id = "HEAD-19"
+node_id = "node-multimodal-upload"
+schema_id = "schema-multimodal-upload"
+title = "Multi-Modal Evidence Upload & Case Relation Attention Head"
+query = [3, 3, 3, 3, 3, 3, 6, 4]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["modality-pleading-or-court-order", "modality-financial-ledger-or-tax-csv", "modality-visual-photo-or-premises-media", "modality-handwritten-notebook-or-scan", "modality-digital-message-or-email-thread", "modality-official-certificate-or-medical-record"]
+inductive_relation = "corroborated-finding = equal-overnights XOR routine-continuity"
+deductive_strategy = "documentary-impeachment"
+
+[[attention_head]]
+id = "HEAD-20"
+node_id = "node-jural-posture"
+schema_id = "schema-jural-posture"
+title = "Enforceable Legal Posture & Statutory Immunity Attention Head"
+query = [4, 4, 4, 4, 4, 4, 4, 4]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["jural-enforceable-claim-right-and-duty", "jural-joint-governance-authority", "jural-statutory-benefit-immunity", "jural-disclosure-reopening-remedy", "jural-completeness-restoration-right", "jural-fiduciary-accounting-entitlement"]
+inductive_relation = "one = statutory-benefit"
+deductive_strategy = "statutory-factor-deduction"
+
+[[attention_head]]
+id = "HEAD-21"
+node_id = "node-filing-artifact"
+schema_id = "schema-filing-artifact"
+title = "Court-Ready Filing Pleading & Packet Synthesis Attention Head"
+query = [4, 4, 4, 4, 4, 4, 4, 3]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["filing-parenting-and-support-position-statement", "filing-habitability-abatement-and-escrow-motion", "filing-veterans-tdiu-and-nexus-brief", "filing-workplace-accommodation-and-remedy-brief", "filing-commercial-validation-and-rejection-brief", "filing-fiduciary-accounting-and-audit-petition"]
+inductive_relation = "order-compliant = one XOR (equal-overnights AND routine-continuity)"
+deductive_strategy = "stipulated-anchor-lock"
+
+[[attention_head]]
+id = "HEAD-22"
+node_id = "node-filing-deadline"
+schema_id = "schema-filing-deadline"
+title = "Procedural Timeline & On-Time Filing Schedule Attention Head"
+query = [4, 4, 4, 4, 4, 4, 3, 5]
+biases = [0, 0, 0, 0, 0, 0]
+multiplier = 1
+shift = 64
+class_labels = ["deadline-mandatory-financial-and-exhibit-disclosures", "deadline-municipal-inspection-and-escrow-notice", "deadline-administrative-record-and-medical-submission", "deadline-interactive-process-and-pretrial-exchange", "deadline-statutory-validation-and-cure-window", "deadline-books-and-records-and-summary-tieout"]
+inductive_relation = "stageBudgetsFillTheTick = 360"
+deductive_strategy = "statutory-factor-deduction"
+
+[[fixture]]
+name = "familyCustodyIntake"
+domain_id = "DOM-FAM-103"
+features = [220, 10, 35, 10, 5, 10, 180, 140]
+expected_class = 0
+
+[[fixture]]
+name = "housingHabitabilityIntake"
+domain_id = "DOM-HOU-URLTA"
+features = [10, 230, 5, 10, 25, 10, 175, 120]
+expected_class = 1
+
+[[fixture]]
+name = "veteransDisabilityIntake"
+domain_id = "DOM-VET-38CFR"
+features = [20, 5, 240, 25, 5, 5, 190, 90]
+expected_class = 2
+
+[[fixture]]
+name = "employmentAdaIntake"
+domain_id = "DOM-EMP-ADA"
+features = [10, 10, 25, 235, 15, 20, 170, 150]
+expected_class = 3
+
+[[fixture]]
+name = "commercialUccIntake"
+domain_id = "DOM-COM-UCC"
+features = [5, 20, 5, 15, 235, 30, 185, 130]
+expected_class = 4
+
+[[fixture]]
+name = "businessFiduciaryIntake"
+domain_id = "DOM-BIZ-DGCL"
+features = [10, 5, 5, 20, 30, 240, 195, 160]
+expected_class = 5

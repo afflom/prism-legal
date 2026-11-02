@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "direct-party-performance"
+category = "function"
+signature = "(pi ((explicit c (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Remedies"
+name = "PrismLegal.Remedies.directPartyPerformance"
+
+[[form]]
+id = "direct-party-performance"
+channel = "math"
+surface = "directPartyPerformance"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name directPartyPerformance) (paren (seq (slot 0))))"

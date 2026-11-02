@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "court-order-compliant"
+category = "function"
+signature = "(pi ((explicit t (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Compliance"
+name = "PrismLegal.Compliance.courtOrderCompliant"
+
+[[form]]
+id = "court-order-compliant"
+channel = "math"
+surface = "courtOrderCompliant"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name courtOrderCompliant) (paren (seq (slot 0))))"

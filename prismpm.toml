@@ -1,0 +1,5 @@
+spec = "prismpm/workspace/1"
+name = "prism-legal"
+version = "1.0.0"
+description = "PrismLegal — Public-Benefit Open-Source Legal Case Management, Formal Strategy & Courtroom Preparation Platform"
+

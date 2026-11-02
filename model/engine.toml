@@ -1,0 +1,197 @@
+# Consolidated neuromorphic synaptic weights and rehearsal outcomes (src/Engine.lex.tex)
+spec = "prism-legal/engine/1"
+w_min = 1
+w_max = 16
+w_init = 8
+raise_step = 2
+lower_step = 1
+
+[[weight]]
+strategy = "documentary-impeachment"
+family = "crs-124-parenting-time"
+value = 8
+
+[[weight]]
+strategy = "documentary-impeachment"
+family = "crs-124-decision-making"
+value = 8
+
+[[weight]]
+strategy = "documentary-impeachment"
+family = "crs-115-child-support"
+value = 8
+
+[[weight]]
+strategy = "documentary-impeachment"
+family = "crcp-16-2-disclosure"
+value = 12
+
+[[weight]]
+strategy = "documentary-impeachment"
+family = "cre-608-impeachment"
+value = 10
+
+[[weight]]
+strategy = "documentary-impeachment"
+family = "crs-129-protection-order"
+value = 8
+
+[[weight]]
+strategy = "documentary-impeachment"
+family = "champva-38-usc-1781"
+value = 8
+
+[[weight]]
+strategy = "statutory-factor-deduction"
+family = "crs-124-parenting-time"
+value = 10
+
+[[weight]]
+strategy = "statutory-factor-deduction"
+family = "crs-124-decision-making"
+value = 10
+
+[[weight]]
+strategy = "statutory-factor-deduction"
+family = "crs-115-child-support"
+value = 8
+
+[[weight]]
+strategy = "statutory-factor-deduction"
+family = "crcp-16-2-disclosure"
+value = 8
+
+[[weight]]
+strategy = "statutory-factor-deduction"
+family = "cre-608-impeachment"
+value = 8
+
+[[weight]]
+strategy = "statutory-factor-deduction"
+family = "crs-129-protection-order"
+value = 8
+
+[[weight]]
+strategy = "statutory-factor-deduction"
+family = "champva-38-usc-1781"
+value = 8
+
+[[weight]]
+strategy = "stipulated-anchor-lock"
+family = "crs-124-parenting-time"
+value = 8
+
+[[weight]]
+strategy = "stipulated-anchor-lock"
+family = "crs-124-decision-making"
+value = 8
+
+[[weight]]
+strategy = "stipulated-anchor-lock"
+family = "crs-115-child-support"
+value = 10
+
+[[weight]]
+strategy = "stipulated-anchor-lock"
+family = "crcp-16-2-disclosure"
+value = 8
+
+[[weight]]
+strategy = "stipulated-anchor-lock"
+family = "cre-608-impeachment"
+value = 8
+
+[[weight]]
+strategy = "stipulated-anchor-lock"
+family = "crs-129-protection-order"
+value = 8
+
+[[weight]]
+strategy = "stipulated-anchor-lock"
+family = "champva-38-usc-1781"
+value = 10
+
+[[weight]]
+strategy = "calm-opening-pivot"
+family = "crs-124-parenting-time"
+value = 10
+
+[[weight]]
+strategy = "calm-opening-pivot"
+family = "crs-124-decision-making"
+value = 8
+
+[[weight]]
+strategy = "calm-opening-pivot"
+family = "crs-115-child-support"
+value = 8
+
+[[weight]]
+strategy = "calm-opening-pivot"
+family = "crcp-16-2-disclosure"
+value = 7
+
+[[weight]]
+strategy = "calm-opening-pivot"
+family = "cre-608-impeachment"
+value = 8
+
+[[weight]]
+strategy = "calm-opening-pivot"
+family = "crs-129-protection-order"
+value = 10
+
+[[weight]]
+strategy = "calm-opening-pivot"
+family = "champva-38-usc-1781"
+value = 8
+
+[[outcome]]
+strategy = "documentary-impeachment"
+family = "crcp-16-2-disclosure"
+success = true
+
+[[outcome]]
+strategy = "documentary-impeachment"
+family = "crcp-16-2-disclosure"
+success = true
+
+[[outcome]]
+strategy = "statutory-factor-deduction"
+family = "crs-124-parenting-time"
+success = true
+
+[[outcome]]
+strategy = "calm-opening-pivot"
+family = "crs-124-parenting-time"
+success = true
+
+[[outcome]]
+strategy = "stipulated-anchor-lock"
+family = "crs-115-child-support"
+success = true
+
+[[outcome]]
+strategy = "documentary-impeachment"
+family = "cre-608-impeachment"
+success = true
+
+[[outcome]]
+strategy = "stipulated-anchor-lock"
+family = "champva-38-usc-1781"
+success = true
+
+[[outcome]]
+strategy = "calm-opening-pivot"
+family = "crs-129-protection-order"
+success = true
+
+[[outcome]]
+strategy = "statutory-factor-deduction"
+family = "crs-124-decision-making"
+success = true
+
+[[outcome]]
+strategy = "calm-opening-pivot"
+family = "crcp-16-2-disclosure"
+success = false

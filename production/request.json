@@ -1,0 +1,237 @@
+{
+  "roots": [
+    {
+      "package": {
+        "name": "prism_legal_api_command_count",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.Api.commandCount",
+      "targets": [
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_api_commands",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.Api.commands",
+      "targets": [
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_discovery_build_columns",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.Discovery.buildColumns",
+      "targets": [
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_discovery_find_recurrence",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.Discovery.findRecurrence",
+      "targets": [
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_discovery_find_relations",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.Discovery.findRelations",
+      "targets": [
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_engine_learn_all",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.Engine.learnAll",
+      "targets": [
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_engine_schedule",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.Engine.schedule",
+      "targets": [
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_intake_classify_all_heads",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.Intake.classifyAllHeads",
+      "targets": [
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_intake_classify_intake",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.Intake.classifyIntake",
+      "targets": [
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_remediescore_guideline_net_transfer_cents",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.RemediesCore.guidelineNetTransferCents",
+      "targets": [
+        {
+          "digest": "b120ca1bfec593473116198fb21e7c9c1b625cbcc858a0e4cfd92fbe4aeb6757",
+          "id": "rust-core"
+        },
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_remediescore_petitioner_stipulated_monthly_cents",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.RemediesCore.petitionerStipulatedMonthlyCents",
+      "targets": [
+        {
+          "digest": "b120ca1bfec593473116198fb21e7c9c1b625cbcc858a0e4cfd92fbe4aeb6757",
+          "id": "rust-core"
+        },
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_remediescore_respondent_stipulated_disability_cents",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.RemediesCore.respondentStipulatedDisabilityCents",
+      "targets": [
+        {
+          "digest": "b120ca1bfec593473116198fb21e7c9c1b625cbcc858a0e4cfd92fbe4aeb6757",
+          "id": "rust-core"
+        },
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_remediescore_shared_parenting_adjusted_cents",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.RemediesCore.sharedParentingAdjustedCents",
+      "targets": [
+        {
+          "digest": "b120ca1bfec593473116198fb21e7c9c1b625cbcc858a0e4cfd92fbe4aeb6757",
+          "id": "rust-core"
+        },
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_remediescore_stipulated_baseline_cents",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.RemediesCore.stipulatedBaselineCents",
+      "targets": [
+        {
+          "digest": "b120ca1bfec593473116198fb21e7c9c1b625cbcc858a0e4cfd92fbe4aeb6757",
+          "id": "rust-core"
+        },
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_remediescore_undisclosed_reserve_balance_cents",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.RemediesCore.undisclosedReserveBalanceCents",
+      "targets": [
+        {
+          "digest": "b120ca1bfec593473116198fb21e7c9c1b625cbcc858a0e4cfd92fbe4aeb6757",
+          "id": "rust-core"
+        },
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    },
+    {
+      "package": {
+        "name": "prism_legal_remediescore_worksheets",
+        "version": "0.1.0"
+      },
+      "root": "PrismLegal.RemediesCore.worksheets",
+      "targets": [
+        {
+          "digest": "e3db2e96823c5f2c710fdace992d11e5fbb6b63b1500045eff45f85eedf94027",
+          "id": "rust-std"
+        }
+      ]
+    }
+  ],
+  "spec": "lexlean/production-request/1"
+}

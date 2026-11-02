@@ -1,0 +1,151 @@
+spec = "prism-legal/legal-meta/1"
+
+[[hohfeld]]
+id = "HOH-01"
+title = "Equal Parenting Time Claim-Right"
+dominant_position = "Right"
+correlative_position = "Duty"
+
+[[hohfeld]]
+id = "HOH-02"
+title = "Joint Major Decision-Making Power"
+dominant_position = "Power"
+correlative_position = "Liability"
+
+[[hohfeld]]
+id = "HOH-03"
+title = "Disability Pension Statutory Immunity Against Income Imputation"
+dominant_position = "Immunity"
+correlative_position = "Disability"
+
+[[hohfeld]]
+id = "HOH-04"
+title = "Guideline Support Transfer Claim-Right ($250.00/mo)"
+dominant_position = "Right"
+correlative_position = "Duty"
+
+[[hohfeld]]
+id = "HOH-05"
+title = "Rule 26(e) / Rule 16.2 Reopening & Unconscionability Power"
+dominant_position = "Power"
+correlative_position = "Liability"
+
+[[hohfeld]]
+id = "HOH-06"
+title = "Direct Parental Care Privilege During Regional Travel Blocks"
+dominant_position = "Privilege"
+correlative_position = "NoRight"
+
+[[hohfeld]]
+id = "HOH-07"
+title = "Equal Statutory Access to School & Medical Records"
+dominant_position = "Right"
+correlative_position = "Duty"
+
+[[hohfeld]]
+id = "HOH-08"
+title = "Zero-Premium Statutory Dependent Healthcare Immunity"
+dominant_position = "Immunity"
+correlative_position = "Disability"
+
+[[hohfeld]]
+id = "HOH-09"
+title = "FRE 106 Rule of Completeness Evidentiary Right"
+dominant_position = "Right"
+correlative_position = "Duty"
+
+[[hohfeld]]
+id = "HOH-10"
+title = "ABA Rule 1.2(c) & 1.16(a)(3) Client Freedom of Counsel Choice"
+dominant_position = "Power"
+correlative_position = "Liability"
+
+[[legal_rule]]
+id = "LRML-01"
+strength = "StrictRule"
+modality = "Obligation"
+
+[[legal_rule]]
+id = "LRML-02"
+strength = "DefeasibleRule"
+modality = "Obligation"
+
+[[legal_rule]]
+id = "LRML-03"
+strength = "StrictRule"
+modality = "Prohibition"
+
+[[legal_rule]]
+id = "LRML-04"
+strength = "StrictRule"
+modality = "Immunity"
+
+[[legal_rule]]
+id = "LRML-05"
+strength = "DefeasibleRule"
+modality = "Permission"
+
+[[legal_rule]]
+id = "LRML-06"
+strength = "StrictRule"
+modality = "Prohibition"
+
+[[legal_rule]]
+id = "LRML-07"
+strength = "DefeasibleRule"
+modality = "Obligation"
+
+[[legal_rule]]
+id = "LRML-08"
+strength = "StrictRule"
+modality = "Power"
+
+[[legal_rule]]
+id = "LRML-09"
+strength = "DefeasibleRule"
+modality = "Prohibition"
+
+[[legal_rule]]
+id = "LRML-10"
+strength = "StrictRule"
+modality = "Obligation"
+
+[[legal_rule]]
+id = "LRML-11"
+strength = "StrictRule"
+modality = "Obligation"
+
+[[legal_rule]]
+id = "LRML-12"
+strength = "StrictRule"
+modality = "Prohibition"
+
+[[superiority]]
+id = "SUP-01"
+superior = "LRML-03"
+inferior = "LRML-02"
+
+[[superiority]]
+id = "SUP-02"
+superior = "LRML-06"
+inferior = "LRML-05"
+
+[[superiority]]
+id = "SUP-03"
+superior = "LRML-08"
+inferior = "LRML-07"
+
+[[superiority]]
+id = "SUP-04"
+superior = "LRML-10"
+inferior = "LRML-09"
+
+[[superiority]]
+id = "SUP-05"
+superior = "LRML-04"
+inferior = "LRML-02"
+
+[[superiority]]
+id = "SUP-06"
+superior = "LRML-11"
+inferior = "LRML-09"

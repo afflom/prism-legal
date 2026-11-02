@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "combined-disability-rating"
+category = "function"
+signature = "(pi ((explicit v (const lexlean.std.nat::nat))) (const lexlean.std.nat::nat))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Veterans"
+name = "PrismLegal.Veterans.combinedDisabilityRating"
+
+[[form]]
+id = "combined-disability-rating"
+channel = "math"
+surface = "combinedDisabilityRating"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name combinedDisabilityRating) (paren (seq (slot 0))))"

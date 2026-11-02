@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PrismLegal Verified Model Register",
+  "type": "object",
+  "required": [
+    "caseMeta",
+    "children",
+    "openingPillars",
+    "statutoryFactors",
+    "financialLedger",
+    "claims",
+    "respondentExhibits",
+    "petitionerExhibits",
+    "witnesses",
+    "traps",
+    "timeline",
+    "portal"
+  ]
+}

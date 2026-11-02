@@ -1,0 +1,31 @@
+spec = "prism-legal/observer/1"
+
+[[quadruple]]
+id = "OBS-CLIENT"
+observer = "Client Litigant (Respondent)"
+vantage = "Client Workspace (client.html)"
+focus = "Calm testimony delivery, 50/50 parenting stability for the three minor children, and co-design with counsel."
+
+[[quadruple]]
+id = "OBS-COUNSEL"
+observer = "Lead & Specialized Co-Counsel (Trial, Veterans, Commercial & Legal Aid)"
+vantage = "Counsel Workbench (lawyer.html)"
+focus = "Evidentiary foundation, FRE 106/602/613 objections, Rule 26(e)/16.2 impeachment, and 360-minute trial clock."
+
+[[quadruple]]
+id = "OBS-BENCH"
+observer = "Presiding Judicial Fact-Finder (Division 7C)"
+vantage = "Courtroom Hearing Mode (courtroom.html)"
+focus = "Best-interests compliance (\u00a7 402), guideline support accuracy (\u00a7 305), and clear documentary proof."
+
+[[quadruple]]
+id = "OBS-BENEFICIARIES"
+observer = "Minor Beneficiaries (Ages 15, 11 & 6)"
+vantage = "Equal Parenting Schedule & Townhouse Environment"
+focus = "Loving access to both parents, continuity of school/friends, and zero exposure to parental conflict."
+
+[[quadruple]]
+id = "OBS-CLINIC"
+observer = "Public-Benefit Legal Aid Clinic & Open-Source Adopters"
+vantage = "Platform Hub (index.html)"
+focus = "Formally verified legal case preparation across family, civil, veterans, employment, and housing law."

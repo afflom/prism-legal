@@ -1,0 +1,145 @@
+spec = "prismpm/ids/1"
+
+[[conformance_id]]
+id = "CLM-01"
+category = "parenting-time"
+status = "corroborated"
+statement = "Under Uniform Domestic Relations Act \u00a7 402(a), an equal 50/50 week-on/week-off schedule (182.5 overnights each) with Wednesday school exchanges preserves caregiving continuity and emotional stability."
+
+[[conformance_id]]
+id = "CLM-02"
+category = "parenting-time"
+status = "corroborated"
+statement = "From 2023 through 2029, Respondent handled daily school transport, homework, and pediatric care\u2014including four months of solo caregiving in 2028 while Petitioner was on a regional logistics rotation."
+
+[[conformance_id]]
+id = "CLM-03"
+category = "parenting-time"
+status = "corroborated"
+statement = "Certified school attendance records (Ex. K) prove that during the 90-day equal 50/50 schedule in early 2030, all three dependents had zero tardies and strong academic evaluations."
+
+[[conformance_id]]
+id = "CLM-04"
+category = "parenting-time"
+status = "stipulated"
+statement = "Both parents reside within the same suburban school district attendance zone (10 minutes apart), enabling conflict-free curb exchanges at school."
+
+[[conformance_id]]
+id = "CLM-05"
+category = "decision-making"
+status = "corroborated"
+statement = "Six years of cooperative educational and medical choices plus neutral portal communication support joint major decision-making with mediation prior to court intervention (Ex. L)."
+
+[[conformance_id]]
+id = "CLM-06"
+category = "decision-making"
+status = "corroborated"
+statement = "Respondent completed the 16-hour certified Co-Parenting & Communication Seminar on June 1, 2030\u201430 days ahead of the judicial deadline (Ex. D)."
+
+[[conformance_id]]
+id = "CLM-07"
+category = "child-support"
+status = "stipulated"
+statement = "In the Joint Pretrial Stipulation (\u00b6 14), the parties stipulated to monthly gross incomes of $8,000.00/mo ($800,000 cents) for Petitioner and $5,000.00/mo ($500,000 cents) for Respondent."
+
+[[conformance_id]]
+id = "CLM-08"
+category = "child-support"
+status = "corroborated"
+statement = "Applying the $13,000.00/mo combined baseline, 182.5 equal overnights, and $0 medical/childcare add-ons on Worksheet Ex. N yields a net guideline transfer of $250.00/mo ($25,000 cents) from Petitioner to Respondent."
+
+[[conformance_id]]
+id = "CLM-09"
+category = "child-support"
+status = "corroborated"
+statement = "Under Uniform Support Guidelines \u00a7 305(5)(b), Respondent's certified permanent disability pension determination (Ex. E) bars imputing speculative commercial engineering wages."
+
+[[conformance_id]]
+id = "CLM-10"
+category = "child-support"
+status = "corroborated"
+statement = "Certified IRS Tax Return Transcripts for 2026, 2027, 2028, and 2029 (Ex. I) prove Respondent received $0 in gross revenue, salary, or distributions from open-source civic software projects."
+
+[[conformance_id]]
+id = "CLM-11"
+category = "child-support"
+status = "corroborated"
+statement = "All three dependents are enrolled in Respondent's statutory public-service dependent medical plan at $0 monthly premium (Ex. E), eliminating Petitioner's $180.00/mo duplicate insurance add-on on OP Ex. 2."
+
+[[conformance_id]]
+id = "CLM-12"
+category = "child-support"
+status = "corroborated"
+statement = "Respondent is available full-time before and after school and during Petitioner's regional travel shifts (Ex. L), eliminating the unnecessary $1,500/mo ($450/mo worksheet share) commercial after-school agency expense."
+
+[[conformance_id]]
+id = "CLM-13"
+category = "financial-disclosure"
+status = "corroborated"
+statement = "Comparison of Petitioner's June 10, 2029 Sworn Financial Statement (Ex. G) with subpoenaed bank statements (Ex. H) proves Petitioner omitted $30,000.00 ($3,000,000 cents) held in Escrow Checking x4102 and Reserve Savings x4109."
+
+[[conformance_id]]
+id = "CLM-14"
+category = "financial-disclosure"
+status = "corroborated"
+statement = "Because Petitioner omitted $30,000.00 in liquid reserves while claiming financial hardship during interim proceedings, Civil Rule 16.2(e)(10) bars retroactive expense shifting (Ex. G, Ex. H, Ex. J, Ex. N \u00b6\u00b6 24\u201326)."
+
+[[conformance_id]]
+id = "CLM-15"
+category = "impeachment"
+status = "corroborated"
+statement = "Under FRE 106, page 4 lines 10\u201324 of the 2028 Co-Parenting & Homework Study Log (OP Ex. 13, dated October 12, 2028) proves both parents jointly agreed on calm, non-punitive homework tutoring and positive reinforcement."
+
+[[conformance_id]]
+id = "CLM-16"
+category = "impeachment"
+status = "corroborated"
+statement = "Admitting the complete 6-page co-parenting portal thread (OP Ex. 14, Ex. B) under FRE 106 shows Respondent calmly coordinating schedules and the 15-year-old asking to resume the 50/50 rotation."
+
+[[conformance_id]]
+id = "CLM-17"
+category = "impeachment"
+status = "corroborated"
+statement = "Opposing lay witnesses W-07, W-08, and W-09 admit they have not visited Respondent's residence or observed his parenting since 2028, limiting their testimony under FRE 602 and FRE 802."
+
+[[conformance_id]]
+id = "CLM-18"
+category = "protection-order"
+status = "corroborated"
+statement = "Certified school check-in badge logs and transit telemetry (Ex. F, Ex. M) prove Respondent remained 512 yards from Petitioner's residence on the public arterial avenue during routine school drop-off."
+
+[[conformance_id]]
+id = "CLM-19"
+category = "protection-order"
+status = "stipulated"
+statement = "On October 1, 2029, Petitioner stipulated to dismiss her interim restriction motion with prejudice (Ex. C) in exchange for neutral civil standby/school-curb exchange protocols."
+
+[[conformance_id]]
+id = "CLM-20"
+category = "parenting-time"
+status = "corroborated"
+statement = "When Petitioner travels on multi-day regional logistics shifts, the Proposed Parenting Plan (Ex. L \u00a7 4.3) grants Respondent the first right of refusal so the dependents stay with a parent rather than a commercial vendor."
+
+[[conformance_id]]
+id = "CLM-21"
+category = "parenting-time"
+status = "corroborated"
+statement = "Photographic and property records (Ex. O) establish that Respondent's suburban residence inside the school district provides dedicated bedrooms, study desks, and a fenced yard 8 minutes from school."
+
+[[conformance_id]]
+id = "CLM-22"
+category = "financial-disclosure"
+status = "corroborated"
+statement = "Certified joint checking statements (Ex. J) document Petitioner's unilateral $6,400.00 withdrawal on August 28, 2029, entitling Respondent to an equitable offset."
+
+[[conformance_id]]
+id = "CLM-23"
+category = "decision-making"
+status = "corroborated"
+statement = "Under Uniform Domestic Relations Act \u00a7 408, both parents hold equal statutory access to all academic, medical, dental, and extracurricular records regardless of residential schedule."
+
+[[conformance_id]]
+id = "CLM-24"
+category = "parenting-time"
+status = "contested"
+statement = "Petitioner's proposal to cut Respondent to 90 overnights/year (OP Ex. 1) is contradicted by the 2030 zero-tardy school record (Ex. K), 6-year caregiving history (Ex. B), and 512-yard transit verification (Ex. F)."

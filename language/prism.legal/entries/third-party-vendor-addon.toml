@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "third-party-vendor-addon"
+category = "function"
+signature = "(pi ((explicit c (const lexlean.std.nat::nat))) (const lexlean.std.nat::nat))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Remedies"
+name = "PrismLegal.Remedies.thirdPartyVendorAddon"
+
+[[form]]
+id = "third-party-vendor-addon"
+channel = "math"
+surface = "thirdPartyVendorAddon"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name thirdPartyVendorAddon) (paren (seq (slot 0))))"

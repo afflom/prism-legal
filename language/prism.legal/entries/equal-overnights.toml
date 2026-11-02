@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "equal-overnights"
+category = "function"
+signature = "(pi ((explicit c (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Parenting"
+name = "PrismLegal.Parenting.equalOvernights"
+
+[[form]]
+id = "equal-overnights"
+channel = "math"
+surface = "equalOvernights"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name equalOvernights) (paren (seq (slot 0))))"

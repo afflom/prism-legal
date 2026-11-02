@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "rent-abatement-cents"
+category = "function"
+signature = "(pi ((explicit u (const lexlean.std.nat::nat))) (const lexlean.std.nat::nat))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Housing"
+name = "PrismLegal.Housing.rentAbatementCents"
+
+[[form]]
+id = "rent-abatement-cents"
+channel = "math"
+surface = "rentAbatementCents"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name rentAbatementCents) (paren (seq (slot 0))))"

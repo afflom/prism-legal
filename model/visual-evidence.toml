@@ -1,0 +1,373 @@
+spec = "prism-legal/visual-evidence/1"
+
+[[diary_entry]]
+id = "DIARY-01"
+exhibit_id = "OP-Ex-13"
+entry_date = "2028-09-10"
+page_range = "pp. 1-2"
+
+[[diary_entry]]
+id = "DIARY-02"
+exhibit_id = "OP-Ex-13"
+entry_date = "2028-09-24"
+page_range = "pp. 3-5"
+
+[[diary_entry]]
+id = "DIARY-03"
+exhibit_id = "OP-Ex-13"
+entry_date = "2028-10-14 (Lines 1-14)"
+page_range = "p. 6, ll. 1-14"
+
+[[diary_entry]]
+id = "DIARY-04"
+exhibit_id = "OP-Ex-13"
+entry_date = "2028-10-14 (Lines 15-28)"
+page_range = "p. 6, ll. 15-28"
+
+[[diary_entry]]
+id = "DIARY-05"
+exhibit_id = "OP-Ex-13"
+entry_date = "2028-11-18"
+page_range = "pp. 7-10"
+
+[[diary_entry]]
+id = "DIARY-06"
+exhibit_id = "OP-Ex-13"
+entry_date = "2029-01-15"
+page_range = "pp. 11-13"
+
+[[diary_entry]]
+id = "DIARY-07"
+exhibit_id = "OP-Ex-13"
+entry_date = "2029-03-08"
+page_range = "pp. 14-17"
+
+[[diary_entry]]
+id = "DIARY-08"
+exhibit_id = "OP-Ex-13"
+entry_date = "2029-06-12"
+page_range = "pp. 18-21"
+
+[[visual_forensic]]
+id = "VIS-01"
+exhibit_id = "Ex-A"
+modality = "Digital Transit Telemetry Map"
+page_count = 4
+
+[[visual_forensic]]
+id = "VIS-02"
+exhibit_id = "Ex-E"
+modality = "Official Retirement Board Decision"
+page_count = 8
+
+[[visual_forensic]]
+id = "VIS-03"
+exhibit_id = "Ex-G"
+modality = "Sworn Financial Statement (Initial)"
+page_count = 7
+
+[[visual_forensic]]
+id = "VIS-04"
+exhibit_id = "Ex-H"
+modality = "Subpoenaed Bank Statements"
+page_count = 18
+
+[[visual_forensic]]
+id = "VIS-05"
+exhibit_id = "Ex-I"
+modality = "Photographic Compendium"
+page_count = 11
+
+[[visual_forensic]]
+id = "VIS-06"
+exhibit_id = "Ex-K"
+modality = "Multimedia & Activity Stills"
+page_count = 9
+
+[[visual_forensic]]
+id = "VIS-07"
+exhibit_id = "Ex-M"
+modality = "Signed Completion Certificate"
+page_count = 1
+
+[[visual_forensic]]
+id = "VIS-08"
+exhibit_id = "Ex-N"
+modality = "Signed Court Order & Guideline Worksheet"
+page_count = 12
+
+[[visual_forensic]]
+id = "VIS-09"
+exhibit_id = "OP-Ex-04"
+modality = "Commercial Childcare Quote"
+page_count = 5
+
+[[visual_forensic]]
+id = "VIS-10"
+exhibit_id = "OP-Ex-11"
+modality = "Handwritten Calendar Annotations"
+page_count = 3
+
+[[visual_forensic]]
+id = "VIS-11"
+exhibit_id = "OP-Ex-13"
+modality = "Scanned Homework Study Log (2028-2029)"
+page_count = 21
+
+[[visual_forensic]]
+id = "VIS-12"
+exhibit_id = "OP-Ex-14"
+modality = "Youth Device Message Screenshots"
+page_count = 6
+
+[[photo_page]]
+id = "PHOTO-01"
+exhibit_id = "Ex-I"
+page_number = 1
+subjects = "Townhouse Exterior & Courtyard Walkway"
+
+[[photo_page]]
+id = "PHOTO-02"
+exhibit_id = "Ex-I"
+page_number = 2
+subjects = "Living Room & Family Reading Area"
+
+[[photo_page]]
+id = "PHOTO-03"
+exhibit_id = "Ex-I"
+page_number = 3
+subjects = "Kitchen & Family Dining Table"
+
+[[photo_page]]
+id = "PHOTO-04"
+exhibit_id = "Ex-I"
+page_number = 4
+subjects = "Oldest Minor Child's Bedroom & Study Desk (Age 15)"
+
+[[photo_page]]
+id = "PHOTO-05"
+exhibit_id = "Ex-I"
+page_number = 5
+subjects = "Middle Minor Child's Bedroom & Music Corner (Age 11)"
+
+[[photo_page]]
+id = "PHOTO-06"
+exhibit_id = "Ex-I"
+page_number = 6
+subjects = "Youngest Minor Child's Bedroom & Reading Nook (Age 6)"
+
+[[photo_page]]
+id = "PHOTO-07"
+exhibit_id = "Ex-I"
+page_number = 7
+subjects = "Dedicated Homework & Music Alcove"
+
+[[photo_page]]
+id = "PHOTO-08"
+exhibit_id = "Ex-I"
+page_number = 8
+subjects = "Children's Courtyard Planter Project"
+
+[[photo_page]]
+id = "PHOTO-09"
+exhibit_id = "Ex-I"
+page_number = 9
+subjects = "Summer 2030 50/50 Bicycle & Park Outing"
+
+[[photo_page]]
+id = "PHOTO-10"
+exhibit_id = "Ex-K"
+page_number = 1
+subjects = "Family Board Game Night (2029)"
+
+[[photo_page]]
+id = "PHOTO-11"
+exhibit_id = "Ex-K"
+page_number = 2
+subjects = "School Robotics & Science Fair Preparation"
+
+[[photo_page]]
+id = "PHOTO-12"
+exhibit_id = "Ex-K"
+page_number = 3
+subjects = "Neighborhood Community Picnic Dinner"
+
+[[semantic_mapping]]
+id = "MAP-Ex-A"
+exhibit_id = "Ex-A"
+proponent = "Respondent"
+modality = "Co-Parenting Communications"
+
+[[semantic_mapping]]
+id = "MAP-Ex-B"
+exhibit_id = "Ex-B"
+proponent = "Respondent"
+modality = "Parenting History"
+
+[[semantic_mapping]]
+id = "MAP-Ex-C"
+exhibit_id = "Ex-C"
+proponent = "Respondent"
+modality = "Court Orders & Stipulations"
+
+[[semantic_mapping]]
+id = "MAP-Ex-D"
+exhibit_id = "Ex-D"
+proponent = "Respondent"
+modality = "Compliance & Training"
+
+[[semantic_mapping]]
+id = "MAP-Ex-E"
+exhibit_id = "Ex-E"
+proponent = "Respondent"
+modality = "Income & Benefits Verification"
+
+[[semantic_mapping]]
+id = "MAP-Ex-F"
+exhibit_id = "Ex-F"
+proponent = "Respondent"
+modality = "Order Compliance Telemetry"
+
+[[semantic_mapping]]
+id = "MAP-Ex-G"
+exhibit_id = "Ex-G"
+proponent = "Respondent"
+modality = "Financial Disclosure"
+
+[[semantic_mapping]]
+id = "MAP-Ex-H"
+exhibit_id = "Ex-H"
+proponent = "Respondent"
+modality = "Financial Disclosure Audit"
+
+[[semantic_mapping]]
+id = "MAP-Ex-I"
+exhibit_id = "Ex-I"
+proponent = "Respondent"
+modality = "Tax & Income Verification"
+
+[[semantic_mapping]]
+id = "MAP-Ex-J"
+exhibit_id = "Ex-J"
+proponent = "Respondent"
+modality = "Financial Accounting"
+
+[[semantic_mapping]]
+id = "MAP-Ex-K"
+exhibit_id = "Ex-K"
+proponent = "Respondent"
+modality = "Educational Records"
+
+[[semantic_mapping]]
+id = "MAP-Ex-L"
+exhibit_id = "Ex-L"
+proponent = "Respondent"
+modality = "Proposed Court Orders"
+
+[[semantic_mapping]]
+id = "MAP-Ex-M"
+exhibit_id = "Ex-M"
+proponent = "Respondent"
+modality = "Demonstrative Map"
+
+[[semantic_mapping]]
+id = "MAP-Ex-N"
+exhibit_id = "Ex-N"
+proponent = "Respondent"
+modality = "Support Guidelines Worksheet"
+
+[[semantic_mapping]]
+id = "MAP-Ex-O"
+exhibit_id = "Ex-O"
+proponent = "Respondent"
+modality = "Home Environment & Caregiving"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-01"
+exhibit_id = "OP-Ex-01"
+proponent = "Petitioner"
+modality = "Opposing Proposed Orders"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-02"
+exhibit_id = "OP-Ex-02"
+proponent = "Petitioner"
+modality = "Opposing Support Worksheet"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-03"
+exhibit_id = "OP-Ex-03"
+proponent = "Petitioner"
+modality = "Employment Schedule"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-04"
+exhibit_id = "OP-Ex-04"
+proponent = "Petitioner"
+modality = "Financial Disclosure"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-05"
+exhibit_id = "OP-Ex-05"
+proponent = "Petitioner"
+modality = "Communications"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-06"
+exhibit_id = "OP-Ex-06"
+proponent = "Petitioner"
+modality = "Interim Pleadings"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-07"
+exhibit_id = "OP-Ex-07"
+proponent = "Petitioner"
+modality = "Photographs"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-08"
+exhibit_id = "OP-Ex-08"
+proponent = "Petitioner"
+modality = "Childcare Invoice"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-09"
+exhibit_id = "OP-Ex-09"
+proponent = "Petitioner"
+modality = "Insurance Records"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-10"
+exhibit_id = "OP-Ex-10"
+proponent = "Petitioner"
+modality = "Imputation Allegation"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-11"
+exhibit_id = "OP-Ex-11"
+proponent = "Petitioner"
+modality = "Financial Summary"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-12"
+exhibit_id = "OP-Ex-12"
+proponent = "Petitioner"
+modality = "Real Property"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-13"
+exhibit_id = "OP-Ex-13"
+proponent = "Petitioner"
+modality = "Handwritten Notebook"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-14"
+exhibit_id = "OP-Ex-14"
+proponent = "Petitioner"
+modality = "Text Messages"
+
+[[semantic_mapping]]
+id = "MAP-OP-Ex-15"
+exhibit_id = "OP-Ex-15"
+proponent = "Petitioner"
+modality = "Activity Records"

@@ -1,0 +1,214 @@
+\begin{lexlean}{Architecture}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\useglossary{prism.qual@1.0.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: Stakeholder,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: name, type: String},
+    {name: role, type: String},
+    {name: concerns, type: (List String)}
+  ]
+}
+
+structure{
+  name: Concern,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: title, type: String},
+    {name: isoCharacteristic, type: String}
+  ]
+}
+
+structure{
+  name: Viewpoint,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: title, type: String},
+    {name: concerns, type: (List String)}
+  ]
+}
+
+structure{
+  name: ArchView,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: viewpointId, type: String},
+    {name: route, type: String},
+    {name: title, type: String}
+  ]
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: allMembers,
+  parameters: [values : (List String), ids : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head ids) then (allMembers tail ids) else false)),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head tail) then false else (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: stakeholders,
+  parameters: [],
+  result: (List Stakeholder),
+  body: (cons (record Stakeholder {id := "SH-CLIENT", name := "Client & Witness-Stand Litigant", role := "Primary Portal User (Client Workspace)", concerns := (cons "CON-STRATEGY" (cons "CON-TESTIMONY" (cons "CON-PRIVACY" (cons "CON-SHARING" (nil String)))))}) (cons (record Stakeholder {id := "SH-LAWYER", name := "Lead Trial Counsel, Co-Counsel & Legal Aid Clinic", role := "Primary Portal User (Counsel Workbench)", concerns := (cons "CON-STRATEGY" (cons "CON-PROOF" (cons "CON-IMPEACHMENT" (cons "CON-CLOCK" (cons "CON-SHARING" (nil String))))))}) (cons (record Stakeholder {id := "SH-BENEFICIARIES", name := "Protected Minor Beneficiaries & Dependents (Ages 15, 11 & 6)", role := "Statutory Best-Interests & Remedy Subjects", concerns := (cons "CON-STABILITY" (cons "CON-REMEDIES" (nil String)))}) (cons (record Stakeholder {id := "SH-COURT", name := "Presiding Judicial Fact-Finder & Administrative Tribunal", role := "Adjudicative Forum", concerns := (cons "CON-PROOF" (cons "CON-CLOCK" (cons "CON-STABILITY" (nil String))))}) (cons (record Stakeholder {id := "SH-COUNTERPARTY", name := "Opposing Party & Adverse Counsel", role := "Adversarial Counterparty", concerns := (cons "CON-IMPEACHMENT" (cons "CON-REMEDIES" (nil String)))}) (nil Stakeholder)))))),
+  axioms: []
+}
+
+definition{
+  name: concerns,
+  parameters: [],
+  result: (List Concern),
+  body: (cons (record Concern {id := "CON-STRATEGY", title := "Coherent Case Theory & Client-Counsel Alignment", isoCharacteristic := "Functional Suitability"}) (cons (record Concern {id := "CON-TESTIMONY", title := "Calm, Record-Anchored Direct & Cross-Examination Testimony", isoCharacteristic := "Usability / Operability"}) (cons (record Concern {id := "CON-PROOF", title := "Complete Statutory & Evidentiary Backing of All Claims", isoCharacteristic := "Reliability"}) (cons (record Concern {id := "CON-IMPEACHMENT", title := "Documentary Impeachment & Rule 106 Completeness", isoCharacteristic := "Functional Appropriateness"}) (cons (record Concern {id := "CON-STABILITY", title := "Protected Beneficiary Stability & Equal Schedule Continuity", isoCharacteristic := "Safety / Best Interests"}) (cons (record Concern {id := "CON-REMEDIES", title := "Accurate Guideline Support, Damages & Statutory Benefit Protection", isoCharacteristic := "Functional Correctness"}) (cons (record Concern {id := "CON-CLOCK", title := "Homeostatic 360-Minute Hearing Clock Regulation", isoCharacteristic := "Performance Efficiency"}) (cons (record Concern {id := "CON-PRIVACY", title := "Zero-PII Public-Benefit Sanitization & Local-First Privilege", isoCharacteristic := "Security / Confidentiality"}) (cons (record Concern {id := "CON-SHARING", title := "Cryptographic Multi-Party Case Sharing & Unbundled Co-Counsel Access", isoCharacteristic := "Interoperability / Security"}) (nil Concern)))))))))),
+  axioms: []
+}
+
+definition{
+  name: viewpoints,
+  parameters: [],
+  result: (List Viewpoint),
+  body: (cons (record Viewpoint {id := "VP-PORTAL-HUB", title := "Platform Hub, Auth & Multi-Domain Registry Viewpoint", concerns := (cons "CON-PRIVACY" (cons "CON-SHARING" (cons "CON-STRATEGY" (nil String))))}) (cons (record Viewpoint {id := "VP-CLIENT-PREP", title := "Client Strategy, Direct Walkthrough & Rehearsal Viewpoint", concerns := (cons "CON-STRATEGY" (cons "CON-TESTIMONY" (cons "CON-STABILITY" (cons "CON-SHARING" (nil String)))))}) (cons (record Viewpoint {id := "VP-COUNSEL-BENCH", title := "Counsel Statutory Proof, Impeachment & Remedies Viewpoint", concerns := (cons "CON-PROOF" (cons "CON-IMPEACHMENT" (cons "CON-REMEDIES" (nil String))))}) (cons (record Viewpoint {id := "VP-COUNSEL-EXAMS", title := "Counsel Witness Examinations, Objections & Vault Viewpoint", concerns := (cons "CON-TESTIMONY" (cons "CON-IMPEACHMENT" (cons "CON-CLOCK" (nil String))))}) (cons (record Viewpoint {id := "VP-COUNSEL-TUNER", title := "Counsel Formal Legal Meta-Theory & Strategy Tuner Viewpoint", concerns := (cons "CON-STRATEGY" (cons "CON-PROOF" (cons "CON-CLOCK" (nil String))))}) (cons (record Viewpoint {id := "VP-COURTROOM-STAND", title := "Day-of-Hearing Quick Responder Viewpoint", concerns := (cons "CON-TESTIMONY" (cons "CON-PROOF" (cons "CON-CLOCK" (nil String))))}) (nil Viewpoint))))))),
+  axioms: []
+}
+
+definition{
+  name: views,
+  parameters: [],
+  result: (List ArchView),
+  body: (cons (record ArchView {id := "VIEW-INDEX", viewpointId := "VP-PORTAL-HUB", route := "index.html", title := "Platform Hub, Login, Firms, Courts & Case Sharing"}) (cons (record ArchView {id := "VIEW-CLIENT", viewpointId := "VP-CLIENT-PREP", route := "client.html", title := "Client Workspace (4-Step Preparation & Rehearsal)"}) (cons (record ArchView {id := "VIEW-LAWYER", viewpointId := "VP-COUNSEL-BENCH", route := "lawyer.html", title := "Counsel Workbench (5-Workspace Legal Practice & Tuner)"}) (cons (record ArchView {id := "VIEW-COURTROOM", viewpointId := "VP-COURTROOM-STAND", route := "courtroom.html", title := "Hearing & Trial Mode (High-Legibility Quick Reference)"}) (nil ArchView))))),
+  axioms: []
+}
+
+definition{
+  name: stakeholderIds,
+  parameters: [xs : (List Stakeholder)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (stakeholderIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: concernIds,
+  parameters: [xs : (List Concern)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (concernIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: viewpointIds,
+  parameters: [xs : (List Viewpoint)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (viewpointIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: viewIds,
+  parameters: [xs : (List ArchView)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (viewIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: viewViewpointIds,
+  parameters: [xs : (List ArchView)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head viewpointId) (viewViewpointIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+theorem{
+  name: stakeholderIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (stakeholderIds (stakeholders))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: concernIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (concernIds (concerns))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: viewpointIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (viewpointIds (viewpoints))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: viewIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (viewIds (views))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: viewsResolveToViewpoints,
+  parameters: [],
+  statement: ((allMembers (viewViewpointIds (views)) (viewpointIds (viewpoints))) = true),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

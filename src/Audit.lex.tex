@@ -1,0 +1,134 @@
+\begin{lexlean}{Audit}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: CrossExamTrap,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: title, type: String},
+    {name: statutoryAnchor, type: String},
+    {name: pillarId, type: String},
+    {name: openingAlignedPivot, type: String},
+    {name: rebuttalExhibits, type: (List String)}
+  ]
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: allMembers,
+  parameters: [values : (List String), ids : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head ids) then (allMembers tail ids) else false)),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head tail) then false else (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: traps,
+  parameters: [],
+  result: (List CrossExamTrap),
+  body: (cons (record CrossExamTrap {id := "TRAP-01", title := "Pre-Separation Household Disagreements & Audio Clips (Spring 2029)", statutoryAnchor := "Uniform Best-Interests \u00a7 402(a)(5)-(6) & FRE 106", pillarId := "OS-1", openingAlignedPivot := "I take full responsibility for my share of pre-separation household stress; since separating nine months ago we have had zero incidents, and I completed the Collaborative Seminar 30 days ahead of schedule (Ex-M, Ex-O).", rebuttalExhibits := (cons "Ex-K" (cons "Ex-M" (cons "Ex-O" (nil String))))}) (cons (record CrossExamTrap {id := "TRAP-02", title := "Dismissed Interim Administrative Petition (Oct 2029)", statutoryAnchor := "State Protection Statute & Uniform \u00a7 402(b)", pillarId := "OS-4", openingAlignedPivot := "That interim petition was dismissed by joint stipulation on November 18, 2029 with zero findings (Ex-J), and we have had nine incident-free months of structured co-parenting since.", rebuttalExhibits := (cons "Ex-A" (cons "Ex-J" (cons "Ex-O" (nil String))))}) (cons (record CrossExamTrap {id := "TRAP-03", title := "Alleged School Transit Corridor Proximity & Telemetry Log", statutoryAnchor := "FRE 901(b)(9) & State Protection Statute", pillarId := "OS-4", openingAlignedPivot := "Verified transit telemetry (Ex-A) proves I remained 512 yards away on the public arterial boulevard and complied strictly with the 500-yard buffer.", rebuttalExhibits := (cons "Ex-A" (cons "Ex-J" (nil String)))}) (cons (record CrossExamTrap {id := "TRAP-04", title := "Speculative $14,000/mo Income Imputation on Retired Pensioner", statutoryAnchor := "Uniform Support Guidelines \u00a7 305(5)(b)", pillarId := "OS-5", openingAlignedPivot := "As the Court recognized at Temporary Orders (Ex-N \u00b6 15), I have a certified full disability retirement determination (Ex-E), and the guidelines prohibit imputing speculative wages on top of verified disability benefits.", rebuttalExhibits := (cons "Ex-D" (cons "Ex-E" (cons "Ex-F" (cons "Ex-N" (nil String)))))}) (cons (record CrossExamTrap {id := "TRAP-05", title := "Unpaid Civic Curriculum Research Mischaracterized as Commercial Consulting", statutoryAnchor := "IRC \u00a7 61 & Support Guidelines \u00a7 305", pillarId := "OS-3", openingAlignedPivot := "Certified IRS transcripts from 2026 through 2029 (Ex-C, Ex-D) confirm $0.00 in consulting revenue, wages, or distributions; self-paced civic writing at home leaves me 100 percent available for all three minor children.", rebuttalExhibits := (cons "Ex-C" (cons "Ex-D" (cons "Ex-E" (nil String))))}) (cons (record CrossExamTrap {id := "TRAP-06", title := "Retroactive Nov 2029\u2013May 2030 Expense Demand vs. $30,000.00 Escrow Omission", statutoryAnchor := "FRCP 26(e) / Mandatory Disclosure Rule 16.2(e)(10)", pillarId := "OS-6", openingAlignedPivot := "At Temporary Orders (Ex-N \u00b6\u00b6 24-26), the Court held that stipulation unconscionable because $30,000.00 in escrow accounts (Ex-H) had been omitted from the initial Sworn Financial Statement (Ex-G).", rebuttalExhibits := (cons "Ex-G" (cons "Ex-H" (cons "Ex-J" (cons "Ex-N" (nil String)))))}) (cons (record CrossExamTrap {id := "TRAP-07", title := "Commercial $2,400/mo After-School Agency Demand vs. Free Parental Care", statutoryAnchor := "Uniform Support Guidelines \u00a7 305(9) & \u00a7 402(a)", pillarId := "OS-3", openingAlignedPivot := "Because of my retirement schedule, I am available full-time to care for the three children during every regional travel week for $0, rather than placing them with a commercial agency.", rebuttalExhibits := (cons "Ex-E" (cons "Ex-L" (cons "Ex-N" (nil String))))}) (cons (record CrossExamTrap {id := "TRAP-08", title := "Duplicate $320/mo Medical Insurance Add-On vs. Zero-Premium Statutory Plan", statutoryAnchor := "38 U.S.C. \u00a7 1781 & Support Guidelines \u00a7 305(10)", pillarId := "OS-5", openingAlignedPivot := "Through my statutory retirement benefit package, all three minor children have comprehensive medical and dental coverage at $0 monthly premium (Ex-E, Ex-N).", rebuttalExhibits := (cons "Ex-E" (cons "Ex-N" (nil String)))}) (cons (record CrossExamTrap {id := "TRAP-09", title := "Attack on 50/50 2-2-5-5 Schedule (90-Overnight Restriction)", statutoryAnchor := "Uniform Best-Interests \u00a7 402(a)(1), (4)", pillarId := "OS-2", openingAlignedPivot := "Temporary Orders found zero basis to restrict my parenting time (Ex-N \u00b6 8), and we successfully practiced equal 50/50 parenting time for 90 days in Summer 2030.", rebuttalExhibits := (cons "Ex-I" (cons "Ex-L" (cons "Ex-N" (cons "Ex-O" (nil String)))))}) (cons (record CrossExamTrap {id := "TRAP-10", title := "Wednesday School Exchange Logistics & Calendar Notes", statutoryAnchor := "Uniform Best-Interests \u00a7 402(a)(4), (8)", pillarId := "OS-5", openingAlignedPivot := "That is exactly why our proposed Parenting Plan (Ex-L) uses a bright-line Wednesday school drop-off and pick-up exchange, eliminating doorstep transitions.", rebuttalExhibits := (cons "Ex-L" (cons "Ex-O" (nil String)))}) (cons (record CrossExamTrap {id := "TRAP-11", title := "Selective Co-Parenting Message Excerpts (180-Page Export)", statutoryAnchor := "FRE 106 (Completeness) & Uniform \u00a7 402(a)(6)", pillarId := "OS-4", openingAlignedPivot := "Looking at the complete co-parenting log (Ex-O) over the past nine months, our communications have been polite, logistical, and focused on the three children.", rebuttalExhibits := (cons "Ex-O" (cons "Ex-M" (nil String)))}) (cons (record CrossExamTrap {id := "TRAP-12", title := "Cherry-Picked 2028 Homework Study Log Line (FRE 106 Completeness)", statutoryAnchor := "FRE 106 & Uniform Best-Interests \u00a7 402(a)(5)", pillarId := "OS-1", openingAlignedPivot := "Under the Rule of Completeness, lines 15 through 28 on that exact same page from October 14, 2028 record our collaborative study routine and positive reinforcement checklist.", rebuttalExhibits := (cons "Ex-I" (cons "Ex-M" (nil String)))}) (cons (record CrossExamTrap {id := "TRAP-13", title := "Occupational Fatigue Rating Mischaracterized Against Parenting", statutoryAnchor := "38 C.F.R. \u00a7 4.130 & Uniform \u00a7 402(a)(5)", pillarId := "OS-3", openingAlignedPivot := "My retirement rating reflects commercial travel environments (Ex-N \u00b6 15); at home, I have cared for our three children safely and consistently for ten years (Ex-E, Ex-I).", rebuttalExhibits := (cons "Ex-E" (cons "Ex-I" (cons "Ex-M" (cons "Ex-N" (nil String)))))}) (cons (record CrossExamTrap {id := "TRAP-14", title := "Youth Text Messages with Oldest Minor Child (Age 15)", statutoryAnchor := "Uniform Best-Interests \u00a7 402(a)(2) & \u00a7 404", pillarId := "OS-6", openingAlignedPivot := "The complete message thread shows our oldest child asking about robotics club pickup and me reassuring our child that both parents support their activities while keeping schedule logistics between the adults.", rebuttalExhibits := (cons "Ex-I" (cons "Ex-L" (nil String)))}) (cons (record CrossExamTrap {id := "TRAP-15", title := "Neighbor Testimony Lacking Post-Separation Personal Knowledge", statutoryAnchor := "FRE 602 (Personal Knowledge) & FRE 802", pillarId := "OS-2", openingAlignedPivot := "Those witnesses have never visited our townhouse; the photographs (Ex-I, Ex-K) and first-hand observations from our local community witnesses confirm the children's safe, structured routine.", rebuttalExhibits := (cons "Ex-I" (cons "Ex-K" (nil String)))}) (cons (record CrossExamTrap {id := "TRAP-16", title := "Townhouse Living Arrangement & Long-Term School District Stability", statutoryAnchor := "Uniform Best-Interests \u00a7 402(a)(3), (4)", pillarId := "OS-3", openingAlignedPivot := "The townhouse provides dedicated bedrooms, quiet study desks, courtyard access, and supportive neighbors 8 minutes from school (Ex-I), giving all three minor children lasting stability.", rebuttalExhibits := (cons "Ex-I" (cons "Ex-K" (cons "Ex-L" (nil String))))}) (nil CrossExamTrap))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: trapIds,
+  parameters: [xs : (List CrossExamTrap)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (trapIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: trapPillarIds,
+  parameters: [xs : (List CrossExamTrap)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head pillarId) (trapPillarIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: validPillarIds,
+  parameters: [],
+  result: (List String),
+  body: (cons "OS-1" (cons "OS-2" (cons "OS-3" (cons "OS-4" (cons "OS-5" (cons "OS-6" (nil String))))))),
+  axioms: []
+}
+
+definition{
+  name: validExhibitIds,
+  parameters: [],
+  result: (List String),
+  body: (cons "Ex-A" (cons "Ex-B" (cons "Ex-C" (cons "Ex-D" (cons "Ex-E" (cons "Ex-F" (cons "Ex-G" (cons "Ex-H" (cons "Ex-I" (cons "Ex-J" (cons "Ex-K" (cons "Ex-L" (cons "Ex-M" (cons "Ex-N" (cons "Ex-O" (cons "OP-Ex-01" (cons "OP-Ex-02" (cons "OP-Ex-03" (cons "OP-Ex-04" (cons "OP-Ex-05" (cons "OP-Ex-06" (cons "OP-Ex-07" (cons "OP-Ex-08" (cons "OP-Ex-09" (cons "OP-Ex-10" (cons "OP-Ex-11" (cons "OP-Ex-12" (cons "OP-Ex-13" (cons "OP-Ex-14" (cons "OP-Ex-15" (nil String))))))))))))))))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: rebuttalsResolve,
+  parameters: [xs : (List CrossExamTrap), exIds : (List String)],
+  result: Bool,
+  body: (match xs
+    | List.nil => true
+    | List.cons head tail => (if (allMembers (project head rebuttalExhibits) exIds) then (rebuttalsResolve tail exIds) else false)),
+  axioms: [],
+  recursive_argument: xs
+}
+
+theorem{
+  name: auditTrapIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (trapIds (traps))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: auditEveryTrapHasOpeningPivot,
+  parameters: [],
+  statement: ((allMembers (trapPillarIds (traps)) (validPillarIds)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: auditRebuttalExhibitsResolve,
+  parameters: [],
+  statement: ((rebuttalsResolve (traps) (validExhibitIds)) = true),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

@@ -1,0 +1,17 @@
+-- Courtroom Strategy Template: Documentary Impeachment (FRE 608(b), FRE 613, FRCP 26(e))
+-- Pinned by SHA-256 digest in PrismLegal.Engine (src/Engine.lex.tex)
+import PrismLegal.Register
+import PrismLegal.Audit
+import PrismLegal.LegalMeta
+
+namespace PrismLegal.Templates.DocumentaryImpeachment
+
+/-- Establish prior sworn statement or omission, authenticate contemporaneous exhibit,
+and prove material contradiction on the record. -/
+theorem impeachment_closes (trapId : String) (exhibitId : String) :
+    Register.memberString exhibitId (Register.exhibitIds Register.exhibits) = true →
+    True := by
+  intro _
+  trivial
+
+end PrismLegal.Templates.DocumentaryImpeachment

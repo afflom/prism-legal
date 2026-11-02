@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "mandatory-disclosure-reopening"
+category = "function"
+signature = "(pi ((explicit a (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Disclosure"
+name = "PrismLegal.Disclosure.mandatoryDisclosureReopening"
+
+[[form]]
+id = "mandatory-disclosure-reopening"
+channel = "math"
+surface = "mandatoryDisclosureReopening"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name mandatoryDisclosureReopening) (paren (seq (slot 0))))"

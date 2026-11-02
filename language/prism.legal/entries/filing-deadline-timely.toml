@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "filing-deadline-timely"
+category = "function"
+signature = "(pi ((explicit f (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Procedure"
+name = "PrismLegal.Procedure.filingDeadlineTimely"
+
+[[form]]
+id = "filing-deadline-timely"
+channel = "math"
+surface = "filingDeadlineTimely"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name filingDeadlineTimely) (paren (seq (slot 0))))"

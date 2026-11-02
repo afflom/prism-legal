@@ -1,0 +1,129 @@
+spec = "prism-legal/audit/1"
+
+[[trap]]
+id = "TRAP-01"
+title = "Pre-Separation Household Disagreements & Audio Clips (Spring 2029)"
+statutory_anchor = "Uniform Best-Interests \u00a7 402(a)(5)-(6) & FRE 106"
+pillar_id = "OS-1"
+opening_aligned_pivot = "I take full responsibility for my share of pre-separation household stress; since separating nine months ago we have had zero incidents, and I completed the Collaborative Seminar 30 days ahead of schedule (Ex-M, Ex-O)."
+rebuttal_exhibits = ["Ex-K", "Ex-M", "Ex-O"]
+
+[[trap]]
+id = "TRAP-02"
+title = "Dismissed Interim Administrative Petition (Oct 2029)"
+statutory_anchor = "State Protection Statute & Uniform \u00a7 402(b)"
+pillar_id = "OS-4"
+opening_aligned_pivot = "That interim petition was dismissed by joint stipulation on November 18, 2029 with zero findings (Ex-J), and we have had nine incident-free months of structured co-parenting since."
+rebuttal_exhibits = ["Ex-A", "Ex-J", "Ex-O"]
+
+[[trap]]
+id = "TRAP-03"
+title = "Alleged School Transit Corridor Proximity & Telemetry Log"
+statutory_anchor = "FRE 901(b)(9) & State Protection Statute"
+pillar_id = "OS-4"
+opening_aligned_pivot = "Verified transit telemetry (Ex-A) proves I remained 512 yards away on the public arterial boulevard and complied strictly with the 500-yard buffer."
+rebuttal_exhibits = ["Ex-A", "Ex-J"]
+
+[[trap]]
+id = "TRAP-04"
+title = "Speculative $14,000/mo Income Imputation on Retired Pensioner"
+statutory_anchor = "Uniform Support Guidelines \u00a7 305(5)(b)"
+pillar_id = "OS-5"
+opening_aligned_pivot = "As the Court recognized at Temporary Orders (Ex-N \u00b6 15), I have a certified full disability retirement determination (Ex-E), and the guidelines prohibit imputing speculative wages on top of verified disability benefits."
+rebuttal_exhibits = ["Ex-D", "Ex-E", "Ex-F", "Ex-N"]
+
+[[trap]]
+id = "TRAP-05"
+title = "Unpaid Civic Curriculum Research Mischaracterized as Commercial Consulting"
+statutory_anchor = "IRC \u00a7 61 & Support Guidelines \u00a7 305"
+pillar_id = "OS-3"
+opening_aligned_pivot = "Certified IRS transcripts from 2026 through 2029 (Ex-C, Ex-D) confirm $0.00 in consulting revenue, wages, or distributions; self-paced civic writing at home leaves me 100% available for all three minor children."
+rebuttal_exhibits = ["Ex-C", "Ex-D", "Ex-E"]
+
+[[trap]]
+id = "TRAP-06"
+title = "Retroactive Nov 2029\u2013May 2030 Expense Demand vs. $30,000.00 Escrow Omission"
+statutory_anchor = "FRCP 26(e) / Mandatory Disclosure Rule 16.2(e)(10)"
+pillar_id = "OS-6"
+opening_aligned_pivot = "At Temporary Orders (Ex-N \u00b6\u00b6 24-26), the Court held that stipulation unconscionable because $30,000.00 in escrow accounts (Ex-H) had been omitted from the initial Sworn Financial Statement (Ex-G)."
+rebuttal_exhibits = ["Ex-G", "Ex-H", "Ex-J", "Ex-N"]
+
+[[trap]]
+id = "TRAP-07"
+title = "Commercial $2,400/mo After-School Agency Demand vs. Free Parental Care"
+statutory_anchor = "Uniform Support Guidelines \u00a7 305(9) & \u00a7 402(a)"
+pillar_id = "OS-3"
+opening_aligned_pivot = "Because of my retirement schedule, I am available full-time to care for the three children during every regional travel week for $0, rather than placing them with a commercial agency."
+rebuttal_exhibits = ["Ex-E", "Ex-L", "Ex-N"]
+
+[[trap]]
+id = "TRAP-08"
+title = "Duplicate $320/mo Medical Insurance Add-On vs. Zero-Premium Statutory Plan"
+statutory_anchor = "38 U.S.C. \u00a7 1781 & Support Guidelines \u00a7 305(10)"
+pillar_id = "OS-5"
+opening_aligned_pivot = "Through my statutory retirement benefit package, all three minor children have comprehensive medical and dental coverage at $0 monthly premium (Ex-E, Ex-N)."
+rebuttal_exhibits = ["Ex-E", "Ex-N"]
+
+[[trap]]
+id = "TRAP-09"
+title = "Attack on 50/50 2-2-5-5 Schedule (90-Overnight Restriction)"
+statutory_anchor = "Uniform Best-Interests \u00a7 402(a)(1), (4)"
+pillar_id = "OS-2"
+opening_aligned_pivot = "Temporary Orders found zero basis to restrict my parenting time (Ex-N \u00b6 8), and we successfully practiced equal 50/50 parenting time for 90 days in Summer 2030."
+rebuttal_exhibits = ["Ex-I", "Ex-L", "Ex-N", "Ex-O"]
+
+[[trap]]
+id = "TRAP-10"
+title = "Wednesday School Exchange Logistics & Calendar Notes"
+statutory_anchor = "Uniform Best-Interests \u00a7 402(a)(4), (8)"
+pillar_id = "OS-5"
+opening_aligned_pivot = "That is exactly why our proposed Parenting Plan (Ex-L) uses a bright-line Wednesday school drop-off and pick-up exchange, eliminating doorstep transitions."
+rebuttal_exhibits = ["Ex-L", "Ex-O"]
+
+[[trap]]
+id = "TRAP-11"
+title = "Selective Co-Parenting Message Excerpts (180-Page Export)"
+statutory_anchor = "FRE 106 (Completeness) & Uniform \u00a7 402(a)(6)"
+pillar_id = "OS-4"
+opening_aligned_pivot = "Looking at the complete co-parenting log (Ex-O) over the past nine months, our communications have been polite, logistical, and focused on the three children."
+rebuttal_exhibits = ["Ex-O", "Ex-M"]
+
+[[trap]]
+id = "TRAP-12"
+title = "Cherry-Picked 2028 Homework Study Log Line (FRE 106 Completeness)"
+statutory_anchor = "FRE 106 & Uniform Best-Interests \u00a7 402(a)(5)"
+pillar_id = "OS-1"
+opening_aligned_pivot = "Under the Rule of Completeness, lines 15 through 28 on that exact same page from October 14, 2028 record our collaborative study routine and positive reinforcement checklist."
+rebuttal_exhibits = ["Ex-I", "Ex-M"]
+
+[[trap]]
+id = "TRAP-13"
+title = "Occupational Fatigue Rating Mischaracterized Against Parenting"
+statutory_anchor = "38 C.F.R. \u00a7 4.130 & Uniform \u00a7 402(a)(5)"
+pillar_id = "OS-3"
+opening_aligned_pivot = "My retirement rating reflects commercial travel environments (Ex-N \u00b6 15); at home, I have cared for our three children safely and consistently for ten years (Ex-E, Ex-I)."
+rebuttal_exhibits = ["Ex-E", "Ex-I", "Ex-M", "Ex-N"]
+
+[[trap]]
+id = "TRAP-14"
+title = "Youth Text Messages with Oldest Minor Child (Age 15)"
+statutory_anchor = "Uniform Best-Interests \u00a7 402(a)(2) & \u00a7 404"
+pillar_id = "OS-6"
+opening_aligned_pivot = "The complete message thread shows our oldest child asking about robotics club pickup and me reassuring our child that both parents support their activities while keeping schedule logistics between the adults."
+rebuttal_exhibits = ["Ex-I", "Ex-L"]
+
+[[trap]]
+id = "TRAP-15"
+title = "Neighbor Testimony Lacking Post-Separation Personal Knowledge"
+statutory_anchor = "FRE 602 (Personal Knowledge) & FRE 802"
+pillar_id = "OS-2"
+opening_aligned_pivot = "Those witnesses have never visited our townhouse; the photographs (Ex-I, Ex-K) and first-hand observations from our local community witnesses confirm the children's safe, structured routine."
+rebuttal_exhibits = ["Ex-I", "Ex-K"]
+
+[[trap]]
+id = "TRAP-16"
+title = "Townhouse Living Arrangement & Long-Term School District Stability"
+statutory_anchor = "Uniform Best-Interests \u00a7 402(a)(3), (4)"
+pillar_id = "OS-3"
+opening_aligned_pivot = "The townhouse provides dedicated bedrooms, quiet study desks, courtyard access, and supportive neighbors 8 minutes from school (Ex-I), giving all three minor children lasting stability."
+rebuttal_exhibits = ["Ex-I", "Ex-K", "Ex-L"]

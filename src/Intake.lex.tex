@@ -1,0 +1,715 @@
+\begin{lexlean}{Intake}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: SchemaClassifier,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: schemaElement, type: String},
+    {name: title, type: String},
+    {name: headId, type: String},
+    {name: classes, type: (List String)},
+    {name: extrapolationTarget, type: String}
+  ]
+}
+
+structure{
+  name: AttentionHead,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: nodeId, type: String},
+    {name: schemaId, type: String},
+    {name: title, type: String},
+    {name: query, type: (List Nat)},
+    {name: keys, type: (List (List Nat))},
+    {name: biases, type: (List Nat)},
+    {name: multiplier, type: Nat},
+    {name: shift, type: Nat},
+    {name: classLabels, type: (List String)},
+    {name: inductiveRelation, type: String},
+    {name: deductiveStrategy, type: String}
+  ]
+}
+
+definition{
+  name: schemaClassifiers,
+  parameters: [],
+  result: (List SchemaClassifier),
+  body: (cons (record SchemaClassifier {id := "schema-case-meta", schemaElement := "caseMeta", title := "Case Front Matter & Jurisdiction Classifier", headId := "HEAD-01", classes := (cons "DOM-FAM-103" (cons "DOM-HOU-URLTA" (cons "DOM-VET-38CFR" (cons "DOM-EMP-ADA" (cons "DOM-COM-UCC" (cons "DOM-BIZ-DGCL" (nil String))))))), extrapolationTarget := "Infers governing legal framework and statutory authority strictly from non-empty user intake tokens."}) (cons (record SchemaClassifier {id := "schema-relief-goal", schemaElement := "reliefGoals", title := "Relief Goals & Requested Judicial Orders Classifier", headId := "HEAD-02", classes := (cons "relief-parenting-and-guideline-support" (cons "relief-habitability-repairs-and-abatement" (cons "relief-schedular-tdiu-and-effective-date" (cons "relief-accommodation-and-wage-remedy" (cons "relief-contract-rejection-or-validation" (cons "relief-fiduciary-accounting-and-distributions" (nil String))))))), extrapolationTarget := "Synthesizes bespoke relief orders directly from the user's intake clauses, party names, and requested terms."}) (cons (record SchemaClassifier {id := "schema-timeline-event", schemaElement := "timeline", title := "Chronological Event & Fact Intake Classifier", headId := "HEAD-03", classes := (cons "event-caregiving-and-schedule-compliance" (cons "event-repair-notice-and-escrow-deposit" (cons "event-claim-filing-and-medical-opinion" (cons "event-accommodation-request-and-response" (cons "event-notice-of-dispute-or-nonconformity" (cons "event-agreement-execution-and-audit" (nil String))))))), extrapolationTarget := "Extracts dated factual clauses from user intake into chronological timeline events linked to user exhibits."}) (cons (record SchemaClassifier {id := "schema-exhibit", schemaElement := "exhibits", title := "Documentary & Visual Evidence Intake Classifier", headId := "HEAD-04", classes := (cons "fre-901-authenticated-log" (cons "fre-803-6-business-record" (cons "fre-801d2-opposing-admission" (cons "fre-106-completeness-context" (cons "frcp-26e-disclosure-audit" (cons "fre-1006-voluminous-summary" (nil String))))))), extrapolationTarget := "Computes bespoke evidentiary foundation, purpose, and visual callouts for each user-supplied document."}) (cons (record SchemaClassifier {id := "schema-claim", schemaElement := "claims", title := "Statutory Propositions & Proof Matrix Classifier", headId := "HEAD-05", classes := (cons "claim-best-interests-allocation" (cons "claim-warranty-habitability-breach" (cons "claim-tdiu-service-connection" (cons "claim-ada-reasonable-accommodation" (cons "claim-ucc-or-fdcpa-compliance" (cons "claim-fiduciary-duty-accounting" (nil String))))))), extrapolationTarget := "Synthesizes bespoke statutory claims and rule exceptions directly from the user's goals, timeline, and exhibits."}) (cons (record SchemaClassifier {id := "schema-witness", schemaElement := "witnesses", title := "Witness Roster & Examination Scope Classifier", headId := "HEAD-06", classes := (cons "witness-coparent-and-corroborator" (cons "witness-tenant-and-code-inspector" (cons "witness-claimant-and-medical-examiner" (cons "witness-employee-and-hr-representative" (cons "witness-contract-party-and-custodian" (cons "witness-member-and-forensic-accountant" (nil String))))))), extrapolationTarget := "Builds bespoke witness examination scopes referencing the user's actual party names, dates, and exhibits."}) (cons (record SchemaClassifier {id := "schema-trap", schemaElement := "traps", title := "Cross-Examination Trap & FRE 106 Rebuttal Classifier", headId := "HEAD-07", classes := (cons "documentary-impeachment" (cons "statutory-factor-deduction" (cons "stipulated-anchor-lock" (cons "calm-opening-pivot" (cons "fre-106-completeness-restoration" (cons "affirmative-cure-and-mitigation" (nil String))))))), extrapolationTarget := "Synthesizes bespoke anticipated cross-examination challenges and calm responses anchored to the user's exhibits."}) (cons (record SchemaClassifier {id := "schema-direct-exam", schemaElement := "directExam", title := "Direct Examination Q&A Script Classifier", headId := "HEAD-08", classes := (cons "dx-parenting-and-financial-walkthrough" (cons "dx-habitability-notice-and-escrow" (cons "dx-service-history-and-functional-limits" (cons "dx-essential-duties-and-accommodation" (cons "dx-contract-terms-and-validation-demand" (cons "dx-governance-instrument-and-ledger-audit" (nil String))))))), extrapolationTarget := "Constructs bespoke Direct Examination Q&A scripts from the user's actual goals, timeline dates, and exhibits."}) (cons (record SchemaClassifier {id := "schema-visual-forensics", schemaElement := "visualForensics", title := "Visual Evidence Callout & Proponent Intent Classifier", headId := "HEAD-09", classes := (cons "vis-schedule-log-and-notebook-completeness" (cons "vis-inspection-citation-and-escrow-receipts" (cons "vis-rating-code-sheet-and-nexus-opinion" (cons "vis-evaluation-metrics-and-hr-thread" (cons "vis-validation-letter-and-assignment-gap" (cons "vis-operating-clause-and-k1-reconciliation" (nil String))))))), extrapolationTarget := "Generates bespoke page/paragraph visual inspection notes tailored to each user exhibit's title and purpose."}) (cons (record SchemaClassifier {id := "schema-calculator", schemaElement := "calculators", title := "Statutory & Financial Remedy Calculator Classifier", headId := "HEAD-10", classes := (cons "calc-family-305-shared-support" (cons "calc-housing-urlta-rent-abatement" (cons "calc-veterans-38cfr-combined-rating" (cons "calc-employment-backpay-and-damages" (cons "calc-commercial-ucc-cover-damages" (cons "calc-fiduciary-disgorgement-surcharge" (nil String))))))), extrapolationTarget := "Extracts monetary amounts, percentages, and durations from user intake into the governing statutory calculator."}) (cons (record SchemaClassifier {id := "schema-hearing-stage", schemaElement := "hearingStages", title := "Homeostatic Hearing Clock Stage Classifier", headId := "HEAD-11", classes := (cons "clock-evidentiary-Custody-hearing" (cons "clock-housing-abatement-hearing" (cons "clock-administrative-review-hearing" (cons "clock-workplace-remedy-hearing" (cons "clock-commercial-dispute-hearing" (cons "clock-fiduciary-accounting-hearing" (nil String))))))), extrapolationTarget := "Allocates hearing-stage minute budgets proportional to the user's witness roster and hearing duration."}) (cons (record SchemaClassifier {id := "schema-agenda", schemaElement := "agenda", title := "Client\u2013Counsel Strategy Co-Design Agenda Classifier", headId := "HEAD-12", classes := (cons "agenda-stipulations-and-disclosure-audit" (cons "agenda-escrow-release-and-inspection" (cons "agenda-effective-date-and-nexus" (cons "agenda-interactive-process-and-mitigation" (cons "agenda-chain-of-title-and-hearsay-motion" (cons "agenda-fre1006-summary-and-audit-scope" (nil String))))))), extrapolationTarget := "Generates bespoke Client\u2013Counsel alignment notes for actual exhibits and unbacked claims in the user's intake."}) (cons (record SchemaClassifier {id := "schema-multimodal-upload", schemaElement := "multimodalUploads", title := "Multi-Modal Evidence Upload Parser & Case Linker Classifier", headId := "HEAD-19", classes := (cons "modality-pleading-or-court-order" (cons "modality-financial-ledger-or-tax-csv" (cons "modality-visual-photo-or-premises-media" (cons "modality-handwritten-notebook-or-scan" (cons "modality-digital-message-or-email-thread" (cons "modality-official-certificate-or-medical-record" (nil String))))))), extrapolationTarget := "Parses client-side PDF, image, CSV, text, email, and audio/video uploads, computes SHA-256 digests, and links extracted facts to case elements."}) (cons (record SchemaClassifier {id := "schema-jural-posture", schemaElement := "juralPosture", title := "Enforceable Legal Right, Duty, Power & Immunity Classifier", headId := "HEAD-20", classes := (cons "jural-enforceable-claim-right-and-duty" (cons "jural-joint-governance-authority" (cons "jural-statutory-benefit-immunity" (cons "jural-disclosure-reopening-remedy" (cons "jural-completeness-restoration-right" (cons "jural-fiduciary-accounting-entitlement" (nil String))))))), extrapolationTarget := "Maps each synthesized statutory claim to its enforceable legal posture and controlling statutory exception."}) (cons (record SchemaClassifier {id := "schema-filing-artifact", schemaElement := "filingArtifacts", title := "Court-Ready Filing Packet & Pleading Generator Classifier", headId := "HEAD-21", classes := (cons "filing-parenting-and-support-position-statement" (cons "filing-habitability-abatement-and-escrow-motion" (cons "filing-veterans-tdiu-and-nexus-brief" (cons "filing-workplace-accommodation-and-remedy-brief" (cons "filing-commercial-validation-and-rejection-brief" (cons "filing-fiduciary-accounting-and-audit-petition" (nil String))))))), extrapolationTarget := "Generates bespoke court-captioned pleadings, exhibit indexes, witness disclosures, and proposed findings from the user's matter."}) (cons (record SchemaClassifier {id := "schema-filing-deadline", schemaElement := "filingDeadlines", title := "Procedural Timeline & On-Time Filing Schedule Classifier", headId := "HEAD-22", classes := (cons "deadline-mandatory-financial-and-exhibit-disclosures" (cons "deadline-municipal-inspection-and-escrow-notice" (cons "deadline-administrative-record-and-medical-submission" (cons "deadline-interactive-process-and-pretrial-exchange" (cons "deadline-statutory-validation-and-cure-window" (cons "deadline-books-and-records-and-summary-tieout" (nil String))))))), extrapolationTarget := "Computes backward-scheduled statutory filing deadlines from the user's hearing date and exports calendar reminders."}) (nil SchemaClassifier))))))))))))))))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: attentionHeads,
+  parameters: [],
+  result: (List AttentionHead),
+  body: (cons (record AttentionHead {id := "HEAD-01", nodeId := "node-case-meta", schemaId := "schema-case-meta", title := "Front-Matter & Jurisdiction Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 2 (cons 2 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "DOM-FAM-103" (cons "DOM-HOU-URLTA" (cons "DOM-VET-38CFR" (cons "DOM-EMP-ADA" (cons "DOM-COM-UCC" (cons "DOM-BIZ-DGCL" (nil String))))))), inductiveRelation := "corroborated-finding = equal-overnights XOR routine-continuity", deductiveStrategy := "statutory-factor-deduction"}) (cons (record AttentionHead {id := "HEAD-02", nodeId := "node-relief-goal", schemaId := "schema-relief-goal", title := "Relief Posture & Requested Orders Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 3 (cons 2 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "relief-parenting-and-guideline-support" (cons "relief-habitability-repairs-and-abatement" (cons "relief-schedular-tdiu-and-effective-date" (cons "relief-accommodation-and-wage-remedy" (cons "relief-contract-rejection-or-validation" (cons "relief-fiduciary-accounting-and-distributions" (nil String))))))), inductiveRelation := "order-compliant = one XOR (equal-overnights AND routine-continuity)", deductiveStrategy := "stipulated-anchor-lock"}) (cons (record AttentionHead {id := "HEAD-03", nodeId := "node-timeline-event", schemaId := "schema-timeline-event", title := "Chronological Fact & Sequence Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 2 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "event-caregiving-and-schedule-compliance" (cons "event-repair-notice-and-escrow-deposit" (cons "event-claim-filing-and-medical-opinion" (cons "event-accommodation-request-and-response" (cons "event-notice-of-dispute-or-nonconformity" (cons "event-agreement-execution-and-audit" (nil String))))))), inductiveRelation := "equalOvernights recurrence c(D) = [1, 0, 1]", deductiveStrategy := "statutory-factor-deduction"}) (cons (record AttentionHead {id := "HEAD-04", nodeId := "node-exhibit-intake", schemaId := "schema-exhibit", title := "Evidence Intake & Admissibility Foundation Attention Head", query := (cons 3 (cons 3 (cons 3 (cons 3 (cons 3 (cons 3 (cons 5 (cons 4 (nil Nat))))))))), keys := (cons (cons 14 (cons 6 (cons 4 (cons 6 (cons 4 (cons 4 (cons 14 (cons 4 (nil Nat))))))))) (cons (cons 4 (cons 14 (cons 14 (cons 6 (cons 10 (cons 12 (cons 16 (cons 4 (nil Nat))))))))) (cons (cons 6 (cons 8 (cons 4 (cons 16 (cons 12 (cons 8 (cons 10 (cons 12 (nil Nat))))))))) (cons (cons 12 (cons 4 (cons 4 (cons 8 (cons 6 (cons 4 (cons 10 (cons 16 (nil Nat))))))))) (cons (cons 10 (cons 6 (cons 4 (cons 6 (cons 8 (cons 16 (cons 12 (cons 16 (nil Nat))))))))) (cons (cons 6 (cons 6 (cons 8 (cons 6 (cons 16 (cons 14 (cons 16 (cons 8 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "fre-901-authenticated-log" (cons "fre-803-6-business-record" (cons "fre-801d2-opposing-admission" (cons "fre-106-completeness-context" (cons "frcp-26e-disclosure-audit" (cons "fre-1006-voluminous-summary" (nil String))))))), inductiveRelation := "disclosure-reopening = reserve-omission", deductiveStrategy := "documentary-impeachment"}) (cons (record AttentionHead {id := "HEAD-05", nodeId := "node-claim-synthesis", schemaId := "schema-claim", title := "Statutory Claim & Proof Matrix Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 3 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "claim-best-interests-allocation" (cons "claim-warranty-habitability-breach" (cons "claim-tdiu-service-connection" (cons "claim-ada-reasonable-accommodation" (cons "claim-ucc-or-fdcpa-compliance" (cons "claim-fiduciary-duty-accounting" (nil String))))))), inductiveRelation := "corroborated-finding = equal-overnights XOR routine-continuity", deductiveStrategy := "statutory-factor-deduction"}) (cons (record AttentionHead {id := "HEAD-06", nodeId := "node-witness-plan", schemaId := "schema-witness", title := "Witness Roster & Scope Allocation Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 3 (cons 3 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "witness-coparent-and-corroborator" (cons "witness-tenant-and-code-inspector" (cons "witness-claimant-and-medical-examiner" (cons "witness-employee-and-hr-representative" (cons "witness-contract-party-and-custodian" (cons "witness-member-and-forensic-accountant" (nil String))))))), inductiveRelation := "jointGovernance recurrence c(D) = [1, 1, 1]", deductiveStrategy := "calm-opening-pivot"}) (cons (record AttentionHead {id := "HEAD-07", nodeId := "node-trap-rebuttal", schemaId := "schema-trap", title := "Cross-Examination Trap & Pivot Attention Head", query := (cons 3 (cons 3 (cons 3 (cons 3 (cons 3 (cons 3 (cons 4 (cons 5 (nil Nat))))))))), keys := (cons (cons 8 (cons 8 (cons 6 (cons 10 (cons 10 (cons 12 (cons 14 (cons 16 (nil Nat))))))))) (cons (cons 16 (cons 10 (cons 14 (cons 8 (cons 8 (cons 8 (cons 12 (cons 6 (nil Nat))))))))) (cons (cons 10 (cons 8 (cons 12 (cons 8 (cons 14 (cons 14 (cons 16 (cons 8 (nil Nat))))))))) (cons (cons 14 (cons 8 (cons 8 (cons 14 (cons 6 (cons 6 (cons 8 (cons 12 (nil Nat))))))))) (cons (cons 12 (cons 6 (cons 4 (cons 8 (cons 6 (cons 6 (cons 10 (cons 16 (nil Nat))))))))) (cons (cons 6 (cons 16 (cons 8 (cons 12 (cons 16 (cons 10 (cons 12 (cons 10 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "documentary-impeachment" (cons "statutory-factor-deduction" (cons "stipulated-anchor-lock" (cons "calm-opening-pivot" (cons "fre-106-completeness-restoration" (cons "affirmative-cure-and-mitigation" (nil String))))))), inductiveRelation := "unilateral-act = one XOR joint-governance", deductiveStrategy := "documentary-impeachment"}) (cons (record AttentionHead {id := "HEAD-08", nodeId := "node-direct-script", schemaId := "schema-direct-exam", title := "Direct Examination Q&A Synthesis Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 2 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "dx-parenting-and-financial-walkthrough" (cons "dx-habitability-notice-and-escrow" (cons "dx-service-history-and-functional-limits" (cons "dx-essential-duties-and-accommodation" (cons "dx-contract-terms-and-validation-demand" (cons "dx-governance-instrument-and-ledger-audit" (nil String))))))), inductiveRelation := "weekParity recurrence c(D) = [1, 1, 1, 1]", deductiveStrategy := "statutory-factor-deduction"}) (cons (record AttentionHead {id := "HEAD-09", nodeId := "node-visual-callout", schemaId := "schema-visual-forensics", title := "Visual Evidence Callout & Intent Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 5 (cons 3 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "vis-schedule-log-and-notebook-completeness" (cons "vis-inspection-citation-and-escrow-receipts" (cons "vis-rating-code-sheet-and-nexus-opinion" (cons "vis-evaluation-metrics-and-hr-thread" (cons "vis-validation-letter-and-assignment-gap" (cons "vis-operating-clause-and-k1-reconciliation" (nil String))))))), inductiveRelation := "disclosure-reopening = reserve-omission", deductiveStrategy := "documentary-impeachment"}) (cons (record AttentionHead {id := "HEAD-10", nodeId := "node-remedy-calc", schemaId := "schema-calculator", title := "Statutory & Financial Calculator Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 3 (cons 2 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "calc-family-305-shared-support" (cons "calc-housing-urlta-rent-abatement" (cons "calc-veterans-38cfr-combined-rating" (cons "calc-employment-backpay-and-damages" (cons "calc-commercial-ucc-cover-damages" (cons "calc-fiduciary-disgorgement-surcharge" (nil String))))))), inductiveRelation := "one = statutory-benefit", deductiveStrategy := "stipulated-anchor-lock"}) (cons (record AttentionHead {id := "HEAD-11", nodeId := "node-hearing-clock", schemaId := "schema-hearing-stage", title := "Homeostatic Hearing Clock Budget Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 2 (cons 3 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "clock-evidentiary-Custody-hearing" (cons "clock-housing-abatement-hearing" (cons "clock-administrative-review-hearing" (cons "clock-workplace-remedy-hearing" (cons "clock-commercial-dispute-hearing" (cons "clock-fiduciary-accounting-hearing" (nil String))))))), inductiveRelation := "stageBudgetsFillTheTick = 360", deductiveStrategy := "calm-opening-pivot"}) (cons (record AttentionHead {id := "HEAD-12", nodeId := "node-counsel-agenda", schemaId := "schema-agenda", title := "Client\u2013Counsel Strategy Agenda Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 3 (cons 4 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "agenda-stipulations-and-disclosure-audit" (cons "agenda-escrow-release-and-inspection" (cons "agenda-effective-date-and-nexus" (cons "agenda-interactive-process-and-mitigation" (cons "agenda-chain-of-title-and-hearsay-motion" (cons "agenda-fre1006-summary-and-audit-scope" (nil String))))))), inductiveRelation := "corroborated-finding = equal-overnights XOR routine-continuity", deductiveStrategy := "statutory-factor-deduction"}) (cons (record AttentionHead {id := "HEAD-13", nodeId := "node-domain-family", schemaId := "schema-case-meta", title := "Family Law & Parental Responsibilities Domain Node Head", query := (cons 6 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 3 (cons 3 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "DOM-FAM-103" (cons "DOM-HOU-URLTA" (cons "DOM-VET-38CFR" (cons "DOM-EMP-ADA" (cons "DOM-COM-UCC" (cons "DOM-BIZ-DGCL" (nil String))))))), inductiveRelation := "corroborated-finding = equal-overnights XOR routine-continuity", deductiveStrategy := "statutory-factor-deduction"}) (cons (record AttentionHead {id := "HEAD-14", nodeId := "node-domain-housing", schemaId := "schema-case-meta", title := "Housing Defense & Habitability Domain Node Head", query := (cons 1 (cons 6 (cons 1 (cons 1 (cons 2 (cons 1 (cons 3 (cons 3 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "DOM-FAM-103" (cons "DOM-HOU-URLTA" (cons "DOM-VET-38CFR" (cons "DOM-EMP-ADA" (cons "DOM-COM-UCC" (cons "DOM-BIZ-DGCL" (nil String))))))), inductiveRelation := "order-compliant = one XOR (equal-overnights AND routine-continuity)", deductiveStrategy := "documentary-impeachment"}) (cons (record AttentionHead {id := "HEAD-15", nodeId := "node-domain-veterans", schemaId := "schema-case-meta", title := "Veterans Benefits & 38 CFR Appeals Domain Node Head", query := (cons 2 (cons 1 (cons 6 (cons 2 (cons 1 (cons 1 (cons 3 (cons 2 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "DOM-FAM-103" (cons "DOM-HOU-URLTA" (cons "DOM-VET-38CFR" (cons "DOM-EMP-ADA" (cons "DOM-COM-UCC" (cons "DOM-BIZ-DGCL" (nil String))))))), inductiveRelation := "one = statutory-benefit", deductiveStrategy := "stipulated-anchor-lock"}) (cons (record AttentionHead {id := "HEAD-16", nodeId := "node-domain-employment", schemaId := "schema-case-meta", title := "Employment Law & ADA Accommodation Domain Node Head", query := (cons 1 (cons 1 (cons 2 (cons 6 (cons 1 (cons 2 (cons 3 (cons 3 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "DOM-FAM-103" (cons "DOM-HOU-URLTA" (cons "DOM-VET-38CFR" (cons "DOM-EMP-ADA" (cons "DOM-COM-UCC" (cons "DOM-BIZ-DGCL" (nil String))))))), inductiveRelation := "unilateral-act = one XOR joint-governance", deductiveStrategy := "documentary-impeachment"}) (cons (record AttentionHead {id := "HEAD-17", nodeId := "node-domain-commercial", schemaId := "schema-case-meta", title := "Commercial Contract & UCC Article 2 Domain Node Head", query := (cons 1 (cons 2 (cons 1 (cons 1 (cons 6 (cons 2 (cons 3 (cons 3 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "DOM-FAM-103" (cons "DOM-HOU-URLTA" (cons "DOM-VET-38CFR" (cons "DOM-EMP-ADA" (cons "DOM-COM-UCC" (cons "DOM-BIZ-DGCL" (nil String))))))), inductiveRelation := "disclosure-reopening = reserve-omission", deductiveStrategy := "documentary-impeachment"}) (cons (record AttentionHead {id := "HEAD-18", nodeId := "node-domain-business", schemaId := "schema-case-meta", title := "Business Governance & Fiduciary Accounting Domain Node Head", query := (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 6 (cons 3 (cons 4 (nil Nat))))))))), keys := (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "DOM-FAM-103" (cons "DOM-HOU-URLTA" (cons "DOM-VET-38CFR" (cons "DOM-EMP-ADA" (cons "DOM-COM-UCC" (cons "DOM-BIZ-DGCL" (nil String))))))), inductiveRelation := "disclosure-reopening = reserve-omission", deductiveStrategy := "stipulated-anchor-lock"}) (cons (record AttentionHead {id := "HEAD-19", nodeId := "node-multimodal-upload", schemaId := "schema-multimodal-upload", title := "Multi-Modal Evidence Upload & Case Relation Attention Head", query := (cons 3 (cons 3 (cons 3 (cons 3 (cons 3 (cons 3 (cons 6 (cons 4 (nil Nat))))))))), keys := (cons (cons 12 (cons 10 (cons 10 (cons 8 (cons 10 (cons 10 (cons 14 (cons 10 (nil Nat))))))))) (cons (cons 8 (cons 10 (cons 6 (cons 6 (cons 14 (cons 16 (cons 16 (cons 12 (nil Nat))))))))) (cons (cons 12 (cons 16 (cons 4 (cons 6 (cons 6 (cons 4 (cons 14 (cons 6 (nil Nat))))))))) (cons (cons 14 (cons 6 (cons 6 (cons 6 (cons 6 (cons 6 (cons 12 (cons 16 (nil Nat))))))))) (cons (cons 14 (cons 8 (cons 4 (cons 16 (cons 10 (cons 6 (cons 12 (cons 14 (nil Nat))))))))) (cons (cons 8 (cons 12 (cons 16 (cons 12 (cons 6 (cons 6 (cons 16 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "modality-pleading-or-court-order" (cons "modality-financial-ledger-or-tax-csv" (cons "modality-visual-photo-or-premises-media" (cons "modality-handwritten-notebook-or-scan" (cons "modality-digital-message-or-email-thread" (cons "modality-official-certificate-or-medical-record" (nil String))))))), inductiveRelation := "corroborated-finding = equal-overnights XOR routine-continuity", deductiveStrategy := "documentary-impeachment"}) (cons (record AttentionHead {id := "HEAD-20", nodeId := "node-jural-posture", schemaId := "schema-jural-posture", title := "Enforceable Legal Posture & Statutory Immunity Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (nil Nat))))))))), keys := (cons (cons 16 (cons 14 (cons 8 (cons 12 (cons 14 (cons 8 (cons 12 (cons 6 (nil Nat))))))))) (cons (cons 14 (cons 6 (cons 4 (cons 10 (cons 8 (cons 14 (cons 10 (cons 8 (nil Nat))))))))) (cons (cons 10 (cons 6 (cons 16 (cons 12 (cons 6 (cons 6 (cons 14 (cons 6 (nil Nat))))))))) (cons (cons 10 (cons 8 (cons 4 (cons 8 (cons 10 (cons 14 (cons 12 (cons 16 (nil Nat))))))))) (cons (cons 12 (cons 6 (cons 4 (cons 10 (cons 8 (cons 6 (cons 12 (cons 16 (nil Nat))))))))) (cons (cons 4 (cons 8 (cons 4 (cons 6 (cons 14 (cons 16 (cons 16 (cons 12 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "jural-enforceable-claim-right-and-duty" (cons "jural-joint-governance-authority" (cons "jural-statutory-benefit-immunity" (cons "jural-disclosure-reopening-remedy" (cons "jural-completeness-restoration-right" (cons "jural-fiduciary-accounting-entitlement" (nil String))))))), inductiveRelation := "one = statutory-benefit", deductiveStrategy := "statutory-factor-deduction"}) (cons (record AttentionHead {id := "HEAD-21", nodeId := "node-filing-artifact", schemaId := "schema-filing-artifact", title := "Court-Ready Filing Pleading & Packet Synthesis Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 3 (nil Nat))))))))), keys := (cons (cons 16 (cons 2 (cons 2 (cons 2 (cons 2 (cons 2 (cons 10 (cons 8 (nil Nat))))))))) (cons (cons 2 (cons 16 (cons 2 (cons 2 (cons 4 (cons 2 (cons 10 (cons 8 (nil Nat))))))))) (cons (cons 2 (cons 2 (cons 16 (cons 4 (cons 2 (cons 2 (cons 10 (cons 6 (nil Nat))))))))) (cons (cons 2 (cons 2 (cons 4 (cons 16 (cons 2 (cons 4 (cons 10 (cons 8 (nil Nat))))))))) (cons (cons 2 (cons 4 (cons 2 (cons 2 (cons 16 (cons 4 (cons 10 (cons 8 (nil Nat))))))))) (cons (cons 2 (cons 2 (cons 2 (cons 4 (cons 4 (cons 16 (cons 12 (cons 10 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "filing-parenting-and-support-position-statement" (cons "filing-habitability-abatement-and-escrow-motion" (cons "filing-veterans-tdiu-and-nexus-brief" (cons "filing-workplace-accommodation-and-remedy-brief" (cons "filing-commercial-validation-and-rejection-brief" (cons "filing-fiduciary-accounting-and-audit-petition" (nil String))))))), inductiveRelation := "order-compliant = one XOR (equal-overnights AND routine-continuity)", deductiveStrategy := "stipulated-anchor-lock"}) (cons (record AttentionHead {id := "HEAD-22", nodeId := "node-filing-deadline", schemaId := "schema-filing-deadline", title := "Procedural Timeline & On-Time Filing Schedule Attention Head", query := (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 3 (cons 5 (nil Nat))))))))), keys := (cons (cons 16 (cons 2 (cons 2 (cons 2 (cons 2 (cons 2 (cons 10 (cons 8 (nil Nat))))))))) (cons (cons 2 (cons 16 (cons 2 (cons 2 (cons 4 (cons 2 (cons 10 (cons 8 (nil Nat))))))))) (cons (cons 2 (cons 2 (cons 16 (cons 4 (cons 2 (cons 2 (cons 10 (cons 6 (nil Nat))))))))) (cons (cons 2 (cons 2 (cons 4 (cons 16 (cons 2 (cons 4 (cons 10 (cons 8 (nil Nat))))))))) (cons (cons 2 (cons 4 (cons 2 (cons 2 (cons 16 (cons 4 (cons 10 (cons 8 (nil Nat))))))))) (cons (cons 2 (cons 2 (cons 2 (cons 4 (cons 4 (cons 16 (cons 12 (cons 10 (nil Nat))))))))) (nil (List Nat)))))))), biases := (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))), multiplier := 1, shift := 64, classLabels := (cons "deadline-mandatory-financial-and-exhibit-disclosures" (cons "deadline-municipal-inspection-and-escrow-notice" (cons "deadline-administrative-record-and-medical-submission" (cons "deadline-interactive-process-and-pretrial-exchange" (cons "deadline-statutory-validation-and-cure-window" (cons "deadline-books-and-records-and-summary-tieout" (nil String))))))), inductiveRelation := "stageBudgetsFillTheTick = 360", deductiveStrategy := "statutory-factor-deduction"}) (nil AttentionHead))))))))))))))))))))))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: domainKeys,
+  parameters: [],
+  result: (List (List Nat)),
+  body: (cons (cons 16 (cons 1 (cons 2 (cons 1 (cons 1 (cons 1 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 16 (cons 1 (cons 1 (cons 2 (cons 1 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 2 (cons 1 (cons 16 (cons 2 (cons 1 (cons 1 (cons 4 (cons 2 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 2 (cons 16 (cons 1 (cons 2 (cons 4 (cons 4 (nil Nat))))))))) (cons (cons 1 (cons 2 (cons 1 (cons 1 (cons 16 (cons 2 (cons 4 (cons 3 (nil Nat))))))))) (cons (cons 1 (cons 1 (cons 1 (cons 2 (cons 2 (cons 16 (cons 4 (cons 4 (nil Nat))))))))) (nil (List Nat)))))))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: primaryQuery,
+  parameters: [],
+  result: (List Nat),
+  body: (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 4 (cons 2 (cons 2 (nil Nat))))))))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: primaryBiases,
+  parameters: [],
+  result: (List Nat),
+  body: (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: vectorEnergy,
+  parameters: [xs : (List Nat)],
+  result: Nat,
+  body: (match xs
+    | List.nil => 0
+    | List.cons x xTail => (x + (vectorEnergy xTail))),
+  axioms: [],
+  recursive_argument: xs,
+  executable: true
+}
+
+definition{
+  name: dot,
+  parameters: [xs : (List Nat), ws : (List Nat)],
+  result: Nat,
+  body: (match xs
+    | List.nil => 0
+    | List.cons x xTail => (match ws
+    | List.nil => 0
+    | List.cons w wTail => ((prim multiply x w : Nat) + (dot xTail wTail)))),
+  axioms: [],
+  recursive_argument: xs,
+  executable: true
+}
+
+definition{
+  name: attend,
+  parameters: [query : (List Nat), features : (List Nat)],
+  result: (List Nat),
+  body: (match query
+    | List.nil => (nil Nat)
+    | List.cons x xTail => (match features
+    | List.nil => (nil Nat)
+    | List.cons w wTail => (cons (prim multiply x w : Nat) (attend xTail wTail)))),
+  axioms: [],
+  recursive_argument: query,
+  executable: true
+}
+
+definition{
+  name: requant,
+  parameters: [m : Nat, shift : Nat, bias : Nat, x : Nat],
+  result: Nat,
+  body: (let q : Nat := (prim quotient (prim multiply (x + bias) m : Nat) shift 0 : Nat); (if (255 <? q) then 255 else q)),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: dotKeys,
+  parameters: [keys : (List (List Nat)), xs : (List Nat)],
+  result: (List Nat),
+  body: (match keys
+    | List.nil => (nil Nat)
+    | List.cons kVec kTail => (cons (dot xs kVec) (dotKeys kTail xs))),
+  axioms: [],
+  recursive_argument: keys,
+  executable: true
+}
+
+definition{
+  name: requantScores,
+  parameters: [xs : (List Nat), biases : (List Nat), m : Nat, shift : Nat],
+  result: (List Nat),
+  body: (match xs
+    | List.nil => (nil Nat)
+    | List.cons x xTail => (match biases
+    | List.nil => (nil Nat)
+    | List.cons bVal bTail => (cons (requant m shift bVal x) (requantScores xTail bTail m shift)))),
+  axioms: [],
+  recursive_argument: xs,
+  executable: true
+}
+
+definition{
+  name: scoreKeys,
+  parameters: [xs : (List Nat), keys : (List (List Nat)), biases : (List Nat), m : Nat, shift : Nat],
+  result: (List Nat),
+  body: (requantScores (dotKeys keys xs) biases m shift),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: argmaxLoop,
+  parameters: [scores : (List Nat), bestVal : Nat, bestIdx : Nat, idx : Nat],
+  result: Nat,
+  body: (match scores
+    | List.nil => bestIdx
+    | List.cons x xTail => (if (bestVal <? x) then (argmaxLoop xTail x idx (idx + 1)) else (argmaxLoop xTail bestVal bestIdx (idx + 1)))),
+  axioms: [],
+  recursive_argument: scores,
+  executable: true
+}
+
+definition{
+  name: argmax,
+  parameters: [scores : (List Nat)],
+  result: Nat,
+  body: (match scores
+    | List.nil => 0
+    | List.cons x xTail => (argmaxLoop xTail x 0 1)),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: evalHead,
+  parameters: [query : (List Nat), keys : (List (List Nat)), biases : (List Nat), m : Nat, shift : Nat, features : (List Nat)],
+  result: Nat,
+  body: (let attended : (List Nat) := (attend query features); (let scores : (List Nat) := (scoreKeys attended keys biases m shift); (argmax scores))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: evalHeadsOn,
+  parameters: [heads : (List AttentionHead), features : (List Nat)],
+  result: (List Nat),
+  body: (match heads
+    | List.nil => (nil Nat)
+    | List.cons hHead hTail => (cons (evalHead (project hHead query) (project hHead keys) (project hHead biases) (project hHead multiplier) (project hHead shift) features) (evalHeadsOn hTail features))),
+  axioms: [],
+  recursive_argument: heads,
+  executable: true
+}
+
+definition{
+  name: classifyAllHeads,
+  parameters: [features : (List Nat)],
+  result: (List Nat),
+  body: (evalHeadsOn (attentionHeads) features),
+  axioms: [],
+  executable: true,
+  production: {effects: [allocation, overflow, recursion], targets: [rust-std]}
+}
+
+definition{
+  name: classifyDomainOn,
+  parameters: [features : (List Nat)],
+  result: Nat,
+  body: (evalHead (primaryQuery) (domainKeys) (primaryBiases) 1 64 features),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: channelOutOfBounds,
+  parameters: [xs : (List Nat)],
+  result: Nat,
+  body: (match xs
+    | List.nil => 0
+    | List.cons x xTail => ((if (x <=? 255) then 0 else 1) + (channelOutOfBounds xTail))),
+  axioms: [],
+  recursive_argument: xs,
+  executable: true
+}
+
+definition{
+  name: intakeMisfits,
+  parameters: [features : (List Nat)],
+  result: Nat,
+  body: (((if ((prim length features : Nat) =? 8) then 0 else 1) + (if ((vectorEnergy features) =? 0) then 1 else 0)) + (channelOutOfBounds features)),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: IsIntakeVector,
+  parameters: [features : (List Nat)],
+  result: Prop,
+  body: ((intakeMisfits features) = 0),
+  axioms: []
+}
+
+definition{
+  name: isIntakeVectorCheck,
+  parameters: [features : (List Nat)],
+  result: Bool,
+  body: ((intakeMisfits features) =? 0),
+  axioms: [],
+  executable: true
+}
+
+theorem{
+  name: is_intake_vector_check_sound,
+  parameters: [features : (List Nat)],
+  statement: (((isIntakeVectorCheck features) = true) -> (IsIntakeVector features)),
+  proof: linear_arithmetic{definitions: [IsIntakeVector, isIntakeVectorCheck]},
+  axioms: [propext]
+}
+
+definition{
+  name: IsValidClassification,
+  parameters: [features : (List Nat), clsIdx : Nat],
+  result: Prop,
+  body: (clsIdx < 6),
+  axioms: []
+}
+
+definition{
+  name: isValidClassificationCheck,
+  parameters: [features : (List Nat), clsIdx : Nat],
+  result: Bool,
+  body: (clsIdx <? 6),
+  axioms: [],
+  executable: true
+}
+
+theorem{
+  name: is_valid_classification_check_sound,
+  parameters: [features : (List Nat), clsIdx : Nat],
+  statement: (((isValidClassificationCheck features clsIdx) = true) -> (IsValidClassification features clsIdx)),
+  proof: linear_arithmetic{definitions: [IsValidClassification, isValidClassificationCheck]},
+  axioms: [propext]
+}
+
+contract{
+  name: IntakeClassification,
+  axioms: [propext],
+  input: {name: features, type: (List Nat)},
+  output: {name: clsIdx, type: Nat},
+  postcondition: IsValidClassification,
+  precondition: IsIntakeVector,
+  validators: [
+    {
+      predicate: postcondition,
+      sound: is_valid_classification_check_sound,
+      validator: isValidClassificationCheck
+    },
+    {predicate: precondition, sound: is_intake_vector_check_sound, validator: isIntakeVectorCheck}
+  ]
+}
+
+realization{
+  name: IntakeAttentionEngine,
+  descriptor: deterministic{body: (classifyDomainOn features)},
+  executable: true,
+  input: {name: features, type: (List Nat)},
+  output: Nat
+}
+
+model{
+  name: IntakeClassificationModel,
+  contract: {member: IntakeClassification},
+  realization: {member: IntakeAttentionEngine}
+}
+
+definition{
+  name: classifyIntake,
+  parameters: [features : (List Nat)],
+  result: (Result Nat ContractViolation),
+  body: (checked IntakeClassificationModel features with [postcondition, precondition]),
+  axioms: [],
+  executable: true,
+  production: {effects: [allocation, overflow, recursion], targets: [rust-std]}
+}
+
+definition{
+  name: zeroIntakeVector,
+  parameters: [],
+  result: (List Nat),
+  body: (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (nil Nat))))))))),
+  axioms: [],
+  executable: true
+}
+
+theorem{
+  name: zeroIntakeRejected,
+  parameters: [],
+  statement: ((not (isIntakeVectorCheck (zeroIntakeVector))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: zeroIntakeProducesZeroScores,
+  parameters: [],
+  statement: (((vectorEnergy (scoreKeys (attend (primaryQuery) (zeroIntakeVector)) (domainKeys) (primaryBiases) 1 64)) =? 0) = true),
+  proof: decide{},
+  axioms: []
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: allMembers,
+  parameters: [values : (List String), ids : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head ids) then (allMembers tail ids) else false)),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head tail) then false else (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: schemaClassifierIds,
+  parameters: [xs : (List SchemaClassifier)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (schemaClassifierIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: schemaClassifierHeads,
+  parameters: [xs : (List SchemaClassifier)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head headId) (schemaClassifierHeads tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: attentionHeadIds,
+  parameters: [xs : (List AttentionHead)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (attentionHeadIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: attentionHeadNodes,
+  parameters: [xs : (List AttentionHead)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head nodeId) (attentionHeadNodes tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: attentionHeadSchemas,
+  parameters: [xs : (List AttentionHead)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head schemaId) (attentionHeadSchemas tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: allClassesValid,
+  parameters: [xs : (List Nat)],
+  result: Bool,
+  body: (match xs
+    | List.nil => true
+    | List.cons x xTail => ((x <? 6) && (allClassesValid xTail))),
+  axioms: [],
+  recursive_argument: xs,
+  executable: true
+}
+
+theorem{
+  name: schemaClassifierIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (schemaClassifierIds (schemaClassifiers))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: attentionHeadIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (attentionHeadIds (attentionHeads))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: attentionHeadNodesDistinct,
+  parameters: [],
+  statement: ((distinctStrings (attentionHeadNodes (attentionHeads))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everySchemaElementHasAttentionHead,
+  parameters: [],
+  statement: ((allMembers (schemaClassifierIds (schemaClassifiers)) (attentionHeadSchemas (attentionHeads))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everySchemaClassifierHeadResolves,
+  parameters: [],
+  statement: ((allMembers (schemaClassifierHeads (schemaClassifiers)) (attentionHeadIds (attentionHeads))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: attentionHeadsResolveToSchemas,
+  parameters: [],
+  statement: ((allMembers (attentionHeadSchemas (attentionHeads)) (schemaClassifierIds (schemaClassifiers))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+definition{
+  name: familyCustodyIntakeVector,
+  parameters: [],
+  result: (List Nat),
+  body: (cons 220 (cons 10 (cons 35 (cons 10 (cons 5 (cons 10 (cons 180 (cons 140 (nil Nat))))))))),
+  axioms: [],
+  executable: true
+}
+
+theorem{
+  name: familyCustodyIntakeIsValidVector,
+  parameters: [],
+  statement: ((isIntakeVectorCheck (familyCustodyIntakeVector)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: familyCustodyIntakeClassifiesDomain,
+  parameters: [],
+  statement: (((classifyDomainOn (familyCustodyIntakeVector)) =? 0) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: familyCustodyIntakeAllHeadsValid,
+  parameters: [],
+  statement: ((allClassesValid (classifyAllHeads (familyCustodyIntakeVector))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+definition{
+  name: housingHabitabilityIntakeVector,
+  parameters: [],
+  result: (List Nat),
+  body: (cons 10 (cons 230 (cons 5 (cons 10 (cons 25 (cons 10 (cons 175 (cons 120 (nil Nat))))))))),
+  axioms: [],
+  executable: true
+}
+
+theorem{
+  name: housingHabitabilityIntakeIsValidVector,
+  parameters: [],
+  statement: ((isIntakeVectorCheck (housingHabitabilityIntakeVector)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: housingHabitabilityIntakeClassifiesDomain,
+  parameters: [],
+  statement: (((classifyDomainOn (housingHabitabilityIntakeVector)) =? 1) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: housingHabitabilityIntakeAllHeadsValid,
+  parameters: [],
+  statement: ((allClassesValid (classifyAllHeads (housingHabitabilityIntakeVector))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+definition{
+  name: veteransDisabilityIntakeVector,
+  parameters: [],
+  result: (List Nat),
+  body: (cons 20 (cons 5 (cons 240 (cons 25 (cons 5 (cons 5 (cons 190 (cons 90 (nil Nat))))))))),
+  axioms: [],
+  executable: true
+}
+
+theorem{
+  name: veteransDisabilityIntakeIsValidVector,
+  parameters: [],
+  statement: ((isIntakeVectorCheck (veteransDisabilityIntakeVector)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: veteransDisabilityIntakeClassifiesDomain,
+  parameters: [],
+  statement: (((classifyDomainOn (veteransDisabilityIntakeVector)) =? 2) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: veteransDisabilityIntakeAllHeadsValid,
+  parameters: [],
+  statement: ((allClassesValid (classifyAllHeads (veteransDisabilityIntakeVector))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+definition{
+  name: employmentAdaIntakeVector,
+  parameters: [],
+  result: (List Nat),
+  body: (cons 10 (cons 10 (cons 25 (cons 235 (cons 15 (cons 20 (cons 170 (cons 150 (nil Nat))))))))),
+  axioms: [],
+  executable: true
+}
+
+theorem{
+  name: employmentAdaIntakeIsValidVector,
+  parameters: [],
+  statement: ((isIntakeVectorCheck (employmentAdaIntakeVector)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: employmentAdaIntakeClassifiesDomain,
+  parameters: [],
+  statement: (((classifyDomainOn (employmentAdaIntakeVector)) =? 3) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: employmentAdaIntakeAllHeadsValid,
+  parameters: [],
+  statement: ((allClassesValid (classifyAllHeads (employmentAdaIntakeVector))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+definition{
+  name: commercialUccIntakeVector,
+  parameters: [],
+  result: (List Nat),
+  body: (cons 5 (cons 20 (cons 5 (cons 15 (cons 235 (cons 30 (cons 185 (cons 130 (nil Nat))))))))),
+  axioms: [],
+  executable: true
+}
+
+theorem{
+  name: commercialUccIntakeIsValidVector,
+  parameters: [],
+  statement: ((isIntakeVectorCheck (commercialUccIntakeVector)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: commercialUccIntakeClassifiesDomain,
+  parameters: [],
+  statement: (((classifyDomainOn (commercialUccIntakeVector)) =? 4) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: commercialUccIntakeAllHeadsValid,
+  parameters: [],
+  statement: ((allClassesValid (classifyAllHeads (commercialUccIntakeVector))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+definition{
+  name: businessFiduciaryIntakeVector,
+  parameters: [],
+  result: (List Nat),
+  body: (cons 10 (cons 5 (cons 5 (cons 20 (cons 30 (cons 240 (cons 195 (cons 160 (nil Nat))))))))),
+  axioms: [],
+  executable: true
+}
+
+theorem{
+  name: businessFiduciaryIntakeIsValidVector,
+  parameters: [],
+  statement: ((isIntakeVectorCheck (businessFiduciaryIntakeVector)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: businessFiduciaryIntakeClassifiesDomain,
+  parameters: [],
+  statement: (((classifyDomainOn (businessFiduciaryIntakeVector)) =? 5) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: businessFiduciaryIntakeAllHeadsValid,
+  parameters: [],
+  statement: ((allClassesValid (classifyAllHeads (businessFiduciaryIntakeVector))) = true),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "habitability-breach"
+category = "function"
+signature = "(pi ((explicit u (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Housing"
+name = "PrismLegal.Housing.habitabilityBreach"
+
+[[form]]
+id = "habitability-breach"
+channel = "math"
+surface = "habitabilityBreach"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name habitabilityBreach) (paren (seq (slot 0))))"

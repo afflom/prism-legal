@@ -1,0 +1,238 @@
+spec = "prism-legal/portal/1"
+charter_id = "CHARTER-PRISM-LEGAL-1.0"
+license = "MIT OR Apache-2.0 (Public Benefit Open Source)"
+
+[[firm]]
+id = "FIRM-CIVIC-ADVOCACY"
+name = "Civic Justice & Trial Advocacy LLP"
+kind = "Litigation & Family Law Firm"
+
+[[firm]]
+id = "FIRM-VET-CLINIC"
+name = "Statutory & Federal Benefits Public Law Clinic"
+kind = "Non-Profit Legal Aid Clinic"
+
+[[firm]]
+id = "FIRM-PACIFIC-COMMERCIAL"
+name = "Meridian Commercial, IP & Fiduciary Law Group"
+kind = "Civil & Commercial Boutique"
+
+[[firm]]
+id = "FIRM-METRO-LEGAL-AID"
+name = "Metro Access-to-Justice Legal Aid Society"
+kind = "Community Legal Aid Clinic"
+
+[[court]]
+id = "COURT-STATE-DIST"
+name = "State District Court \u2014 Civil & Domestic Relations Division"
+rules_framework = "FW-UNIFORM-DOM"
+
+[[court]]
+id = "COURT-FED-DIST"
+name = "United States District Court \u2014 Civil & Constitutional Docket"
+rules_framework = "FW-FRCP"
+
+[[court]]
+id = "COURT-BVA-FED"
+name = "Federal Administrative & Pension Appeals Tribunal"
+rules_framework = "FW-USC-38-ADA"
+
+[[court]]
+id = "COURT-ADMIN-CIV"
+name = "Office of Administrative Courts \u2014 Employment & Housing Division"
+rules_framework = "FW-UCC-REST2D"
+
+[[framework]]
+id = "FW-FRE"
+name = "Federal & Uniform Rules of Evidence (FRE 106, 401-403, 602, 608, 613, 801, 901)"
+domain = "Evidentiary Admissibility & Impeachment"
+
+[[framework]]
+id = "FW-FRCP"
+name = "Federal & State Rules of Civil Procedure (FRCP 16, 26(a)/(e), 37 & Rule 16.2)"
+domain = "Civil Procedure & Mandatory Disclosures"
+
+[[framework]]
+id = "FW-UNIFORM-DOM"
+name = "Uniform Domestic Relations, Best-Interests (\u00a7 402) & Support Guidelines (\u00a7 305)"
+domain = "Family & Domestic Relations Law"
+
+[[framework]]
+id = "FW-USC-38-ADA"
+name = "38 U.S.C. Ch. 11 & \u00a7 1781 Statutory Benefits / 42 U.S.C. \u00a7 12101 ADA Rights"
+domain = "Statutory Benefits, Disability & Civil Rights"
+
+[[framework]]
+id = "FW-UCC-REST2D"
+name = "UCC Article 2, Restatement (Second) of Contracts & Fiduciary Accounting"
+domain = "Commercial, Contract, Housing & Trust Law"
+
+[[framework]]
+id = "FW-CRIM-CONST"
+name = "U.S. Constitution Amends. IV, V, VI, XIV & Brady Evidentiary Standards"
+domain = "Constitutional & Criminal Defense"
+
+[[client]]
+id = "CLIENT-DOM-RESPONDENT"
+name = "Respondent (Client Litigant)"
+
+[[client]]
+id = "CLIENT-ADA-CLAIMANT"
+name = "Employee Civil Rights Claimant"
+
+[[client]]
+id = "CLIENT-HOUSING-TENANTS"
+name = "Residential Tenant Association Household"
+
+[[lawyer]]
+id = "LAWYER-LEAD-TRIAL"
+name = "Lead Domestic Relations Trial Counsel"
+firm_id = "FIRM-CIVIC-ADVOCACY"
+
+[[lawyer]]
+id = "LAWYER-VET-BENEFITS"
+name = "Statutory & Administrative Benefits Counsel"
+firm_id = "FIRM-VET-CLINIC"
+
+[[lawyer]]
+id = "LAWYER-COMMERCIAL-TAX"
+name = "Commercial, Entity Governance & Tax Counsel"
+firm_id = "FIRM-PACIFIC-COMMERCIAL"
+
+[[lawyer]]
+id = "LAWYER-PUBLIC-DEFENSE"
+name = "Public-Benefit Employment & Housing Defense Counsel"
+firm_id = "FIRM-METRO-LEGAL-AID"
+
+[[case]]
+id = "CASE-2030-FAM-9010"
+docket_number = "2030-FAM-9010"
+practice_area = "Family & Domestic Relations"
+court_id = "COURT-STATE-DIST"
+framework_id = "FW-UNIFORM-DOM"
+
+[[case]]
+id = "CASE-2030-ADM-9020"
+docket_number = "2030-ADM-9020"
+practice_area = "Administrative & Benefits Law"
+court_id = "COURT-BVA-FED"
+framework_id = "FW-USC-38-ADA"
+
+[[case]]
+id = "CASE-2030-COM-9030"
+docket_number = "2030-COM-9030"
+practice_area = "Commercial & Non-Profit Governance"
+court_id = "COURT-FED-DIST"
+framework_id = "FW-UCC-REST2D"
+
+[[case]]
+id = "CASE-2030-EMP-9040"
+docket_number = "2030-EMP-9040"
+practice_area = "Employment & Civil Rights Law"
+court_id = "COURT-ADMIN-CIV"
+framework_id = "FW-USC-38-ADA"
+
+[[case]]
+id = "CASE-2030-CON-9050"
+docket_number = "2030-CON-9050"
+practice_area = "Civil & Commercial Litigation"
+court_id = "COURT-FED-DIST"
+framework_id = "FW-UCC-REST2D"
+
+[[case]]
+id = "CASE-2030-HSG-9060"
+docket_number = "2030-HSG-9060"
+practice_area = "Housing & Real Property Law"
+court_id = "COURT-ADMIN-CIV"
+framework_id = "FW-UCC-REST2D"
+
+[[engagement]]
+id = "ENG-01"
+client_id = "CLIENT-DOM-RESPONDENT"
+lawyer_id = "LAWYER-LEAD-TRIAL"
+case_id = "CASE-2030-FAM-9010"
+role = "Lead Trial Counsel"
+
+[[engagement]]
+id = "ENG-02"
+client_id = "CLIENT-DOM-RESPONDENT"
+lawyer_id = "LAWYER-VET-BENEFITS"
+case_id = "CASE-2030-ADM-9020"
+role = "Specialized Statutory Benefits Counsel"
+
+[[engagement]]
+id = "ENG-03"
+client_id = "CLIENT-DOM-RESPONDENT"
+lawyer_id = "LAWYER-VET-BENEFITS"
+case_id = "CASE-2030-FAM-9010"
+role = "Consulting Co-Counsel (Statutory Exemption)"
+
+[[engagement]]
+id = "ENG-04"
+client_id = "CLIENT-DOM-RESPONDENT"
+lawyer_id = "LAWYER-COMMERCIAL-TAX"
+case_id = "CASE-2030-COM-9030"
+role = "Corporate & Tax Compliance Counsel"
+
+[[engagement]]
+id = "ENG-05"
+client_id = "CLIENT-ADA-CLAIMANT"
+lawyer_id = "LAWYER-PUBLIC-DEFENSE"
+case_id = "CASE-2030-EMP-9040"
+role = "Lead Civil Rights Counsel"
+
+[[engagement]]
+id = "ENG-06"
+client_id = "CLIENT-ADA-CLAIMANT"
+lawyer_id = "LAWYER-COMMERCIAL-TAX"
+case_id = "CASE-2030-CON-9050"
+role = "Commercial Litigation Counsel"
+
+[[engagement]]
+id = "ENG-07"
+client_id = "CLIENT-HOUSING-TENANTS"
+lawyer_id = "LAWYER-PUBLIC-DEFENSE"
+case_id = "CASE-2030-HSG-9060"
+role = "Pro Bono Legal Aid Lead Counsel"
+
+[[engagement]]
+id = "ENG-08"
+client_id = "CLIENT-HOUSING-TENANTS"
+lawyer_id = "LAWYER-LEAD-TRIAL"
+case_id = "CASE-2030-HSG-9060"
+role = "Pro Bono Trial Co-Counsel"
+
+[[share_grant]]
+id = "SHARE-01"
+case_id = "CASE-2030-FAM-9010"
+granter_id = "CLIENT-DOM-RESPONDENT"
+grantee_id = "LAWYER-LEAD-TRIAL"
+capability = "cap-lead-counsel-codesign"
+
+[[share_grant]]
+id = "SHARE-02"
+case_id = "CASE-2030-ADM-9020"
+granter_id = "CLIENT-DOM-RESPONDENT"
+grantee_id = "LAWYER-VET-BENEFITS"
+capability = "cap-scoped-benefits-counsel"
+
+[[share_grant]]
+id = "SHARE-03"
+case_id = "CASE-2030-COM-9030"
+granter_id = "CLIENT-DOM-RESPONDENT"
+grantee_id = "LAWYER-COMMERCIAL-TAX"
+capability = "cap-commercial-fiduciary-counsel"
+
+[[share_grant]]
+id = "SHARE-04"
+case_id = "CASE-2030-EMP-9040"
+granter_id = "CLIENT-ADA-CLAIMANT"
+grantee_id = "LAWYER-PUBLIC-DEFENSE"
+capability = "cap-employment-civil-rights"
+
+[[share_grant]]
+id = "SHARE-05"
+case_id = "CASE-2030-HSG-9060"
+granter_id = "CLIENT-HOUSING-TENANTS"
+grantee_id = "LAWYER-PUBLIC-DEFENSE"
+capability = "cap-housing-clinic-defense"

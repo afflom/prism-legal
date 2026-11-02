@@ -1,0 +1,380 @@
+spec = "prismpm/ux-journeys/1"
+brand_id = "prism-legal-public-benefit-platform"
+brand_title = "PrismLegal \u2014 Public-Benefit Legal Case Preparation & Trial Readiness Service"
+poles = ["orientation", "substance", "challenge", "proof", "resolution"]
+forbidden_meta_terms = ["PrismPM", "LexLean", "lex.tex", "Stakeholder Vantage", "Observer Vantage", "Quadruple", "SensualObject", "Kernel Proof", "ECDSA P-256", "NIST SP 800-63-3", "ISO/IEC 27001", "ISO 27037", "Hohfeldian", "LegalRuleML", "ASPIC+", "Akoma Ntoso", "Berlekamp-Massey"]
+
+[[portal_page]]
+id = "page-home"
+path = "index.html"
+persona_scope = "shared-entry"
+title = "PrismLegal Service Home \u2014 Start or Open a Legal Matter & Choose Your Workspace"
+section_count = 3
+max_sections_budget = 5
+
+[[portal_page]]
+id = "page-client"
+path = "client.html"
+persona_scope = "client"
+title = "Client Case Preparation \u2014 5-Step Guided Journey: Goals, Timeline & Documents, Tough Questions, Direct Testimony & Counsel Packet"
+section_count = 5
+max_sections_budget = 5
+
+[[portal_page]]
+id = "page-lawyer"
+path = "lawyer.html"
+persona_scope = "lawyer"
+title = "Attorney Workbench \u2014 5-Step Guided Journey: Matter Intake, Statutory Elements & Proof, Witness Exams, Exhibits & Calculators, and Trial Brief"
+section_count = 5
+max_sections_budget = 5
+
+[[portal_page]]
+id = "page-courtroom"
+path = "courtroom.html"
+persona_scope = "courtroom"
+title = "Hearing & Trial Companion \u2014 Live Hearing Clock, Cross-Exam Pivot Responder, Direct Testimony Checklist & Exhibit Tracker"
+section_count = 4
+max_sections_budget = 5
+
+[[journey]]
+id = "journey-client-preparation"
+stakeholder_id = "SH-CLIENT"
+summary = "Client 5-Step Guided Case Preparation Journey: Define your matter and relief goals, build your chronological timeline and document list, rehearse calm answers to tough cross-examination questions, practice direct testimony, and export your case packet for counsel or court."
+
+[[journey.step]]
+id = "client-step-1"
+pole = "orientation"
+panel_id = "panel-strategy"
+action = "Step 1 \u2014 Define My Matter & Relief Goals: Enter your case details, court, hearing date, and the specific outcomes you are asking the judge to order."
+artifact_id = "client-guide-md"
+
+[[journey.step]]
+id = "client-step-2"
+pole = "substance"
+panel_id = "panel-parenting"
+action = "Step 2 \u2014 Build My Timeline & Documents: Add the key dates and events in your case and organize the documents or photos that support each fact."
+artifact_id = "factors-md"
+
+[[journey.step]]
+id = "client-step-3"
+pole = "challenge"
+panel_id = "panel-cross-exam"
+action = "Step 3 \u2014 Prepare for Tough Questions: Write down criticisms or allegations the other side might raise and rehearse calm, fact-based answers with flashcards."
+artifact_id = "pivots-md"
+
+[[journey.step]]
+id = "client-step-4"
+pole = "proof"
+panel_id = "panel-evidence"
+action = "Step 4 \u2014 Practice My Direct Testimony: Organize the questions you will answer in court, link each answer to your documents, and rehearse step-by-step."
+artifact_id = "direct-exam-md"
+
+[[journey.step]]
+id = "client-step-5"
+pole = "resolution"
+panel_id = "panel-lawyer-tuner"
+action = "Step 5 \u2014 Collaborate with Counsel & Export Packet: List questions for your attorney, check your hearing readiness, and download your .prismlegal.json file or printable summary."
+artifact_id = "tuning-json"
+
+[[journey]]
+id = "journey-counsel-workbench"
+stakeholder_id = "SH-LAWYER"
+summary = "Attorney 5-Step Guided Workbench Journey: Intake a client matter or create a new docket, map statutory elements and claims to exhibits, script witness examinations and objections, audit exhibit foundations and run statutory calculators, and generate the trial brief."
+
+[[journey.step]]
+id = "counsel-step-1"
+pole = "orientation"
+panel_id = "panel-hub"
+action = "Step 1 \u2014 Matter Intake & Case Theory: Open a client's matter file or create a new docket, select the governing legal framework, and align on relief targets."
+artifact_id = "site"
+
+[[journey.step]]
+id = "counsel-step-2"
+pole = "substance"
+panel_id = "panel-parenting"
+action = "Step 2 \u2014 Statutory Elements & Claims Proof Matrix: Map every legal element or factual claim to its governing statute, evidentiary status, and supporting exhibits."
+artifact_id = "factors-md"
+
+[[journey.step]]
+id = "counsel-step-3"
+pole = "challenge"
+panel_id = "panel-cross-exam"
+action = "Step 3 \u2014 Witness Examinations & Evidentiary Objections: Script direct examinations and cross-examination impeachment, prepare objections, and budget hearing minutes."
+artifact_id = "witnesses-md"
+
+[[journey.step]]
+id = "counsel-step-4"
+pole = "proof"
+panel_id = "panel-financial"
+action = "Step 4 \u2014 Exhibit Foundations & Statutory Calculators: Audit exhibit admissibility foundations and compute support, disability rating, or damages worksheets."
+artifact_id = "remedies-md"
+
+[[journey.step]]
+id = "counsel-step-5"
+pole = "resolution"
+panel_id = "panel-lawyer-tuner"
+action = "Step 5 \u2014 Trial Brief, Client Guidance & Courtroom Handoff: Answer client agenda questions, review prioritized argument schedules, and export the trial brief or launch Courtroom Mode."
+artifact_id = "lawyer-tuner-md"
+
+[[journey]]
+id = "journey-court-bench"
+stakeholder_id = "SH-COURT"
+summary = "Presiding Fact-Finder Hearing Journey: Review stipulated vs. contested issues, evaluate statutory elements against admitted exhibits, weigh witness credibility, verify guideline/damages calculations, and enter findings of fact and conclusions of law."
+
+[[journey.step]]
+id = "court-step-1"
+pole = "orientation"
+panel_id = "panel-strategy"
+action = "Stage 1 \u2014 Review Pretrial Stipulations & Narrowed Issues Before the Court."
+artifact_id = "compass-md"
+
+[[journey.step]]
+id = "court-step-2"
+pole = "substance"
+panel_id = "panel-parenting"
+action = "Stage 2 \u2014 Evaluate Statutory Factors & Element-by-Element Factual Record."
+artifact_id = "factors-md"
+
+[[journey.step]]
+id = "court-step-3"
+pole = "challenge"
+panel_id = "panel-cross-exam"
+action = "Stage 3 \u2014 Weigh Witness Credibility, Cross-Examination Responses & Rule 106 Context."
+artifact_id = "pivots-md"
+
+[[journey.step]]
+id = "court-step-4"
+pole = "proof"
+panel_id = "panel-financial"
+action = "Stage 4 \u2014 Verify Statutory Worksheets, Mandatory Disclosures & Documentary Foundations."
+artifact_id = "remedies-md"
+
+[[journey.step]]
+id = "court-step-5"
+pole = "resolution"
+panel_id = "panel-evidence"
+action = "Stage 5 \u2014 Enter Final Orders Grounded in Admitted Exhibits and Statutory Findings."
+artifact_id = "support-svg"
+
+[[journey]]
+id = "journey-beneficiaries-stability"
+stakeholder_id = "SH-BENEFICIARIES"
+summary = "Protected Beneficiaries & Dependents Journey: Ensure continuity of care, predictable schedules, healthcare coverage, and balanced household or statutory resources."
+
+[[journey.step]]
+id = "beneficiaries-step-1"
+pole = "orientation"
+panel_id = "panel-strategy"
+action = "Step 1 \u2014 Establish Core Stability, Safety, and Best-Interests Objectives."
+artifact_id = "compass-md"
+
+[[journey.step]]
+id = "beneficiaries-step-2"
+pole = "substance"
+panel_id = "panel-parenting"
+action = "Step 2 \u2014 Evaluate Caregiving History, Educational Continuity, and Routine Schedule."
+artifact_id = "schedule-svg"
+
+[[journey.step]]
+id = "beneficiaries-step-3"
+pole = "challenge"
+panel_id = "panel-cross-exam"
+action = "Step 3 \u2014 Replace High-Conflict Disputes with Predictable Transitions and Direct Care."
+artifact_id = "pivots-md"
+
+[[journey.step]]
+id = "beneficiaries-step-4"
+pole = "proof"
+panel_id = "panel-evidence"
+action = "Step 4 \u2014 Corroborate Dependent Well-Being Through School, Medical, and Activity Records."
+artifact_id = "timeline-svg"
+
+[[journey.step]]
+id = "beneficiaries-step-5"
+pole = "resolution"
+panel_id = "panel-financial"
+action = "Step 5 \u2014 Secure Healthcare Coverage and Accurate Guideline Support Across Households."
+artifact_id = "support-svg"
+
+[[journey]]
+id = "journey-counterparty-protocol"
+stakeholder_id = "SH-COUNTERPARTY"
+summary = "Counterparty Resolution & Governance Journey: Narrow disputed issues through stipulations, enforce mandatory disclosures, and establish clear post-order protocols."
+
+[[journey.step]]
+id = "counterparty-step-1"
+pole = "orientation"
+panel_id = "panel-strategy"
+action = "Step 1 \u2014 Identify Stipulated Baselines and Narrow Remaining Contested Issues."
+artifact_id = "compass-md"
+
+[[journey.step]]
+id = "counterparty-step-2"
+pole = "substance"
+panel_id = "panel-parenting"
+action = "Step 2 \u2014 Establish Predictable Exchange, Notice, and Communication Protocols."
+artifact_id = "factors-md"
+
+[[journey.step]]
+id = "counterparty-step-3"
+pole = "challenge"
+panel_id = "panel-cross-exam"
+action = "Step 3 \u2014 Resolve Disagreements Through Structured Written Channels and Mediation."
+artifact_id = "pivots-md"
+
+[[journey.step]]
+id = "counterparty-step-4"
+pole = "proof"
+panel_id = "panel-financial"
+action = "Step 4 \u2014 Exchange Complete Financial and Evidentiary Disclosures Under Rule 26(e)."
+artifact_id = "remedies-md"
+
+[[journey.step]]
+id = "counterparty-step-5"
+pole = "resolution"
+panel_id = "panel-evidence"
+action = "Step 5 \u2014 Maintain Shared Access to Official Records and Post-Decree Compliance."
+artifact_id = "standards-json"
+
+[[pedagogy_guide]]
+id = "ped-client-1"
+step_id = "client-step-1"
+pole = "orientation"
+panel_id = "panel-strategy"
+standard_id = "uniform-dom-402"
+heading = "Why Courts Ask for Specific Relief Orders First"
+why_it_matters = "A judge or hearing officer can only grant orders that are clearly stated and authorized by statute. Vague requests like 'be fair' are hard for a court to enforce, whereas concrete requests (such as a specific parenting schedule, a specific repair deadline, or a specific benefit effective date) give the court a clear roadmap."
+coaching_tip = "State each goal in one calm, forward-looking sentence describing the exact order you want the judge to sign, followed by the practical reason it helps your household or resolves the dispute."
+rule_context = "Uniform Marriage & Divorce Act \u00a7 402 \u00b7 URLTA \u00a7 4.104 \u00b7 38 C.F.R. \u00a7 3.102 \u00b7 Scoped Unbundled Representation (ABA Model Rule 1.2(c))"
+
+[[pedagogy_guide]]
+id = "ped-client-2"
+step_id = "client-step-2"
+pole = "substance"
+panel_id = "panel-parenting"
+standard_id = "fre-evidence"
+heading = "How a Chronological Timeline & Linked Exhibits Build Credibility"
+why_it_matters = "Hearings move quickly. When your facts are arranged in chronological order and linked to a specific record\u2014such as a school log, certified notice, bank statement, or medical report\u2014the judge can verify your testimony immediately."
+coaching_tip = "Focus on observable dates, actions, and records rather than emotional characterizations. Whenever a document or photo proves an event, enter its Exhibit Label (e.g., Ex. A) so it links automatically."
+rule_context = "Federal Rules of Evidence 401 (Relevance), 803(6) (Business Records), 803(8) (Public Records) & 901 (Authentication)"
+
+[[pedagogy_guide]]
+id = "ped-client-3"
+step_id = "client-step-3"
+pole = "challenge"
+panel_id = "panel-cross-exam"
+standard_id = "dung-aspic-arg"
+heading = "How to Handle Hostile Questions & Out-of-Context Quotes Calmly"
+why_it_matters = "Cross-examination is often designed to provoke frustration or pull a single sentence from an email, text, or journal out of context. A calm, measured witness who answers directly and points to the complete written record wins the court's trust."
+coaching_tip = "Pause for two seconds before answering. Never argue with opposing counsel. Acknowledge any undisputed baseline fact, then calmly direct the court to the full context and supporting exhibit."
+rule_context = "Federal Rule of Evidence 106 (Rule of Completeness \u2014 Requiring Full Context for Partial Quotes) & Rule 611 (Mode and Order of Examining Witnesses)"
+
+[[pedagogy_guide]]
+id = "ped-client-4"
+step_id = "client-step-4"
+pole = "proof"
+panel_id = "panel-evidence"
+standard_id = "fre-evidence"
+heading = "How Direct Examination Establishes Your Case-in-Chief"
+why_it_matters = "Direct examination is your opportunity to tell your story through open-ended questions ('Who, What, When, Where, How'). Unlike cross-examination, your attorney cannot ask leading questions on direct, so your answers must supply the concrete facts and introduce your exhibits."
+coaching_tip = "Practice speaking in clear 2-to-3 sentence answers. When a question references an exhibit, identify the document, confirm how you recognize it, and state the key fact it shows."
+rule_context = "Federal Rule of Evidence 602 (Personal Knowledge), Rule 611(c) (Non-Leading Direct Questions) & Rule 901(b)(1) (Testimony of Witness with Knowledge)"
+
+[[pedagogy_guide]]
+id = "ped-client-5"
+step_id = "client-step-5"
+pole = "resolution"
+panel_id = "panel-lawyer-tuner"
+standard_id = "aba-rpc-webauthn-sharing"
+heading = "How to Review Case Consistency & Share with Counsel"
+why_it_matters = "Before stepping into court or meeting with a legal-aid clinic or consulting attorney, checking that every goal is backed by timeline events, exhibits, and rehearsed testimony saves hours of preparation time."
+coaching_tip = "Use the Automated Case Consistency Check below to spot any unlinked documents or unrehearsed questions, log your specific questions for counsel, and save your portable .prismlegal.json file."
+rule_context = "ABA Model Rules 1.1 (Competence), 1.2(c) (Limited-Scope Representation), 1.4 (Client Communication) & 1.6 (Confidentiality)"
+
+[[pedagogy_guide]]
+id = "ped-counsel-1"
+step_id = "counsel-step-1"
+pole = "orientation"
+panel_id = "panel-hub"
+standard_id = "aba-rpc-webauthn-sharing"
+heading = "Scoping the Engagement, Forum & Theory of the Case"
+why_it_matters = "Whether appearing as full-scope trial counsel or providing unbundled limited-scope representation under Rule 1.2(c), defining the governing statutory framework, forum rules, and relief posture upfront anchors every downstream proof requirement."
+coaching_tip = "Select the governing Area of Law and Representation Scope below. Use the one-click Domain Scaffolding tool to populate standard statutory elements if starting a fresh docket."
+rule_context = "ABA Model Rule 1.2(c) (Unbundled Legal Services), Rule 1.1 (Competence) & Pretrial Management Under Civil Rule 16"
+
+[[pedagogy_guide]]
+id = "ped-counsel-2"
+step_id = "counsel-step-2"
+pole = "substance"
+panel_id = "panel-parenting"
+standard_id = "oasis-legalruleml-1.0"
+heading = "Mapping Statutory Elements, Proposed Findings & Rule Exceptions"
+why_it_matters = "Trial courts must enter findings of fact and conclusions of law on each statutory element. An explicit proof matrix prevents evidentiary gaps, compiles each backed proposition into a proposed court finding, and pairs general rules with controlling statutory exceptions."
+coaching_tip = "Ensure every claim is linked to at least one exhibit so the Refusal Guard clears it for your proposed findings. Record any statutory exceptions or immunities (such as protected disability income or mandatory-disclosure bars) in the Rule Exceptions drawer."
+rule_context = "Civil Rule 52(a) (Findings and Conclusions by the Court), Rule 26(e) / 16.2 (Disclosure Duty) & Controlling Statutory Exceptions"
+
+[[pedagogy_guide]]
+id = "ped-counsel-3"
+step_id = "counsel-step-3"
+pole = "challenge"
+panel_id = "panel-cross-exam"
+standard_id = "fre-evidence"
+heading = "Homeostatic Hearing Clock Budgeting & Examination Scripting"
+why_it_matters = "Trial judges strictly enforce time limits. Overrunning direct or cross-examination can forfeit time needed for closing argument and final-order requests. Stage-by-stage budgeting protects your closing gate reserve."
+coaching_tip = "Allocate realistic minutes to each witness and check the 4-Stage Hearing Clock breakdown below to verify that your Closing & Final Orders Gate reserve remains protected."
+rule_context = "Federal Rule of Evidence 611(a) (Control by the Court Over Time and Mode of Examination) & Rule 103 (Preserving Evidentiary Rulings)"
+
+[[pedagogy_guide]]
+id = "ped-counsel-4"
+step_id = "counsel-step-4"
+pole = "proof"
+panel_id = "panel-financial"
+standard_id = "iso-15489-27037"
+heading = "Auditing Admissibility Foundations, Chain of Custody & Guideline Math"
+why_it_matters = "Even persuasive documents can be excluded if their authentication or hearsay exception foundation is not ready at counsel table. Likewise, support, rating, and damages requests must be backed by transparent statutory worksheet calculations."
+coaching_tip = "Assign an explicit rule foundation (e.g., FRE 803(6), 803(8), 901) to every exhibit, optionally compute a local SHA-256 verification digest for digital files, and verify the statutory calculator outputs for your jurisdiction."
+rule_context = "Federal Rules of Evidence 901\u2013902 (Authentication), 803 (Hearsay Exceptions), Uniform Support Guidelines \u00a7 305, 38 C.F.R. \u00a7 4.25 & URLTA \u00a7 4.104"
+
+[[pedagogy_guide]]
+id = "ped-counsel-5"
+step_id = "counsel-step-5"
+pole = "resolution"
+panel_id = "panel-lawyer-tuner"
+standard_id = "hohfeld-1913"
+heading = "Consistency Audit, Priority Ranking & Trial Brief Handoff"
+why_it_matters = "Before hearing day, counsel needs an automated check across all claims, exhibits, and witness scripts, a ranked priority order for examination themes if time is cut short, and written answers to client strategy questions."
+coaching_tip = "Review the Automated Consistency Audit and Priority Strategy Schedule below, answer any open client questions, and export either the updated .prismlegal.json file or the compiled Markdown Trial Brief."
+rule_context = "Civil Rule 16 (Pretrial Conferences and Trial Briefs), Rule 52(a) (Proposed Findings) & ABA Model Rule 1.4 (Client Alignment)"
+
+[[pedagogy_guide]]
+id = "ped-court-1"
+step_id = "court-step-1"
+pole = "orientation"
+panel_id = "panel-cross-exam"
+standard_id = "dung-aspic-arg"
+heading = "Live Witness Stand & Counsel Table Cross-Exam Responder"
+why_it_matters = "During live cross-examination, quick access to the exact rebuttal exhibit, the trap to avoid, the Rule 106 full-context citation, and the calm one-sentence answer keeps testimony focused on the court's statutory factors."
+coaching_tip = "Click any topic pill below as soon as opposing counsel raises that subject to display the calm response and supporting exhibit in high-contrast large type."
+rule_context = "Federal Rule of Evidence 106 (Remainder of Related Writings) & Rule 611(b) (Scope of Cross-Examination)"
+
+[[pedagogy_guide]]
+id = "ped-court-2"
+step_id = "court-step-2"
+pole = "substance"
+panel_id = "panel-evidence"
+standard_id = "fre-evidence"
+heading = "Live Direct Examination Checklist & Foundation Pacing"
+why_it_matters = "Checking off each direct examination question as it is asked ensures that no required statutory element or exhibit admission offer is inadvertently skipped under courtroom time pressure."
+coaching_tip = "Use the search filter or priority badges to track essential testimony points and offer each linked exhibit into evidence as soon as its foundation is laid."
+rule_context = "Federal Rules of Evidence 611(a), 602 & 901 (Offering Exhibits During Case-in-Chief)"
+
+[[pedagogy_guide]]
+id = "ped-court-3"
+step_id = "court-step-3"
+pole = "proof"
+panel_id = "panel-evidence"
+standard_id = "iso-15489-27037"
+heading = "Live Exhibit Offer & Admission Status Tracker"
+why_it_matters = "Before resting your case-in-chief, counsel must confirm that every exhibit relied upon for proposed findings or closing argument has been formally offered and admitted into the record."
+coaching_tip = "Update each exhibit's status to 'Offered at Hearing' or 'Admitted' in real time so you can verify your complete evidentiary record before resting."
+rule_context = "Federal Rule of Evidence 103 (Rulings on Evidence) & Trial Record Completeness"

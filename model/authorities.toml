@@ -1,0 +1,97 @@
+spec = "prismpm/authorities/1"
+
+[[authority]]
+id = "uniform-dom-402"
+name = "Uniform Domestic Relations Act \u00a7 402 \u2014 Best Interests of the Child & Parental Responsibility Allocation"
+url = "https://www.uniformlaws.org/"
+version = "2026 Uniform Domestic Code"
+
+[[authority]]
+id = "uniform-support-305"
+name = "Uniform Child Support & Remedies Guidelines \u00a7 305 & Disability Exemption (\u00a7 305(5)(b))"
+url = "https://www.uniformlaws.org/"
+version = "2030 Uniform Remedies Code"
+
+[[authority]]
+id = "uniform-dom-404-408"
+name = "Uniform Domestic Relations Act \u00a7\u00a7 404 (Child Interviews), 406 (Relocation) & 408 (Equal Records Access)"
+url = "https://www.uniformlaws.org/"
+version = "2030 Uniform Domestic Code"
+
+[[authority]]
+id = "frcp-26e-16-2"
+name = "Federal Rules of Civil Procedure Rules 16 & 26(e) / Mandatory Financial Disclosure Rule 16.2"
+url = "https://www.uscourts.gov/rules-policies/current-rules-practice-procedure/federal-rules-civil-procedure"
+version = "FRCP / Rule 16.2 (2030)"
+
+[[authority]]
+id = "fre-evidence"
+name = "Federal & Uniform Rules of Evidence (FRE 106, 401\u2013403, 602, 608, 613, 801(d)(2), 901)"
+url = "https://www.uscourts.gov/rules-policies/current-rules-practice-procedure/federal-rules-evidence"
+version = "FRE (2030)"
+
+[[authority]]
+id = "usc-38-ada"
+name = "38 U.S.C. Ch. 11 & \u00a7 1781 Statutory Benefits / 42 U.S.C. \u00a7 12101 Americans with Disabilities Act"
+url = "https://www.ecfr.gov/current/title-38/chapter-I/part-4"
+version = "38 U.S.C. / 42 U.S.C. (2030)"
+
+[[authority]]
+id = "ucc-rest2d-const"
+name = "UCC Article 2, Restatement (Second) of Contracts, Housing Defense & Constitutional Brady Standards"
+url = "https://www.ali.org/"
+version = "UCC / Restatement 2d (2026)"
+
+[[authority]]
+id = "hohfeld-1913"
+name = "Hohfeldian Fundamental Legal Conceptions (Right/Duty, Privilege/No-Right, Power/Liability, Immunity/Disability)"
+url = "https://doi.org/10.2307/785533"
+version = "Hohfeld (1913 / 1917 Yale Law Journal)"
+
+[[authority]]
+id = "oasis-legalruleml-1.0"
+name = "OASIS LegalRuleML Core Specification v1.0 \u2014 Defeasible Deontic & Legal Rule Modeling"
+url = "https://docs.oasis-open.org/legalruleml/legalruleml-core-spec/v1.0/os/legalruleml-core-spec-v1.0-os.html"
+version = "1.0 (OASIS Standard)"
+
+[[authority]]
+id = "dung-aspic-arg"
+name = "Dung (1995) Abstract Argumentation & ASPIC+ Structured Legal Argumentation Framework"
+url = "https://doi.org/10.1016/0004-3702(94)00041-X"
+version = "Dung 1995 / ASPIC+ (Modgil & Prakken 2013)"
+
+[[authority]]
+id = "oasis-akoma-ntoso-1.0"
+name = "OASIS Akoma Ntoso / LegalDocML v1.0 \u2014 FRBR Legal Document & URI Naming Standard"
+url = "http://docs.oasis-open.org/legaldocml/akn-core/v1.0/os/part1-vocabulary/akn-core-v1.0-os-part1-vocabulary.html"
+version = "1.0 (OASIS Standard)"
+
+[[authority]]
+id = "oasis-ecf-sali"
+name = "OASIS Electronic Court Filing (ECF) v5.0 & SALI Alliance Legal Matter Specification Standard (LMSS) v2.0"
+url = "https://www.sali.org/"
+version = "ECF 5.0 / SALI 2.0"
+
+[[authority]]
+id = "aba-rpc-webauthn-sharing"
+name = "ABA Model Rules 1.2(c) & 1.16 (Portable Scoped Representation) + W3C WebAuthn & AES-256-GCM Case Sharing"
+url = "https://www.americanbar.org/groups/professional_responsibility/publications/model_rules_of_professional_conduct/"
+version = "ABA Model Rules / W3C WebAuthn (2026)"
+
+[[authority]]
+id = "iso-15489-27037"
+name = "ISO 15489-1:2016 & ISO/IEC 27037:2012 \u2014 Records Management & Digital Evidence Chain of Custody"
+url = "https://www.iso.org/standard/62542.html"
+version = "2016 / 2012"
+
+[[authority]]
+id = "iso-42010-25010"
+name = "ISO/IEC/IEEE 42010:2022 & ISO/IEC 25010:2023 \u2014 Systems Architecture & Product Quality Model"
+url = "https://www.iso.org/standard/74393.html"
+version = "2022 / 2023"
+
+[[authority]]
+id = "wcag-2.2-iso-9241"
+name = "W3C WCAG 2.2 Level AA, WAI-ARIA 1.2 & ISO 9241-110/112 \u2014 Accessibility & Multi-Page Cognitive Ergonomics"
+url = "https://www.w3.org/TR/WCAG22/"
+version = "WCAG 2.2 / ISO 9241 (2023)"

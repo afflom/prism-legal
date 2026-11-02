@@ -1,0 +1,106 @@
+spec = "prismpm/commands/1"
+
+[[command]]
+name = "brief"
+path = ["brief"]
+help = "Print the complete trial brief: Public-Benefit Charter, Opening Statement pillars, stipulated facts, disputed issues, and top cross-exam pivots."
+
+[[command]]
+name = "claim"
+path = ["claim"]
+help = "Inspect a specific case claim (CLM-01 to CLM-24) with its supporting exhibits, statutory anchor, and dependents."
+
+[[command]]
+name = "exhibit"
+path = ["exhibit"]
+help = "Inspect any Respondent (Ex-A to Ex-O) or Petitioner (OP-Ex-01 to OP-Ex-15) exhibit with its trial purpose and pivot."
+
+[[command]]
+name = "witness"
+path = ["witness"]
+help = "Inspect examination plan and cross-examination points for a witness (W-01 to W-10)."
+
+[[command]]
+name = "audit"
+path = ["audit"]
+help = "List all 16 opposing allegations / cross-examination traps with their status, rebuttal exhibits, and Opening-Statement-aligned pivots."
+
+[[command]]
+name = "tune"
+path = ["tune"]
+help = "Inspect, export, or apply Lawyer & Client model-tuning patches and strategy co-design agenda (`model/tuning.json`)."
+
+[[command]]
+name = "meta"
+path = ["meta"]
+help = "Inspect the formal Legal Meta-Theory & International Standards register (Hohfeldian jural relations, OASIS LegalRuleML rules & overrides, ASPIC+ argumentation graph, Akoma Ntoso FRBR URIs, ISO 15489/27037 chain of custody)."
+
+[[command]]
+name = "portal"
+path = ["portal"]
+help = "Inspect or serve the Multi-Tenant Public-Benefit Legal Platform (`status` or `serve --port 8766`): Auth Providers, Cryptographic Sharing, Firms, Courts, Legal Frameworks, Clients, Lawyers, and Multi-Domain Cases."
+
+[[command]]
+name = "convert"
+path = ["convert"]
+help = "Compile formal legal propositions of PrismLegal into deterministic controlled English (`src/Convert.lex.tex` + `prism.legal` lexicon, zero external LLM)."
+
+[[command]]
+name = "engine"
+path = ["engine"]
+help = "Run the compiled neuromorphic courtroom strategy engine (`src/Engine.lex.tex` & certified Rust crate): Hebbian plasticity (`learn_all`), weight-ordered strategy scheduling (`schedule`), and 360-minute homeostatic trial clock."
+
+[[command]]
+name = "discover"
+path = ["discover"]
+help = "Run the compiled F_2 relation & Berlekamp-Massey recurrence discovery engine (`src/Discovery.lex.tex` & certified Rust crate) over the 13 evidentiary bit-vector sequences (`src/Sequences.lex.tex`)."
+
+[[command]]
+name = "intake"
+path = ["intake"]
+help = "Run the compiled in-browser intake classifiers and per-node multi-head attention extrapolation network (`src/Intake.lex.tex`, 12 schema classifiers, 18 node attention heads)."
+
+[[command]]
+name = "exam"
+path = ["exam"]
+help = "Inspect Lead Trial Counsel's Intended Direct Examination of Respondent (`src/DirectExam.lex.tex`, 6 chapters, 36 Q&A blocks, yellow highlights, red strikethroughs, and exhibit admission moves)."
+
+[[command]]
+name = "visual"
+path = ["visual"]
+help = "Inspect handwritten journal forensics (`OP Ex. 13`), visual/scanned exhibit extractions, 12-photo catalog (`Ex. E`, `Ex. O`, `Ex. L`), and the 30-exhibit Content-Meaning & Intent Matrix (`src/VisualEvidence.lex.tex`)."
+
+[[command]]
+name = "sanitize"
+path = ["sanitize"]
+help = "Run the Zero-PII & Public-Benefit Sanitization Auditor across the entire prism-legal repository."
+
+[[command]]
+name = "api_production"
+path = ["api", "production"]
+help = "Emit certified Rust production packages (`prism_legal_*`) from `production/request.json` via `lexlean production build`."
+
+[[command]]
+name = "api_sync"
+path = ["api", "sync"]
+help = "Regenerate all LexLean semantic modules (src/*.lex.tex), PrismPM registers (model/*.toml), schemas, and conformance suites from the single domain model."
+
+[[command]]
+name = "api_check"
+path = ["api", "check"]
+help = "Verify zero drift and zero-PII sanitization across the domain model, src/*.lex.tex modules, model/*.toml registers, schemas, and CONFORMANCE.md."
+
+[[command]]
+name = "check"
+path = ["check"]
+help = "Run LexLean static type and lexicon checking across all semantic modules in src/ and stdlib/."
+
+[[command]]
+name = "verify"
+path = ["verify"]
+help = "Run full Lean 4 kernel verification (`lexlean verify`) across all 17 platform & case semantic modules and decided theorems."
+
+[[command]]
+name = "view_render"
+path = ["view", "render"]
+help = "Mechanically render the GitHub-Pages-ready Public-Benefit Platform Hub (`index.html`), Client Workspace (`client.html`), Counsel Workbench (`lawyer.html`), and Courtroom Mode (`courtroom.html`), SVG graphics, and Markdown/JSON sheets directly from the verified model."

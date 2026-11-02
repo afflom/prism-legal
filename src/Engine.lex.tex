@@ -1,0 +1,629 @@
+\begin{lexlean}{Engine}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: allMembers,
+  parameters: [values : (List String), ids : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head ids) then (allMembers tail ids) else false)),
+  axioms: [],
+  recursive_argument: values
+}
+
+structure{
+  name: Stage,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: budget, type: Nat},
+    {name: gate, type: Bool}
+  ]
+}
+
+structure{
+  name: Strategy,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: template, type: String},
+    {name: digest, type: String}
+  ]
+}
+
+definition{
+  name: hearingName,
+  parameters: [],
+  result: String,
+  body: "Evidentiary Hearing on Parenting Plan & Support (Case No. 2030-FAM-9010)",
+  axioms: []
+}
+
+definition{
+  name: courtroomName,
+  parameters: [],
+  result: String,
+  body: "Superior Court \u2014 Family & Civil Trial Division 7C",
+  axioms: []
+}
+
+definition{
+  name: timeoutMinutes,
+  parameters: [],
+  result: Nat,
+  body: 390,
+  axioms: []
+}
+
+definition{
+  name: setupMinutes,
+  parameters: [],
+  result: Nat,
+  body: 30,
+  axioms: []
+}
+
+definition{
+  name: tickBudget,
+  parameters: [],
+  result: Nat,
+  body: 360,
+  axioms: []
+}
+
+definition{
+  name: gateMinimum,
+  parameters: [],
+  result: Nat,
+  body: 45,
+  axioms: []
+}
+
+definition{
+  name: stages,
+  parameters: [],
+  result: (List Stage),
+  body: (cons (record Stage {id := "opening-and-stipulations", budget := 30, gate := false}) (cons (record Stage {id := "petitioner-case-and-cross", budget := 120, gate := false}) (cons (record Stage {id := "respondent-direct-walkthrough", budget := 75, gate := false}) (cons (record Stage {id := "corroborating-witnesses", budget := 45, gate := false}) (cons (record Stage {id := "financial-and-16-2-impeachment", budget := 30, gate := false}) (cons (record Stage {id := "closing-and-final-orders-gate", budget := 60, gate := true}) (nil Stage))))))),
+  axioms: []
+}
+
+definition{
+  name: portfolio,
+  parameters: [],
+  result: (List Strategy),
+  body: (cons (record Strategy {id := "documentary-impeachment", template := "documentary-impeachment.lean.tmpl", digest := "sha256:3a73b02554f969d1e5d9919c370e640061271e7907809a796d9f298571975103"}) (cons (record Strategy {id := "statutory-factor-deduction", template := "statutory-factor-deduction.lean.tmpl", digest := "sha256:7f0504b82d5fcae59f9cc321aec53a1df97b976deb3dd7d43e37a7bbabc6e144"}) (cons (record Strategy {id := "stipulated-anchor-lock", template := "stipulated-anchor-lock.lean.tmpl", digest := "sha256:c93f3c185a01eecf8fd416b1a4415ded0f673695a8e85d722b654c2c27d95d25"}) (cons (record Strategy {id := "calm-opening-pivot", template := "calm-opening-pivot.lean.tmpl", digest := "sha256:8d1413d39a76216a8436e4d6b9ca97d9c461dabb3019747b74ab493b432522c6"}) (nil Strategy))))),
+  axioms: []
+}
+
+definition{
+  name: strategyIdsOf,
+  parameters: [xs : (List Strategy)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (strategyIdsOf tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: digestsOf,
+  parameters: [xs : (List Strategy)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head digest) (digestsOf tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: stageIdsOf,
+  parameters: [xs : (List Stage)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (stageIdsOf tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: budgetSum,
+  parameters: [xs : (List Stage)],
+  result: Nat,
+  body: (match xs
+    | List.nil => 0
+    | List.cons head tail => ((project head budget) + (budgetSum tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: gateShare,
+  parameters: [xs : (List Stage)],
+  result: Nat,
+  body: (match xs
+    | List.nil => 0
+    | List.cons head tail => ((if (project head gate) then (project head budget) else 0) + (gateShare tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => ((not (memberString head tail)) && (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: allNonEmpty,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => ((not (prim equal head "" : Bool)) && (allNonEmpty tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+theorem{
+  name: stageBudgetsFillTheTick,
+  parameters: [],
+  statement: (((budgetSum (stages)) =? (tickBudget)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: stageBudgetsFitTheTimeout,
+  parameters: [],
+  statement: ((((setupMinutes) + (budgetSum (stages))) <=? (timeoutMinutes)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: gateKeepsItsShare,
+  parameters: [],
+  statement: (((gateMinimum) <=? (gateShare (stages))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: portfolioIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (strategyIdsOf (portfolio))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: templatesPinnedByDigest,
+  parameters: [],
+  statement: (((distinctStrings (digestsOf (portfolio))) && (allNonEmpty (digestsOf (portfolio)))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: stageIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (stageIdsOf (stages))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+structure{
+  name: Weight,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: strategy, type: String},
+    {name: family, type: String},
+    {name: value, type: Nat}
+  ]
+}
+
+structure{
+  name: Outcome,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: strategy, type: String},
+    {name: family, type: String},
+    {name: success, type: Bool}
+  ]
+}
+
+definition{
+  name: weightMin,
+  parameters: [],
+  result: Nat,
+  body: 1,
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: weightMax,
+  parameters: [],
+  result: Nat,
+  body: 16,
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: weightInitial,
+  parameters: [],
+  result: Nat,
+  body: 8,
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: learn,
+  parameters: [w : Nat, success : Bool],
+  result: Nat,
+  body: (if success then (if ((w + 2) <=? 16) then (w + 2) else 16) else (if (2 <=? w) then (prim subtract w 1 : Nat) else 1)),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: weightOf,
+  parameters: [strategy : String, family : String, table : (List Weight)],
+  result: Nat,
+  body: (match table
+    | List.nil => 8
+    | List.cons head tail => (if ((prim equal (project head strategy) strategy : Bool) && (prim equal (project head family) family : Bool)) then (project head value) else (weightOf strategy family tail))),
+  axioms: [],
+  recursive_argument: table,
+  executable: true
+}
+
+definition{
+  name: updateWeight,
+  parameters: [table : (List Weight), strategy : String, family : String, success : Bool],
+  result: (List Weight),
+  body: (match table
+    | List.nil => (cons (record Weight {strategy := strategy, family := family, value := (learn 8 success)}) (nil Weight))
+    | List.cons head tail => (if ((prim equal (project head strategy) strategy : Bool) && (prim equal (project head family) family : Bool)) then (cons (record Weight {strategy := strategy, family := family, value := (learn (project head value) success)}) tail) else (cons head (updateWeight tail strategy family success)))),
+  axioms: [],
+  recursive_argument: table,
+  executable: true
+}
+
+definition{
+  name: learnAll,
+  parameters: [table : (List Weight), outcomes : (List Outcome)],
+  result: (List Weight),
+  body: (match outcomes
+    | List.nil => table
+    | List.cons head tail => (learnAll (updateWeight table (project head strategy) (project head family) (project head success)) tail)),
+  axioms: [],
+  recursive_argument: outcomes,
+  executable: true,
+  production: {effects: [allocation, overflow, recursion], targets: [rust-std]}
+}
+
+definition{
+  name: insertByWeight,
+  parameters: [family : String, table : (List Weight), x : String, ordered : (List String)],
+  result: (List String),
+  body: (match ordered
+    | List.nil => (cons x (nil String))
+    | List.cons head tail => (if ((weightOf head family table) <? (weightOf x family table)) then (cons x (cons head tail)) else (cons head (insertByWeight family table x tail)))),
+  axioms: [],
+  recursive_argument: ordered,
+  executable: true
+}
+
+definition{
+  name: scheduleFrom,
+  parameters: [family : String, table : (List Weight), pending : (List String), ordered : (List String)],
+  result: (List String),
+  body: (match pending
+    | List.nil => ordered
+    | List.cons head tail => (scheduleFrom family table tail (insertByWeight family table head ordered))),
+  axioms: [],
+  recursive_argument: pending,
+  executable: true
+}
+
+definition{
+  name: schedule,
+  parameters: [table : (List Weight), family : String, applicable : (List String)],
+  result: (List String),
+  body: (scheduleFrom family table applicable (nil String)),
+  axioms: [],
+  executable: true,
+  production: {effects: [allocation, overflow, recursion], targets: [rust-std]}
+}
+
+definition{
+  name: inBounds,
+  parameters: [w : Nat],
+  result: Bool,
+  body: ((1 <=? w) && (w <=? 16)),
+  axioms: []
+}
+
+definition{
+  name: learnBoundedUpTo,
+  parameters: [k : Nat],
+  result: Bool,
+  body: (match k
+    | Nat.zero => (if (inBounds 0) then ((inBounds (learn 0 true)) && (inBounds (learn 0 false))) else true)
+    | Nat.succ j => ((if (inBounds (j + 1)) then ((inBounds (learn (j + 1) true)) && (inBounds (learn (j + 1) false))) else true) && (learnBoundedUpTo j))),
+  axioms: [],
+  recursive_argument: k
+}
+
+definition{
+  name: weightsBounded,
+  parameters: [table : (List Weight)],
+  result: Bool,
+  body: (match table
+    | List.nil => true
+    | List.cons head tail => ((inBounds (project head value)) && (weightsBounded tail))),
+  axioms: [],
+  recursive_argument: table
+}
+
+definition{
+  name: countString,
+  parameters: [value : String, values : (List String)],
+  result: Nat,
+  body: (match values
+    | List.nil => 0
+    | List.cons head tail => ((if (prim equal value head : Bool) then 1 else 0) + (countString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: sameCounts,
+  parameters: [probe : (List String), xs : (List String), ys : (List String)],
+  result: Bool,
+  body: (match probe
+    | List.nil => true
+    | List.cons head tail => (((countString head xs) =? (countString head ys)) && (sameCounts tail xs ys))),
+  axioms: [],
+  recursive_argument: probe
+}
+
+definition{
+  name: isPermutation,
+  parameters: [xs : (List String), ys : (List String)],
+  result: Bool,
+  body: (((prim length xs : Nat) =? (prim length ys : Nat)) && ((sameCounts xs xs ys) && (sameCounts ys xs ys))),
+  axioms: []
+}
+
+definition{
+  name: byWeight,
+  parameters: [table : (List Weight), family : String, ordered : (List String)],
+  result: Bool,
+  body: (match ordered
+    | List.nil => true
+    | List.cons head tail => (match tail
+    | List.nil => true
+    | List.cons later more => (((weightOf later family table) <=? (weightOf head family table)) && (byWeight table family tail)))),
+  axioms: [],
+  recursive_argument: ordered
+}
+
+definition{
+  name: scheduleSound,
+  parameters: [table : (List Weight), family : String, applicable : (List String)],
+  result: Bool,
+  body: ((isPermutation (schedule table family applicable) applicable) && (byWeight table family (schedule table family applicable))),
+  axioms: []
+}
+
+definition{
+  name: soundForSubsets,
+  parameters: [table : (List Weight), family : String, subsets : (List (List String))],
+  result: Bool,
+  body: (match subsets
+    | List.nil => true
+    | List.cons head tail => ((scheduleSound table family head) && (soundForSubsets table family tail))),
+  axioms: [],
+  recursive_argument: subsets
+}
+
+definition{
+  name: soundForFamilies,
+  parameters: [table : (List Weight), families : (List String), subsets : (List (List String))],
+  result: Bool,
+  body: (match families
+    | List.nil => true
+    | List.cons head tail => ((soundForSubsets table head subsets) && (soundForFamilies table tail subsets))),
+  axioms: [],
+  recursive_argument: families
+}
+
+definition{
+  name: initialWeights,
+  parameters: [],
+  result: (List Weight),
+  body: (cons (record Weight {strategy := "documentary-impeachment", family := "crs-124-parenting-time", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "crs-124-decision-making", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "crs-115-child-support", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "crcp-16-2-disclosure", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "cre-608-impeachment", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "crs-129-protection-order", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "champva-38-usc-1781", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crs-124-parenting-time", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crs-124-decision-making", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crs-115-child-support", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crcp-16-2-disclosure", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "cre-608-impeachment", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crs-129-protection-order", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "champva-38-usc-1781", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crs-124-parenting-time", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crs-124-decision-making", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crs-115-child-support", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crcp-16-2-disclosure", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "cre-608-impeachment", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crs-129-protection-order", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "champva-38-usc-1781", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crs-124-parenting-time", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crs-124-decision-making", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crs-115-child-support", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crcp-16-2-disclosure", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "cre-608-impeachment", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crs-129-protection-order", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "champva-38-usc-1781", value := 8}) (nil Weight))))))))))))))))))))))))))))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: fixtureOutcomes,
+  parameters: [],
+  result: (List Outcome),
+  body: (cons (record Outcome {strategy := "documentary-impeachment", family := "crcp-16-2-disclosure", success := true}) (cons (record Outcome {strategy := "documentary-impeachment", family := "crcp-16-2-disclosure", success := true}) (cons (record Outcome {strategy := "statutory-factor-deduction", family := "crs-124-parenting-time", success := true}) (cons (record Outcome {strategy := "calm-opening-pivot", family := "crs-124-parenting-time", success := true}) (cons (record Outcome {strategy := "stipulated-anchor-lock", family := "crs-115-child-support", success := true}) (cons (record Outcome {strategy := "documentary-impeachment", family := "cre-608-impeachment", success := true}) (cons (record Outcome {strategy := "stipulated-anchor-lock", family := "champva-38-usc-1781", success := true}) (cons (record Outcome {strategy := "calm-opening-pivot", family := "crs-129-protection-order", success := true}) (cons (record Outcome {strategy := "statutory-factor-deduction", family := "crs-124-decision-making", success := true}) (cons (record Outcome {strategy := "calm-opening-pivot", family := "crcp-16-2-disclosure", success := false}) (nil Outcome))))))))))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: fixtureLearned,
+  parameters: [],
+  result: (List Weight),
+  body: (cons (record Weight {strategy := "documentary-impeachment", family := "crs-124-parenting-time", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "crs-124-decision-making", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "crs-115-child-support", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "crcp-16-2-disclosure", value := 12}) (cons (record Weight {strategy := "documentary-impeachment", family := "cre-608-impeachment", value := 10}) (cons (record Weight {strategy := "documentary-impeachment", family := "crs-129-protection-order", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "champva-38-usc-1781", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crs-124-parenting-time", value := 10}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crs-124-decision-making", value := 10}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crs-115-child-support", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crcp-16-2-disclosure", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "cre-608-impeachment", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crs-129-protection-order", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "champva-38-usc-1781", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crs-124-parenting-time", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crs-124-decision-making", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crs-115-child-support", value := 10}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crcp-16-2-disclosure", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "cre-608-impeachment", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crs-129-protection-order", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "champva-38-usc-1781", value := 10}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crs-124-parenting-time", value := 10}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crs-124-decision-making", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crs-115-child-support", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crcp-16-2-disclosure", value := 7}) (cons (record Weight {strategy := "calm-opening-pivot", family := "cre-608-impeachment", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crs-129-protection-order", value := 10}) (cons (record Weight {strategy := "calm-opening-pivot", family := "champva-38-usc-1781", value := 8}) (nil Weight))))))))))))))))))))))))))))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: committedWeights,
+  parameters: [],
+  result: (List Weight),
+  body: (cons (record Weight {strategy := "documentary-impeachment", family := "crs-124-parenting-time", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "crs-124-decision-making", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "crs-115-child-support", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "crcp-16-2-disclosure", value := 12}) (cons (record Weight {strategy := "documentary-impeachment", family := "cre-608-impeachment", value := 10}) (cons (record Weight {strategy := "documentary-impeachment", family := "crs-129-protection-order", value := 8}) (cons (record Weight {strategy := "documentary-impeachment", family := "champva-38-usc-1781", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crs-124-parenting-time", value := 10}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crs-124-decision-making", value := 10}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crs-115-child-support", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crcp-16-2-disclosure", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "cre-608-impeachment", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "crs-129-protection-order", value := 8}) (cons (record Weight {strategy := "statutory-factor-deduction", family := "champva-38-usc-1781", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crs-124-parenting-time", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crs-124-decision-making", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crs-115-child-support", value := 10}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crcp-16-2-disclosure", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "cre-608-impeachment", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "crs-129-protection-order", value := 8}) (cons (record Weight {strategy := "stipulated-anchor-lock", family := "champva-38-usc-1781", value := 10}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crs-124-parenting-time", value := 10}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crs-124-decision-making", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crs-115-child-support", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crcp-16-2-disclosure", value := 7}) (cons (record Weight {strategy := "calm-opening-pivot", family := "cre-608-impeachment", value := 8}) (cons (record Weight {strategy := "calm-opening-pivot", family := "crs-129-protection-order", value := 10}) (cons (record Weight {strategy := "calm-opening-pivot", family := "champva-38-usc-1781", value := 8}) (nil Weight))))))))))))))))))))))))))))),
+  axioms: [],
+  executable: true
+}
+
+definition{
+  name: strategyIds,
+  parameters: [],
+  result: (List String),
+  body: (cons "documentary-impeachment" (cons "statutory-factor-deduction" (cons "stipulated-anchor-lock" (cons "calm-opening-pivot" (nil String))))),
+  axioms: []
+}
+
+definition{
+  name: familyIds,
+  parameters: [],
+  result: (List String),
+  body: (cons "crs-124-parenting-time" (cons "crs-124-decision-making" (cons "crs-115-child-support" (cons "crcp-16-2-disclosure" (cons "cre-608-impeachment" (cons "crs-129-protection-order" (cons "champva-38-usc-1781" (nil String)))))))),
+  axioms: []
+}
+
+definition{
+  name: portfolioSubsets,
+  parameters: [],
+  result: (List (List String)),
+  body: (cons (nil String) (cons (cons "documentary-impeachment" (nil String)) (cons (cons "statutory-factor-deduction" (nil String)) (cons (cons "documentary-impeachment" (cons "statutory-factor-deduction" (nil String))) (cons (cons "stipulated-anchor-lock" (nil String)) (cons (cons "documentary-impeachment" (cons "stipulated-anchor-lock" (nil String))) (cons (cons "statutory-factor-deduction" (cons "stipulated-anchor-lock" (nil String))) (cons (cons "documentary-impeachment" (cons "statutory-factor-deduction" (cons "stipulated-anchor-lock" (nil String)))) (cons (cons "calm-opening-pivot" (nil String)) (cons (cons "documentary-impeachment" (cons "calm-opening-pivot" (nil String))) (cons (cons "statutory-factor-deduction" (cons "calm-opening-pivot" (nil String))) (cons (cons "documentary-impeachment" (cons "statutory-factor-deduction" (cons "calm-opening-pivot" (nil String)))) (cons (cons "stipulated-anchor-lock" (cons "calm-opening-pivot" (nil String))) (cons (cons "documentary-impeachment" (cons "stipulated-anchor-lock" (cons "calm-opening-pivot" (nil String)))) (cons (cons "statutory-factor-deduction" (cons "stipulated-anchor-lock" (cons "calm-opening-pivot" (nil String)))) (cons (cons "documentary-impeachment" (cons "statutory-factor-deduction" (cons "stipulated-anchor-lock" (cons "calm-opening-pivot" (nil String))))) (nil (List String)))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: sameWeights,
+  parameters: [xs : (List Weight), ys : (List Weight)],
+  result: Bool,
+  body: (match xs
+    | List.nil => ((prim length ys : Nat) =? 0)
+    | List.cons head tail => (match ys
+    | List.nil => false
+    | List.cons y rest => (((prim equal (project head strategy) (project y strategy) : Bool) && (prim equal (project head family) (project y family) : Bool)) && (((project head value) =? (project y value)) && (sameWeights tail rest))))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: sameStrings,
+  parameters: [xs : (List String), ys : (List String)],
+  result: Bool,
+  body: (match xs
+    | List.nil => ((prim length ys : Nat) =? 0)
+    | List.cons head tail => (match ys
+    | List.nil => false
+    | List.cons y rest => ((prim equal head y : Bool) && (sameStrings tail rest)))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+theorem{
+  name: learnStaysInBounds,
+  parameters: [],
+  statement: ((learnBoundedUpTo 16) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: initialWeightsBounded,
+  parameters: [],
+  statement: ((weightsBounded (initialWeights)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: committedWeightsBounded,
+  parameters: [],
+  statement: ((weightsBounded (committedWeights)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: learnAllFixture,
+  parameters: [],
+  statement: ((sameWeights (learnAll (initialWeights) (fixtureOutcomes)) (fixtureLearned)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: learnAllFixtureBounded,
+  parameters: [],
+  statement: ((weightsBounded (learnAll (initialWeights) (fixtureOutcomes))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everyScheduleIsSound,
+  parameters: [],
+  statement: ((soundForFamilies (committedWeights) (familyIds) (portfolioSubsets)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: scheduleFixture0,
+  parameters: [],
+  statement: ((sameStrings (schedule (fixtureLearned) "crcp-16-2-disclosure" (cons "calm-opening-pivot" (cons "statutory-factor-deduction" (cons "documentary-impeachment" (cons "stipulated-anchor-lock" (nil String)))))) (cons "documentary-impeachment" (cons "statutory-factor-deduction" (cons "stipulated-anchor-lock" (cons "calm-opening-pivot" (nil String)))))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: scheduleFixture1,
+  parameters: [],
+  statement: ((sameStrings (schedule (fixtureLearned) "crs-124-parenting-time" (cons "stipulated-anchor-lock" (cons "statutory-factor-deduction" (cons "calm-opening-pivot" (nil String))))) (cons "statutory-factor-deduction" (cons "calm-opening-pivot" (cons "stipulated-anchor-lock" (nil String))))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: scheduleFixture2,
+  parameters: [],
+  statement: ((sameStrings (schedule (fixtureLearned) "crs-115-child-support" (cons "documentary-impeachment" (cons "stipulated-anchor-lock" (cons "statutory-factor-deduction" (nil String))))) (cons "stipulated-anchor-lock" (cons "documentary-impeachment" (cons "statutory-factor-deduction" (nil String))))) = true),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

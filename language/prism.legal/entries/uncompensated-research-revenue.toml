@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "uncompensated-research-revenue"
+category = "function"
+signature = "(pi ((explicit y (const lexlean.std.nat::nat))) (const lexlean.std.nat::nat))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Remedies"
+name = "PrismLegal.Remedies.uncompensatedResearchRevenue"
+
+[[form]]
+id = "uncompensated-research-revenue"
+channel = "math"
+surface = "uncompensatedResearchRevenue"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name uncompensatedResearchRevenue) (paren (seq (slot 0))))"

@@ -1,0 +1,111 @@
+\begin{lexlean}{Application}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Architecture}
+\importmodule{Audit}
+\importmodule{Portal}
+\importmodule{Presentation}
+\importmodule{Register}
+\importmodule{RemediesCore}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: PlatformApplication,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: referenceCaseNumber, type: String},
+    {name: hearingDate, type: String},
+    {name: entrypoint, type: String},
+    {name: offlineReady, type: Bool},
+    {name: publicBenefitOpenSource, type: Bool},
+    {name: zeroPiiSanitized, type: Bool},
+    {name: githubPagesReady, type: Bool},
+    {name: stakeholderCount, type: Nat},
+    {name: panelCount, type: Nat},
+    {name: journeyCount, type: Nat},
+    {name: claimCount, type: Nat},
+    {name: exhibitCount, type: Nat},
+    {name: trapCount, type: Nat},
+    {name: domainCaseCount, type: Nat},
+    {name: firmCount, type: Nat},
+    {name: courtCount, type: Nat},
+    {name: frameworkCount, type: Nat}
+  ]
+}
+
+structure{
+  name: GitHubPagesPublication,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: repository, type: String},
+    {name: pagesUrl, type: String},
+    {name: workflowPath, type: String},
+    {name: ciWorkflowPath, type: String},
+    {name: artifactRoot, type: String},
+    {name: uploadAction, type: String},
+    {name: deployAction, type: String},
+    {name: githubActionsEnabled, type: Bool}
+  ]
+}
+
+definition{
+  name: application,
+  parameters: [],
+  result: PlatformApplication,
+  body: (record PlatformApplication {id := "prism-legal-public-benefit-app", referenceCaseNumber := "2030-FAM-9010", hearingDate := "2030-09-18", entrypoint := "view/index.html", offlineReady := true, publicBenefitOpenSource := true, zeroPiiSanitized := true, githubPagesReady := true, stakeholderCount := 5, panelCount := 7, journeyCount := 5, claimCount := 24, exhibitCount := 30, trapCount := 16, domainCaseCount := 6, firmCount := 4, courtCount := 4, frameworkCount := 6}),
+  axioms: []
+}
+
+definition{
+  name: publication,
+  parameters: [],
+  result: GitHubPagesPublication,
+  body: (record GitHubPagesPublication {id := "prism-legal-github-pages", repository := "afflom/prism-legal", pagesUrl := "https://afflom.github.io/prism-legal/", workflowPath := ".github/workflows/pages.yml", ciWorkflowPath := ".github/workflows/ci.yml", artifactRoot := "view", uploadAction := "actions/upload-pages-artifact@v3", deployAction := "actions/deploy-pages@v4", githubActionsEnabled := true}),
+  axioms: []
+}
+
+theorem{
+  name: applicationOfflineReady,
+  parameters: [],
+  statement: ((project (application) offlineReady) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: applicationPublicBenefitOpenSource,
+  parameters: [],
+  statement: ((project (application) publicBenefitOpenSource) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: applicationZeroPiiSanitized,
+  parameters: [],
+  statement: ((project (application) zeroPiiSanitized) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: applicationGithubPagesReady,
+  parameters: [],
+  statement: ((project (application) githubPagesReady) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: applicationPublishedViaGitHubActions,
+  parameters: [],
+  statement: ((project (publication) githubActionsEnabled) = true),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

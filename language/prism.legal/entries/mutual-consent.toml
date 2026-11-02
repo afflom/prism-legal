@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "mutual-consent"
+category = "function"
+signature = "(pi ((explicit d (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Governance"
+name = "PrismLegal.Governance.mutualConsent"
+
+[[form]]
+id = "mutual-consent"
+channel = "math"
+surface = "mutualConsent"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name mutualConsent) (paren (seq (slot 0))))"

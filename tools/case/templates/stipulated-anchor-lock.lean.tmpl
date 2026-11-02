@@ -1,0 +1,13 @@
+-- Courtroom Strategy Template: Stipulated Anchor Lock (Joint Pretrial Order Stipulations)
+-- Pinned by SHA-256 digest in PrismLegal.Engine (src/Engine.lex.tex)
+import PrismLegal.Register
+import PrismLegal.RemediesCore
+
+namespace PrismLegal.Templates.StipulatedAnchorLock
+
+/-- Bind examination to Joint Pretrial Order stipulations and verified financial ledgers. -/
+theorem stipulation_locks_baseline :
+    RemediesCore.stipulatedBaselineCents = 1450000 := by
+  decide
+
+end PrismLegal.Templates.StipulatedAnchorLock

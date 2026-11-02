@@ -1,0 +1,7 @@
+name = "prism_legal"
+version = "1.0.0"
+defaultTargets = ["PrismLegal"]
+
+[[lean_lib]]
+name = "PrismLegal"
+srcDir = ".lexlean/generated/lean"

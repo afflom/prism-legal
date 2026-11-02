@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "verified-telemetry-distance"
+category = "function"
+signature = "(pi ((explicit t (const lexlean.std.nat::nat))) (const lexlean.std.nat::nat))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Compliance"
+name = "PrismLegal.Compliance.verifiedTelemetryDistance"
+
+[[form]]
+id = "verified-telemetry-distance"
+channel = "math"
+surface = "verifiedTelemetryDistance"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name verifiedTelemetryDistance) (paren (seq (slot 0))))"

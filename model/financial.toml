@@ -1,0 +1,37 @@
+spec = "prism-legal/financial/1"
+
+[[worksheet]]
+id = "WS-RESPONDENT-GUIDELINE"
+label = "Respondent's Stipulated Guideline Worksheet (Ex. N)"
+party_a_income_cents = 800000
+party_b_income_cents = 500000
+combined_income_cents = 1300000
+party_b_overnights = 182
+net_transfer_cents = 25000
+
+[[worksheet]]
+id = "WS-PETITIONER-IMPUTED"
+label = "Petitioner's Contested Imputed Worksheet (OP Ex. 2)"
+party_a_income_cents = 800000
+party_b_income_cents = 1400000
+combined_income_cents = 2200000
+party_b_overnights = 90
+net_transfer_cents = 240000
+
+[[disclosure_audit]]
+id = "DISC-01"
+exhibit_id = "Ex-G"
+omitted_cents = 3000000
+finding = "Initial Sworn Financial Statement omitted both escrow accounts ($30,000.00 unscheduled)."
+
+[[disclosure_audit]]
+id = "DISC-02"
+exhibit_id = "Ex-J"
+omitted_cents = 3000000
+finding = "Induced Respondent to pay interim expenses from disability benefits while $30,000.00 remained undisclosed."
+
+[[disclosure_audit]]
+id = "DISC-03"
+exhibit_id = "Ex-H"
+omitted_cents = 1800000
+finding = "Subpoenaed statements proved the $30,000.00 balance; Temporary Orders (Ex-N \u00b6\u00b6 24-26) ruled retroactive claim unconscionable."

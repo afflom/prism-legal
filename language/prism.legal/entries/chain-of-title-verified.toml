@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "chain-of-title-verified"
+category = "function"
+signature = "(pi ((explicit d (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Commercial"
+name = "PrismLegal.Commercial.chainOfTitleVerified"
+
+[[form]]
+id = "chain-of-title-verified"
+channel = "math"
+surface = "chainOfTitleVerified"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name chainOfTitleVerified) (paren (seq (slot 0))))"

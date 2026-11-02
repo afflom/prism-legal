@@ -1,0 +1,155 @@
+{
+  "spec": "prism-legal/tuning/1",
+  "activeMatterId": "CASE-2030-FAM-9010",
+  "activeRole": "client",
+  "dimensions": [
+    {
+      "id": "TUNE-01",
+      "name": "Client Flashcard Readiness Status",
+      "title": "Client Flashcard Readiness Status",
+      "owner": "Client Litigant (Respondent)",
+      "collaborator": "Lead Trial Counsel",
+      "targetModule": "src/Audit.lex.tex",
+      "scope": "TRAP-01..TRAP-16",
+      "description": "Interactive witness-stand readiness tracking across all 16 cross-examination flashcards."
+    },
+    {
+      "id": "TUNE-02",
+      "name": "Witness Examination Minute Allocation",
+      "title": "Witness Examination Minute Allocation",
+      "owner": "Lead Trial Counsel",
+      "collaborator": "Client Litigant (Respondent)",
+      "targetModule": "src/Engine.lex.tex",
+      "scope": "W-01..W-10 (360-min ceiling)",
+      "description": "Homeostatic 360-minute trial clock budgeting across all 10 witnesses and 5 hearing stages."
+    },
+    {
+      "id": "TUNE-03",
+      "name": "Claim Evidentiary Status & Framing",
+      "title": "Claim Evidentiary Status & Framing",
+      "owner": "Lead Trial Counsel",
+      "collaborator": "Specialized Co-Counsel",
+      "targetModule": "src/Register.lex.tex",
+      "scope": "CLM-01..CLM-24",
+      "description": "Stipulated vs. corroborated status and statutory framing across all 24 evidentiary claims."
+    },
+    {
+      "id": "TUNE-04",
+      "name": "Client-Counsel Co-Design Strategy Agenda",
+      "title": "Client-Counsel Co-Design Strategy Agenda",
+      "owner": "Client Litigant (Respondent)",
+      "collaborator": "Lead Trial Counsel",
+      "targetModule": "model/tuning.json",
+      "scope": "AGENDA-01..N",
+      "description": "Shared client-counsel strategy questions, exhibit sequencing notes, and direct-exam alignment."
+    },
+    {
+      "id": "TUNE-05",
+      "name": "Active Matter & Practice Area Context",
+      "title": "Active Matter & Practice Area Context",
+      "owner": "Platform Hub",
+      "collaborator": "All Portal Roles",
+      "targetModule": "src/Portal.lex.tex",
+      "scope": "CASE-2030-*",
+      "description": "Multi-domain matter switcher across Family Law, Statutory Benefits, Entity Governance, Employment, UCC, and Housing."
+    },
+    {
+      "id": "TUNE-06",
+      "name": "Cryptographic Case Sharing Grants",
+      "title": "Cryptographic Case Sharing Grants",
+      "owner": "Client Litigant (Respondent)",
+      "collaborator": "Firm & Clinic Counsel",
+      "targetModule": "src/Portal.lex.tex",
+      "scope": "SHARE-01..N",
+      "description": "End-to-end encrypted, revocable, least-privilege capability grants for co-counsel and legal aid clinics."
+    },
+    {
+      "id": "TUNE-07",
+      "name": "Courtroom Large-Text & Theme Mode",
+      "title": "Courtroom Large-Text & Theme Mode",
+      "owner": "All Portal Roles",
+      "collaborator": "WCAG 2.2 AA Design System",
+      "targetModule": "src/Presentation.lex.tex",
+      "scope": "UI Accessibility State",
+      "description": "Light/dark theme toggle and witness-stand high-legibility typography scaling."
+    }
+  ],
+  "overrides": {
+    "claims": {},
+    "traps": {
+      "TRAP-01": {
+        "clientReadiness": "Ready for Stand"
+      },
+      "TRAP-04": {
+        "clientReadiness": "Ready for Stand"
+      },
+      "TRAP-06": {
+        "clientReadiness": "Ready for Stand"
+      },
+      "TRAP-12": {
+        "clientReadiness": "Ready for Stand"
+      }
+    },
+    "witnesses": {
+      "W-01": {
+        "examMinutes": 60
+      },
+      "W-02": {
+        "examMinutes": 60
+      },
+      "W-03": {
+        "examMinutes": 20
+      },
+      "W-04": {
+        "examMinutes": 15
+      },
+      "W-05": {
+        "examMinutes": 15
+      },
+      "W-06": {
+        "examMinutes": 15
+      },
+      "W-07": {
+        "examMinutes": 15
+      },
+      "W-08": {
+        "examMinutes": 10
+      },
+      "W-09": {
+        "examMinutes": 10
+      },
+      "W-10": {
+        "examMinutes": 15
+      }
+    }
+  },
+  "agenda": [
+    {
+      "id": "AGENDA-01",
+      "author": "Client Litigant (Respondent)",
+      "targetId": "Ex-L / SF-01",
+      "category": "Parenting Schedule & Exchanges",
+      "status": "aligned",
+      "questionForLawyer": "Confirm Wednesday school drop-off/pick-up transition language in Ex. L.",
+      "lawyerGuidance": "Confirmed (Lead Trial Counsel): Ex. L § 2.3 specifies Wednesday school transitions so all exchanges occur seamlessly at school."
+    },
+    {
+      "id": "AGENDA-02",
+      "author": "Client Litigant (Respondent)",
+      "targetId": "Ex-G / Ex-H / CLM-13",
+      "category": "Rule 16.2 Financial Impeachment",
+      "status": "aligned",
+      "questionForLawyer": "Verify sequence for introducing Ex. G (Initial SFS) and Ex. H ($30,000.00 Escrow Bank Statements).",
+      "lawyerGuidance": "Confirmed: Lock in Initial SFS omission first, then admit Ex. H and cite Temporary Orders Ex. N ¶¶ 24-26."
+    },
+    {
+      "id": "AGENDA-03",
+      "author": "Lead Trial Counsel",
+      "targetId": "OP-Ex-13 / TRAP-12",
+      "category": "FRE 106 Rule of Completeness",
+      "status": "aligned",
+      "questionForLawyer": "Rehearse calm reading of page 6 lines 15-28 of the 2028 study log if opposing counsel raises OP Ex. 13.",
+      "lawyerGuidance": "Invoke FRE 106 immediately so the full October 14, 2028 positive reinforcement checklist is read into the record."
+    }
+  ]
+}

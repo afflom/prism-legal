@@ -1,0 +1,25 @@
+spec = "prismpm/projection/1"
+
+[[projection]]
+id = "VIEW-INDEX"
+viewpoint_id = "VP-PORTAL-HUB"
+route = "index.html"
+title = "Platform Hub, Login, Firms, Courts & Case Sharing"
+
+[[projection]]
+id = "VIEW-CLIENT"
+viewpoint_id = "VP-CLIENT-PREP"
+route = "client.html"
+title = "Client Workspace (4-Step Preparation & Rehearsal)"
+
+[[projection]]
+id = "VIEW-LAWYER"
+viewpoint_id = "VP-COUNSEL-BENCH"
+route = "lawyer.html"
+title = "Counsel Workbench (5-Workspace Legal Practice & Tuner)"
+
+[[projection]]
+id = "VIEW-COURTROOM"
+viewpoint_id = "VP-COURTROOM-STAND"
+route = "courtroom.html"
+title = "Hearing & Trial Mode (High-Legibility Quick Reference)"

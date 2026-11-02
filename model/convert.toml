@@ -1,0 +1,130 @@
+spec = "prism-legal/convert/1"
+target_lexicon = "prism.legal"
+
+[[fixture]]
+id = "PROP-01"
+claim_id = "CLM-01"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)"
+lean = "PrismLegal.Parenting.equalOvernights_implies_corroboratedFinding"
+verdict = "statement"
+controlled_english = "For every natural number \\(c\\), if \\(equalOvernights(c)\\), then if \\(routineContinuity(c)\\), then \\(corroboratedFinding(c)\\)"
+
+[[fixture]]
+id = "PROP-02"
+claim_id = "CLM-02"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)"
+lean = "PrismLegal.Parenting.sharedOvernights_sum_to_3650"
+verdict = "statement"
+controlled_english = "For every natural number \\(p\\) and natural number \\(q\\), \\(overnights(p) + overnights(q) = 3650\\)"
+
+[[fixture]]
+id = "PROP-03"
+claim_id = "CLM-05"
+statutory = "Uniform Domestic Relations Act \u00a7 402(b)"
+lean = "PrismLegal.Governance.mutualConsent_precedes_unilateralAction"
+verdict = "statement"
+controlled_english = "For every natural number \\(d\\), if \\(jointGovernance(d)\\), then \\(mutualConsent(d) \u2194 \u00ac unilateralAction(d)\\)"
+
+[[fixture]]
+id = "PROP-04"
+claim_id = "CLM-09"
+statutory = "Uniform Support Guidelines \u00a7 305(a)"
+lean = "PrismLegal.Remedies.stipulatedCombinedBaseline_eq_1300000"
+verdict = "statement"
+controlled_english = "For every natural number \\(m\\) and natural number \\(f\\), if \\(stipulatedIncome(m) = 800000\\), then if \\(stipulatedIncome(f) = 500000\\), then \\(combinedBaseline(m, f) = 1300000\\)"
+
+[[fixture]]
+id = "PROP-05"
+claim_id = "CLM-10"
+statutory = "Uniform Support Guidelines \u00a7 305(b)"
+lean = "PrismLegal.Remedies.guidelineRemedy_eq_25000"
+verdict = "statement"
+controlled_english = "For every natural number \\(m\\) and natural number \\(f\\), \\(guidelineRemedy(m, f) = 25000\\)"
+
+[[fixture]]
+id = "PROP-06"
+claim_id = "CLM-11"
+statutory = "38 U.S.C. \u00a7 1781 & Uniform Support Guidelines \u00a7 305(d)"
+lean = "PrismLegal.Remedies.statutoryBenefit_eliminates_duplicateExpenseAddon"
+verdict = "statement"
+controlled_english = "For every natural number \\(c\\), if \\(statutoryBenefitCovered(c)\\), then \\(duplicateExpenseAddon(c) = 0\\)"
+
+[[fixture]]
+id = "PROP-07"
+claim_id = "CLM-12"
+statutory = "Uniform Support Guidelines \u00a7 305(c)"
+lean = "PrismLegal.Remedies.directPartyPerformance_eliminates_thirdPartyVendorAddon"
+verdict = "statement"
+controlled_english = "For every natural number \\(c\\), if \\(directPartyPerformance(c)\\), then \\(thirdPartyVendorAddon(c) = 0\\)"
+
+[[fixture]]
+id = "PROP-08"
+claim_id = "CLM-13"
+statutory = "FRCP 26(e) & Mandatory Financial Disclosure Rule 16.2(e)(10)"
+lean = "PrismLegal.Disclosure.undisclosedReserve_triggers_mandatoryReopening"
+verdict = "statement"
+controlled_english = "For every natural number \\(a0\\), if \\(swornOmission(a0)\\), then if \\(undisclosedBalance(a0) = 3000000\\), then \\(mandatoryDisclosureReopening(a0)\\)"
+
+[[fixture]]
+id = "PROP-09"
+claim_id = "CLM-14"
+statutory = "FRCP 26(e) & Mandatory Financial Disclosure Rule 16.2(e)(10)"
+lean = "PrismLegal.Disclosure.exists_undisclosedAccount_above_zero"
+verdict = "statement"
+controlled_english = "there exists a natural number \\(a\\) such that \\(swornOmission(a) \u2227 undisclosedBalance(a) \u2260 0\\)"
+
+[[fixture]]
+id = "PROP-10"
+claim_id = "CLM-18"
+statutory = "Uniform Civil Protection & Relocation Standards"
+lean = "PrismLegal.Compliance.telemetryDistance_proves_compliance"
+verdict = "statement"
+controlled_english = "For every natural number \\(t\\), if \\(500 \u2264 verifiedTelemetryDistance(t)\\), then \\(courtOrderCompliant(t)\\)"
+
+[[fixture]]
+id = "PROP-11"
+claim_id = "CLM-16"
+statutory = "Uniform Support Guidelines \u00a7 305(5)(b)"
+lean = "PrismLegal.Remedies.uncompensatedResearch_eq_zero_all_years"
+verdict = "statement"
+controlled_english = "For every natural number \\(y\\), \\(uncompensatedResearchRevenue(y) = 0\\)"
+
+[[fixture]]
+id = "PROP-12"
+claim_id = "CLM-13"
+statutory = "FRCP 26(e) & Mandatory Financial Disclosure Rule 16.2(e)(10)"
+lean = "PrismLegal.Disclosure.defeq_omittedLedgerCents_rewritten"
+verdict = "statement"
+controlled_english = "For every natural number \\(k\\), \\(undisclosedBalance(k) = 3000000\\)"
+
+[[fixture]]
+id = "REF-13"
+claim_id = "CLM-01"
+statutory = "LexLean Language 1.2 Explicit Binder Rule"
+lean = "PrismLegal.Parenting.refused_implicitBinder"
+verdict = "refused"
+controlled_english = "implicit binder `c` cannot be stated in LexLean; make it explicit"
+
+[[fixture]]
+id = "REF-14"
+claim_id = "CLM-01"
+statutory = "LexLean Language 1.2 First-Order Surface Rule"
+lean = "PrismLegal.Parenting.refused_higherOrderArgument"
+verdict = "refused"
+controlled_english = "argument `f` has a function type; LexLean's surface is first-order (state the theorem on the orbit's own functions, or keep it as a host lemma)"
+
+[[fixture]]
+id = "REF-15"
+claim_id = "CLM-01"
+statutory = "LexLean Language 1.2 Binder Order Rule"
+lean = "PrismLegal.Parenting.refused_variableAfterHypothesis"
+verdict = "refused"
+controlled_english = "variable `c` is bound after a hypothesis; reorder binders"
+
+[[fixture]]
+id = "REF-16"
+claim_id = "CLM-01"
+statutory = "LexLean Language 1.2 Lexicon Discipline Rule"
+lean = "PrismLegal.Litigation.refused_subjectiveOpinionHint"
+verdict = "refused"
+controlled_english = "no lexeme denotes `PrismLegal.Litigation.subjectiveOpinion`; use PrismLegal.Litigation.corroboratedFinding (prism.legal::corroborated-finding)"

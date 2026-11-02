@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "undisclosed-balance"
+category = "function"
+signature = "(pi ((explicit a (const lexlean.std.nat::nat))) (const lexlean.std.nat::nat))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Disclosure"
+name = "PrismLegal.Disclosure.undisclosedBalance"
+
+[[form]]
+id = "undisclosed-balance"
+channel = "math"
+surface = "undisclosedBalance"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name undisclosedBalance) (paren (seq (slot 0))))"

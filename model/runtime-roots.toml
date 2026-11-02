@@ -1,0 +1,97 @@
+spec = "prismpm/runtime-roots/1"
+
+[[root]]
+module = "PrismLegal.Api"
+name = "commands"
+effects = ["allocation"]
+targets = ["rust-std"]
+
+[[root]]
+module = "PrismLegal.Api"
+name = "commandCount"
+effects = ["allocation"]
+targets = ["rust-std"]
+
+[[root]]
+module = "PrismLegal.RemediesCore"
+name = "petitionerStipulatedMonthlyCents"
+effects = ["overflow"]
+targets = ["rust-core", "rust-std"]
+
+[[root]]
+module = "PrismLegal.RemediesCore"
+name = "respondentStipulatedDisabilityCents"
+effects = ["overflow"]
+targets = ["rust-core", "rust-std"]
+
+[[root]]
+module = "PrismLegal.RemediesCore"
+name = "stipulatedBaselineCents"
+effects = ["overflow"]
+targets = ["rust-core", "rust-std"]
+
+[[root]]
+module = "PrismLegal.RemediesCore"
+name = "sharedParentingAdjustedCents"
+effects = ["overflow"]
+targets = ["rust-core", "rust-std"]
+
+[[root]]
+module = "PrismLegal.RemediesCore"
+name = "guidelineNetTransferCents"
+effects = ["overflow"]
+targets = ["rust-core", "rust-std"]
+
+[[root]]
+module = "PrismLegal.RemediesCore"
+name = "undisclosedReserveBalanceCents"
+effects = ["overflow"]
+targets = ["rust-core", "rust-std"]
+
+[[root]]
+module = "PrismLegal.RemediesCore"
+name = "worksheets"
+effects = ["allocation"]
+targets = ["rust-std"]
+
+[[root]]
+module = "PrismLegal.Discovery"
+name = "buildColumns"
+effects = ["allocation", "overflow"]
+targets = ["rust-std"]
+
+[[root]]
+module = "PrismLegal.Discovery"
+name = "findRelations"
+effects = ["allocation", "overflow"]
+targets = ["rust-std"]
+
+[[root]]
+module = "PrismLegal.Discovery"
+name = "findRecurrence"
+effects = ["allocation", "overflow"]
+targets = ["rust-std"]
+
+[[root]]
+module = "PrismLegal.Engine"
+name = "learnAll"
+effects = ["allocation", "overflow", "recursion"]
+targets = ["rust-std"]
+
+[[root]]
+module = "PrismLegal.Engine"
+name = "schedule"
+effects = ["allocation", "overflow", "recursion"]
+targets = ["rust-std"]
+
+[[root]]
+module = "PrismLegal.Intake"
+name = "classifyIntake"
+effects = ["allocation", "overflow", "recursion"]
+targets = ["rust-std"]
+
+[[root]]
+module = "PrismLegal.Intake"
+name = "classifyAllHeads"
+effects = ["allocation", "overflow", "recursion"]
+targets = ["rust-std"]

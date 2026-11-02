@@ -1,0 +1,25 @@
+spec = "prismpm/contracts/1"
+
+[[contract]]
+id = "register-json"
+media_type = "application/vnd.prism.legal.register.v1+json"
+schema = "schemas/register.schema.json"
+identity = "sha256-canonical-json"
+
+[[contract]]
+id = "standards-json"
+media_type = "application/vnd.prism.legal.standards.v1+json"
+schema = "schemas/standards.schema.json"
+identity = "sha256-canonical-json"
+
+[[contract]]
+id = "audit-json"
+media_type = "application/vnd.prism.legal.audit.v1+json"
+schema = "schemas/audit.schema.json"
+identity = "sha256-canonical-json"
+
+[[contract]]
+id = "intake-json"
+media_type = "application/vnd.prism.legal.intake.v1+json"
+schema = "schemas/intake.schema.json"
+identity = "sha256-canonical-json"

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 320" role="img" aria-labelledby="sup-title sup-desc">
+  <title id="sup-title">Uniform Support Guidelines § 305 &amp; Mandatory Disclosure Comparison</title>
+  <desc id="sup-desc">Comparison of Respondent's Guideline Worksheet Ex. N on stipulated baseline ($250.00/mo Petitioner to Respondent) versus Petitioner's imputed worksheet OP Ex. 2 ($2,150.00/mo) and $30,000.00 undisclosed escrow accounts.</desc>
+  <rect width="820" height="320" rx="12" fill="#0f172a"/>
+  <text x="28" y="38" fill="#f8fafc" font-family="Inter, sans-serif" font-size="18" font-weight="700">Uniform Support Guidelines § 305 &amp; Mandatory Disclosure Comparison</text>
+
+  <rect x="28" y="58" width="370" height="232" rx="10" fill="#111827" stroke="#15803d" stroke-width="2"/>
+  <text x="46" y="86" fill="#86efac" font-family="Inter, sans-serif" font-size="15" font-weight="700">Respondent's Guideline Worksheet (Ex. N)</text>
+  <text x="46" y="114" fill="#f8fafc" font-family="Inter, sans-serif" font-size="13">• Petitioner Stipulated Income (Ex. B): $8,000/mo (61.54%)</text>
+  <text x="46" y="138" fill="#f8fafc" font-family="Inter, sans-serif" font-size="13">• Respondent Stipulated Pension (Ex. E): $5,000/mo (38.46%)</text>
+  <text x="46" y="162" fill="#f8fafc" font-family="Inter, sans-serif" font-size="13">• Overnights (Ex. L): 182.5 Respondent / 182.5 Petitioner (50/50)</text>
+  <text x="46" y="186" fill="#f8fafc" font-family="Inter, sans-serif" font-size="13">• Childcare &amp; Medical Add-Ons: $0 (38 U.S.C. § 1781 + Parent)</text>
+  <rect x="46" y="210" width="334" height="58" rx="8" fill="#14532d"/>
+  <text x="213" y="236" text-anchor="middle" fill="#ffffff" font-family="Inter, sans-serif" font-size="14" font-weight="700">Guideline Result: Petitioner Pays $250.00/mo</text>
+  <text x="213" y="256" text-anchor="middle" fill="#bbf7d0" font-family="Inter, sans-serif" font-size="12">(Or $0/mo minimum floor · $0 Retroactive Support)</text>
+
+  <rect x="422" y="58" width="370" height="232" rx="10" fill="#111827" stroke="#b45309" stroke-width="2"/>
+  <text x="440" y="86" fill="#fdba74" font-family="Inter, sans-serif" font-size="15" font-weight="700">Petitioner's Imputed Worksheet (OP Ex. 2)</text>
+  <text x="440" y="114" fill="#f8fafc" font-family="Inter, sans-serif" font-size="13">• Imputes $9,000/mo on top of $5,000 = $14,000/mo</text>
+  <text x="440" y="138" fill="#f8fafc" font-family="Inter, sans-serif" font-size="13">• Violates Support Guidelines § 305(5)(b) (100% P&amp;T Bar)</text>
+  <text x="440" y="162" fill="#f8fafc" font-family="Inter, sans-serif" font-size="13">• Adds $923/mo Agency (OP Ex. 4) &amp; $180/mo Medical</text>
+  <text x="440" y="186" fill="#f8fafc" font-family="Inter, sans-serif" font-size="13">• Omitted $30,000.00 on Initial SFS (Ex. G/H/N)</text>
+  <rect x="440" y="210" width="334" height="58" rx="8" fill="#7c2d12"/>
+  <text x="607" y="236" text-anchor="middle" fill="#ffffff" font-family="Inter, sans-serif" font-size="14" font-weight="700">Petitioner Demands: Respondent Pay $2,150.00/mo</text>
+  <text x="607" y="256" text-anchor="middle" fill="#fed7aa" font-family="Inter, sans-serif" font-size="12">Rebutted by Ex. E, Ex. C/D, Ex. G/H/J &amp; Ex. N ¶¶ 15, 24–26</text>
+</svg>

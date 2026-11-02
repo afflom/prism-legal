@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "multimodal-upload-authenticated"
+category = "function"
+signature = "(pi ((explicit x (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Evidence"
+name = "PrismLegal.Evidence.multimodalUploadAuthenticated"
+
+[[form]]
+id = "multimodal-upload-authenticated"
+channel = "math"
+surface = "multimodalUploadAuthenticated"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name multimodalUploadAuthenticated) (paren (seq (slot 0))))"

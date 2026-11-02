@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 240" role="img" aria-labelledby="tl-title tl-desc">
+  <title id="tl-title">Case No. 2030-FAM-9010 Chronological Milestones (2015–2030)</title>
+  <desc id="tl-desc">Timeline showing 2015-2025 Public-Sector Service, 2020-2027 Equal Parenting and Solo Care, May 2028 100% P&amp;T Rating, Jan 2030 Incident-Free Separation, Mar-May 2030 50/50 Schedule, Aug 2030 Seminar Completion, and Sep 18, 2030 Evidentiary Hearing.</desc>
+  <rect width="860" height="240" rx="12" fill="#0f172a"/>
+  <text x="28" y="36" fill="#f8fafc" font-family="Inter, sans-serif" font-size="17" font-weight="700">Chronological Case &amp; Co-Parenting Arc (2015 – September 18, 2030)</text>
+  <line x1="45" y1="125" x2="815" y2="125" stroke="#60a5fa" stroke-width="3"/>
+
+  <circle cx="65" cy="125" r="8" fill="#93c5fd"/>
+  <text x="65" y="95" text-anchor="middle" fill="#f8fafc" font-family="Inter, sans-serif" font-size="11" font-weight="700">2015–2025</text>
+  <text x="65" y="152" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">10 Yrs Service</text>
+  <text x="65" y="167" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">2 Overseas Tours</text>
+
+  <circle cx="190" cy="125" r="8" fill="#93c5fd"/>
+  <text x="190" y="95" text-anchor="middle" fill="#f8fafc" font-family="Inter, sans-serif" font-size="11" font-weight="700">2020–2027</text>
+  <text x="190" y="152" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">Equal Care + 4m</text>
+  <text x="190" y="167" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">Solo Caregiving</text>
+
+  <circle cx="315" cy="125" r="8" fill="#fbbf24"/>
+  <text x="315" y="95" text-anchor="middle" fill="#fbbf24" font-family="Inter, sans-serif" font-size="11" font-weight="700">May 10, 2028</text>
+  <text x="315" y="152" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">100% P&amp;T Rating</text>
+  <text x="315" y="167" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">Ex. E ($5,000/m)</text>
+
+  <circle cx="440" cy="125" r="8" fill="#f87171"/>
+  <text x="440" y="95" text-anchor="middle" fill="#fca5a5" font-family="Inter, sans-serif" font-size="11" font-weight="700">Initial SFS</text>
+  <text x="440" y="152" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">Omitted Escrow</text>
+  <text x="440" y="167" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">$30,000 (Ex. G/H)</text>
+
+  <circle cx="565" cy="125" r="8" fill="#86efac"/>
+  <text x="565" y="95" text-anchor="middle" fill="#86efac" font-family="Inter, sans-serif" font-size="11" font-weight="700">Jan–May 2030</text>
+  <text x="565" y="152" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">0 Incidents;</text>
+  <text x="565" y="167" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">Mar–May 50/50</text>
+
+  <circle cx="690" cy="125" r="8" fill="#86efac"/>
+  <text x="690" y="95" text-anchor="middle" fill="#86efac" font-family="Inter, sans-serif" font-size="11" font-weight="700">Aug 12, 2030</text>
+  <text x="690" y="152" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">Seminar Completed</text>
+  <text x="690" y="167" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">30d Early (Ex.M)</text>
+
+  <circle cx="800" cy="125" r="9" fill="#38bdf8"/>
+  <text x="800" y="95" text-anchor="middle" fill="#38bdf8" font-family="Inter, sans-serif" font-size="11" font-weight="700">Sep 18, 2030</text>
+  <text x="800" y="152" text-anchor="middle" fill="#f8fafc" font-family="Inter, sans-serif" font-size="10.5" font-weight="700">Final Hearing</text>
+  <text x="800" y="167" text-anchor="middle" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="10.5">Dept. 12 · 9:30 AM</text>
+</svg>

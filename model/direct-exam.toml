@@ -1,0 +1,355 @@
+spec = "prism-legal/direct-exam/1"
+
+[[chapter]]
+id = "CH-01"
+title = "Chapter 1: Beneficiaries, Household History & 10-Year Public Service Career"
+page_range = "pp. 1-3"
+
+[[chapter]]
+id = "CH-02"
+title = "Chapter 2: Equal Caregiving (2020-2027), Sabbatical Solo Care & 2027 Medical Leave"
+page_range = "pp. 3-5"
+
+[[chapter]]
+id = "CH-03"
+title = "Chapter 3: Disability Retirement, Zero-Revenue Civic Writing & 2026-2029 Tax Records"
+page_range = "pp. 5-8"
+
+[[chapter]]
+id = "CH-04"
+title = "Chapter 4: 2029 De-Escalation Videos, Transit Telemetry & Stipulated Dismissal"
+page_range = "pp. 8-11"
+
+[[chapter]]
+id = "CH-05"
+title = "Chapter 5: Townhouse Environment, 90-Day 50/50 Execution & Photo Walkthrough"
+page_range = "pp. 11-14"
+
+[[chapter]]
+id = "CH-06"
+title = "Chapter 6: Early Seminar Completion (Ex. M), 50/50 Plan (Ex. L) & Guideline Support (Ex. N)"
+page_range = "pp. 14-17"
+
+[[question]]
+id = "DX-001"
+chapter_id = "CH-01"
+page = 1
+visual_cue = "standard"
+question = "Please state your role as Respondent and your relationship to the three minor children."
+exhibit_id = "NONE"
+moves_to_admit = false
+
+[[question]]
+id = "DX-002"
+chapter_id = "CH-01"
+page = 1
+visual_cue = "yellow-highlight"
+question = "How do you view Petitioner's role in the children's lives?"
+exhibit_id = "NONE"
+moves_to_admit = false
+
+[[question]]
+id = "DX-003"
+chapter_id = "CH-01"
+page = 2
+visual_cue = "standard"
+question = "Summarize your 10 years of public administration and civil service from 2010 to 2020."
+exhibit_id = "Ex-E"
+moves_to_admit = false
+
+[[question]]
+id = "DX-004"
+chapter_id = "CH-01"
+page = 2
+visual_cue = "standard"
+question = "Describe each child's current school, grade, and academic interests."
+exhibit_id = "Ex-I"
+moves_to_admit = false
+
+[[question]]
+id = "DX-005"
+chapter_id = "CH-01"
+page = 3
+visual_cue = "standard"
+question = "How did you and Petitioner divide caregiving from 2020 onward?"
+exhibit_id = "Ex-I"
+moves_to_admit = false
+
+[[question]]
+id = "DX-006"
+chapter_id = "CH-01"
+page = 3
+visual_cue = "red-strikethrough"
+question = "[Stricken in Script] Historical pre-2020 lease renewal discussion."
+exhibit_id = "NONE"
+moves_to_admit = false
+
+[[question]]
+id = "DX-007"
+chapter_id = "CH-02"
+page = 3
+visual_cue = "yellow-highlight"
+question = "Who cared for the three children during Petitioner's four-month out-of-region training sabbatical?"
+exhibit_id = "Ex-C"
+moves_to_admit = false
+
+[[question]]
+id = "DX-008"
+chapter_id = "CH-02"
+page = 4
+visual_cue = "standard"
+question = "How were Petitioner's graduate credentials funded during the household partnership?"
+exhibit_id = "Ex-C"
+moves_to_admit = true
+
+[[question]]
+id = "DX-009"
+chapter_id = "CH-02"
+page = 4
+visual_cue = "yellow-highlight"
+question = "What happened in Autumn 2027 that affected your health and commercial consulting career?"
+exhibit_id = "Ex-E"
+moves_to_admit = false
+
+[[question]]
+id = "DX-010"
+chapter_id = "CH-02"
+page = 5
+visual_cue = "standard"
+question = "What determination did the retirement board make regarding your disability in November 2028?"
+exhibit_id = "Ex-E"
+moves_to_admit = true
+
+[[question]]
+id = "DX-011"
+chapter_id = "CH-02"
+page = 5
+visual_cue = "standard"
+question = "Does your disability retirement rating impair your ability to care for the three children at home?"
+exhibit_id = "Ex-E"
+moves_to_admit = false
+
+[[question]]
+id = "DX-012"
+chapter_id = "CH-02"
+page = 5
+visual_cue = "standard"
+question = "What medical benefits does Exhibit E provide for the three children?"
+exhibit_id = "Ex-E"
+moves_to_admit = false
+
+[[question]]
+id = "DX-013"
+chapter_id = "CH-03"
+page = 6
+visual_cue = "yellow-highlight"
+question = "Have you received any wages, salary, or distributions from open-source civic curriculum research?"
+exhibit_id = "Ex-D"
+moves_to_admit = true
+
+[[question]]
+id = "DX-014"
+chapter_id = "CH-03"
+page = 6
+visual_cue = "standard"
+question = "Why do you engage in self-paced educational curriculum writing at home?"
+exhibit_id = "Ex-D"
+moves_to_admit = false
+
+[[question]]
+id = "DX-015"
+chapter_id = "CH-03"
+page = 7
+visual_cue = "standard"
+question = "What is your exact stipulated monthly income on your Sworn Financial Statement (Exhibit F)?"
+exhibit_id = "Ex-F"
+moves_to_admit = true
+
+[[question]]
+id = "DX-016"
+chapter_id = "CH-03"
+page = 7
+visual_cue = "standard"
+question = "What is Petitioner's stipulated monthly income in Exhibit B?"
+exhibit_id = "Ex-B"
+moves_to_admit = true
+
+[[question]]
+id = "DX-017"
+chapter_id = "CH-03"
+page = 8
+visual_cue = "red-strikethrough"
+question = "[Stricken in Script] Secondary pre-2024 credit union account closure."
+exhibit_id = "Ex-F"
+moves_to_admit = false
+
+[[question]]
+id = "DX-018"
+chapter_id = "CH-03"
+page = 8
+visual_cue = "yellow-highlight"
+question = "What did Exhibit G and Exhibit H reveal regarding Petitioner's initial financial disclosures?"
+exhibit_id = "Ex-H"
+moves_to_admit = true
+
+[[question]]
+id = "DX-019"
+chapter_id = "CH-04"
+page = 9
+visual_cue = "standard"
+question = "Turning to 2029, what do the unedited home videos in Exhibit K show?"
+exhibit_id = "Ex-K"
+moves_to_admit = true
+
+[[question]]
+id = "DX-020"
+chapter_id = "CH-04"
+page = 9
+visual_cue = "yellow-highlight"
+question = "How was the October 2029 interim administrative petition resolved on November 18, 2029?"
+exhibit_id = "Ex-J"
+moves_to_admit = true
+
+[[question]]
+id = "DX-021"
+chapter_id = "CH-04"
+page = 10
+visual_cue = "yellow-highlight"
+question = "What does the transit telemetry log in Exhibit A prove regarding the school corridor allegation?"
+exhibit_id = "Ex-A"
+moves_to_admit = true
+
+[[question]]
+id = "DX-022"
+chapter_id = "CH-04"
+page = 10
+visual_cue = "standard"
+question = "Have there been any household incidents in the nine months since you separated on November 1, 2029?"
+exhibit_id = "Ex-O"
+moves_to_admit = false
+
+[[question]]
+id = "DX-023"
+chapter_id = "CH-04"
+page = 11
+visual_cue = "standard"
+question = "If opposing counsel points to page 6 of your 2028 homework study log (OP Ex. 13), what does the full page say?"
+exhibit_id = "OP-Ex-13"
+moves_to_admit = false
+
+[[question]]
+id = "DX-024"
+chapter_id = "CH-04"
+page = 11
+visual_cue = "red-strikethrough"
+question = "[Stricken in Script] Collateral dispute over 2028 winter break travel."
+exhibit_id = "Ex-L"
+moves_to_admit = false
+
+[[question]]
+id = "DX-025"
+chapter_id = "CH-05"
+page = 12
+visual_cue = "yellow-highlight"
+question = "Please walk the Court through the townhouse photographs in Exhibit I (pages 1 through 11)."
+exhibit_id = "Ex-I"
+moves_to_admit = true
+
+[[question]]
+id = "DX-026"
+chapter_id = "CH-05"
+page = 12
+visual_cue = "standard"
+question = "What community support network surrounds your townhouse neighborhood?"
+exhibit_id = "Ex-I"
+moves_to_admit = false
+
+[[question]]
+id = "DX-027"
+chapter_id = "CH-05"
+page = 13
+visual_cue = "yellow-highlight"
+question = "How did the equal 50/50 2-2-5-5 schedule work during the 90-day summer period?"
+exhibit_id = "Ex-L"
+moves_to_admit = false
+
+[[question]]
+id = "DX-028"
+chapter_id = "CH-05"
+page = 13
+visual_cue = "standard"
+question = "What did the Court find at Temporary Orders (Exhibit N \u00b6 8) regarding your parenting time?"
+exhibit_id = "Ex-N"
+moves_to_admit = false
+
+[[question]]
+id = "DX-029"
+chapter_id = "CH-05"
+page = 13
+visual_cue = "yellow-highlight"
+question = "Are you available to care for the three children during Petitioner's regional travel weeks?"
+exhibit_id = "Ex-L"
+moves_to_admit = false
+
+[[question]]
+id = "DX-030"
+chapter_id = "CH-05"
+page = 14
+visual_cue = "standard"
+question = "What have the three children expressed about the parenting schedule?"
+exhibit_id = "OP-Ex-14"
+moves_to_admit = false
+
+[[question]]
+id = "DX-031"
+chapter_id = "CH-06"
+page = 14
+visual_cue = "yellow-highlight"
+question = "Did you complete the court-ordered Collaborative Co-Parenting Seminar?"
+exhibit_id = "Ex-M"
+moves_to_admit = true
+
+[[question]]
+id = "DX-032"
+chapter_id = "CH-06"
+page = 15
+visual_cue = "standard"
+question = "How have you and Petitioner communicated since November 2029?"
+exhibit_id = "Ex-O"
+moves_to_admit = true
+
+[[question]]
+id = "DX-033"
+chapter_id = "CH-06"
+page = 15
+visual_cue = "yellow-highlight"
+question = "What parenting schedule and decision-making framework are you asking the Court to adopt in Exhibit L?"
+exhibit_id = "Ex-L"
+moves_to_admit = true
+
+[[question]]
+id = "DX-034"
+chapter_id = "CH-06"
+page = 16
+visual_cue = "yellow-highlight"
+question = "What is the guideline child support result in Exhibit N based on your stipulated incomes?"
+exhibit_id = "Ex-N"
+moves_to_admit = true
+
+[[question]]
+id = "DX-035"
+chapter_id = "CH-06"
+page = 16
+visual_cue = "yellow-highlight"
+question = "Why should the Court deny Petitioner's request for retroactive support from November 2029 through May 2030?"
+exhibit_id = "Ex-N"
+moves_to_admit = false
+
+[[question]]
+id = "DX-036"
+chapter_id = "CH-06"
+page = 17
+visual_cue = "standard"
+question = "In one sentence, why is your proposed plan in the best interests of the three minor children?"
+exhibit_id = "Ex-L"
+moves_to_admit = false

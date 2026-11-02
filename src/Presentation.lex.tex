@@ -1,0 +1,1269 @@
+\begin{lexlean}{Presentation}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\importmodule{Api}
+\importmodule{Architecture}
+\importmodule{Register}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: Brand,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: title, type: String},
+    {name: subtitle, type: String},
+    {name: mark, type: String},
+    {name: posture, type: String}
+  ]
+}
+
+structure{
+  name: PortalPage,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: artifactId, type: String},
+    {name: path, type: String},
+    {name: personaScope, type: String},
+    {name: title, type: String},
+    {name: sectionCount, type: Nat},
+    {name: maxSectionsBudget, type: Nat}
+  ]
+}
+
+structure{
+  name: Artifact,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: path, type: String},
+    {name: media, type: String},
+    {name: producer, type: String},
+    {name: description, type: String}
+  ]
+}
+
+structure{
+  name: Panel,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: heading, type: String},
+    {name: viewpointId, type: String},
+    {name: artifactIds, type: (List String)},
+    {name: Empty, type: String}
+  ]
+}
+
+structure{
+  name: JourneyStep,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: pole, type: String},
+    {name: panelId, type: String},
+    {name: action, type: String},
+    {name: artifactId, type: String}
+  ]
+}
+
+structure{
+  name: Journey,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: stakeholderId, type: String},
+    {name: summary, type: String},
+    {name: steps, type: (List JourneyStep)}
+  ]
+}
+
+structure{
+  name: Pattern,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: authority, type: String},
+    {name: statement, type: String}
+  ]
+}
+
+structure{
+  name: Navigation,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: label, type: String},
+    {name: pattern, type: String},
+    {name: statement, type: String}
+  ]
+}
+
+structure{
+  name: NavItem,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: navigation, type: String},
+    {name: pattern, type: String},
+    {name: kind, type: String},
+    {name: target, type: String},
+    {name: order, type: Nat}
+  ]
+}
+
+structure{
+  name: VizPanel,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: panelId, type: String},
+    {name: artifactId, type: String},
+    {name: renders, type: (List String)}
+  ]
+}
+
+structure{
+  name: PedagogyGuide,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: stepId, type: String},
+    {name: pole, type: String},
+    {name: panelId, type: String},
+    {name: standardId, type: String},
+    {name: heading, type: String},
+    {name: whyItMatters, type: String},
+    {name: coachingTip, type: String},
+    {name: ruleContext, type: String}
+  ]
+}
+
+definition{
+  name: brand,
+  parameters: [],
+  result: Brand,
+  body: (record Brand {id := "prism-legal-public-benefit-platform", title := "PrismLegal \u2014 Public-Benefit Legal Case Preparation & Trial Readiness Service", subtitle := "Step-by-Step Case Organization, Evidence Mapping, Testimony Practice, and Hearing Preparation for Clients, Legal Aid Clinics & Trial Attorneys", mark := "site/logo.svg", posture := "Public-Benefit Open Source \u00b7 Local-First Client & Attorney Workspaces \u00b7 Multi-Domain Legal Practice"}),
+  axioms: []
+}
+
+definition{
+  name: portalPages,
+  parameters: [],
+  result: (List PortalPage),
+  body: (cons (record PortalPage {id := "page-home", artifactId := "site", path := "index.html", personaScope := "shared-entry", title := "PrismLegal Service Home \u2014 Start or Open a Legal Matter & Choose Your Workspace", sectionCount := 3, maxSectionsBudget := 5}) (cons (record PortalPage {id := "page-client", artifactId := "client-page", path := "client.html", personaScope := "client", title := "Client Case Preparation \u2014 5-Step Guided Journey: Goals, Timeline & Documents, Tough Questions, Direct Testimony & Counsel Packet", sectionCount := 5, maxSectionsBudget := 5}) (cons (record PortalPage {id := "page-lawyer", artifactId := "lawyer-page", path := "lawyer.html", personaScope := "lawyer", title := "Attorney Workbench \u2014 5-Step Guided Journey: Matter Intake, Statutory Elements & Proof, Witness Exams, Exhibits & Calculators, and Trial Brief", sectionCount := 5, maxSectionsBudget := 5}) (cons (record PortalPage {id := "page-courtroom", artifactId := "courtroom-page", path := "courtroom.html", personaScope := "courtroom", title := "Hearing & Trial Companion \u2014 Live Hearing Clock, Cross-Exam Pivot Responder, Direct Testimony Checklist & Exhibit Tracker", sectionCount := 4, maxSectionsBudget := 5}) (nil PortalPage))))),
+  axioms: []
+}
+
+definition{
+  name: forbiddenMetaTerms,
+  parameters: [],
+  result: (List String),
+  body: (cons "PrismPM" (cons "LexLean" (cons "lex.tex" (cons "Stakeholder Vantage" (cons "Observer Vantage" (cons "Quadruple" (cons "SensualObject" (cons "Kernel Proof" (cons "ECDSA P-256" (cons "NIST SP 800-63-3" (cons "ISO/IEC 27001" (cons "ISO 27037" (cons "Hohfeldian" (cons "LegalRuleML" (cons "ASPIC+" (cons "Akoma Ntoso" (cons "Berlekamp-Massey" (nil String)))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: poles,
+  parameters: [],
+  result: (List String),
+  body: (cons "orientation" (cons "substance" (cons "challenge" (cons "proof" (cons "resolution" (nil String)))))),
+  axioms: []
+}
+
+definition{
+  name: artifacts,
+  parameters: [],
+  result: (List Artifact),
+  body: (cons (record Artifact {id := "site", path := "index.html", media := "text/html", producer := "view_render", description := "Service Home & Matter Launcher: Start a New Legal Matter, Open a Saved Matter File, or Load a Starter Template"}) (cons (record Artifact {id := "client-page", path := "client.html", media := "text/html", producer := "view_render", description := "Client 5-Step Guided Case Preparation Workspace: Goals, Timeline & Documents, Tough Questions Flashcards, Direct Testimony & Counsel Packet"}) (cons (record Artifact {id := "lawyer-page", path := "lawyer.html", media := "text/html", producer := "view_render", description := "Attorney 5-Step Guided Workbench: Matter Intake, Statutory Elements & Proof Matrix, Witness Exams, Exhibit Foundations & Calculators, and Trial Brief"}) (cons (record Artifact {id := "courtroom-page", path := "courtroom.html", media := "text/html", producer := "view_render", description := "Day-of-Hearing Courtroom Companion: Live Hearing Clock, Cross-Exam Pivot Responder, Direct Testimony Checklist & Live Exhibit Admission Tracker"}) (cons (record Artifact {id := "logo", path := "logo.svg", media := "image/svg+xml", producer := "view_render", description := "Public-Benefit Scales & Civic Emblem"}) (cons (record Artifact {id := "schedule-svg", path := "parenting-schedule.svg", media := "image/svg+xml", producer := "view_render", description := "Visual Comparison: Equal 50/50 Schedule (182.5 Overnights) vs. 90-Overnight Restriction"}) (cons (record Artifact {id := "support-svg", path := "remedies-waterfall.svg", media := "image/svg+xml", producer := "view_render", description := "Visual Comparison: Stipulated Guideline Worksheet ($250.00/mo) vs. Contested Imputed Claim ($2,400.00/mo)"}) (cons (record Artifact {id := "timeline-svg", path := "case-timeline.svg", media := "image/svg+xml", producer := "view_render", description := "Chronological Case & Evidentiary Timeline (2015\u2013Sep 2030)"}) (cons (record Artifact {id := "compass-md", path := "sheets/opening-strategy-compass.md", media := "text/markdown", producer := "view_render", description := "Mechanized Sheet: Opening Statement Strategy & Testimony Rules"}) (cons (record Artifact {id := "client-guide-md", path := "sheets/client-strategy-and-testimony-guide.md", media := "text/markdown", producer := "view_render", description := "Mechanized Sheet: Client Strategy Understanding, Rehearsal & Counsel Co-Design Guide"}) (cons (record Artifact {id := "lawyer-tuner-md", path := "sheets/lawyer-model-tuning-and-trial-brief.md", media := "text/markdown", producer := "view_render", description := "Mechanized Sheet: Counsel Model-Tuning, FRE Objection Matrix & Examination Brief"}) (cons (record Artifact {id := "factors-md", path := "sheets/statutory-best-interests-matrix.md", media := "text/markdown", producer := "view_render", description := "Mechanized Sheet: Statutory Factor-by-Factor Evidentiary Matrix (SF-01 to SF-11)"}) (cons (record Artifact {id := "remedies-md", path := "sheets/guideline-remedies-and-disclosure-audit.md", media := "text/markdown", producer := "view_render", description := "Mechanized Sheet: Guideline Support, 38 U.S.C. \u00a7 1781 Coverage & FRCP 26(e)/Rule 16.2 Audit"}) (cons (record Artifact {id := "pivots-md", path := "sheets/cross-exam-pivot-cards.md", media := "text/markdown", producer := "view_render", description := "Mechanized Sheet: 16 Cross-Examination Traps & Calm Opening-Aligned Pivots"}) (cons (record Artifact {id := "witnesses-md", path := "sheets/witness-examination-sheets.md", media := "text/markdown", producer := "view_render", description := "Mechanized Sheet: Examination Plans for All 10 Listed Witnesses (W-01 to W-10)"}) (cons (record Artifact {id := "direct-exam-md", path := "sheets/counsel-direct-examination-script.md", media := "text/markdown", producer := "view_render", description := "Mechanized Sheet: Lead Counsel's 36-Question Direct Examination Script with Full Witness Answers & Coaching Notes"}) (cons (record Artifact {id := "visual-evidence-md", path := "sheets/visual-evidence-and-intent-matrix.md", media := "text/markdown", producer := "view_render", description := "Mechanized Sheet: Handwritten Journal Forensics (OP Ex. 13), Visual Extractions & 30-Exhibit Content-Meaning/Intent Matrix"}) (cons (record Artifact {id := "register-json", path := "register.json", media := "application/json", producer := "view_render", description := "Complete Verified Case & Platform Model Register (Claims, Exhibits, Witnesses, Factors, Traps, Portal)"}) (cons (record Artifact {id := "tuning-json", path := "tuning.json", media := "application/json", producer := "view_render", description := "Client-Counsel Model Tuning Parameters & Co-Design Agenda Register"}) (cons (record Artifact {id := "standards-json", path := "standards.json", media := "application/json", producer := "view_render", description := "Legal & Technical Standards Conformance Register"}) (nil Artifact))))))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: panels,
+  parameters: [],
+  result: (List Panel),
+  body: (cons (record Panel {id := "panel-hub", heading := "1. Service Home: Start a New Legal Matter, Open a Saved Matter File, or Select Active Matter", viewpointId := "VP-PORTAL-HUB", artifactIds := (cons "site" (cons "register-json" (cons "standards-json" (nil String)))), Empty := "No matter matches the current filter. Create a new matter or open a saved .prismlegal.json file."}) (cons (record Panel {id := "panel-strategy", heading := "2. Step 1 (Orientation): Matter Overview, Legal Framework & Core Relief Goals", viewpointId := "VP-CLIENT-PREP", artifactIds := (cons "client-page" (cons "direct-exam-md" (cons "compass-md" (cons "client-guide-md" (nil String))))), Empty := "No relief goals defined yet. Add the specific outcomes you are asking the court to order."}) (cons (record Panel {id := "panel-parenting", heading := "3. Step 2 (Substance): Chronological Timeline, Statutory Elements & Claims Proof Matrix", viewpointId := "VP-COUNSEL-BENCH", artifactIds := (cons "factors-md" (cons "schedule-svg" (nil String))), Empty := "No timeline events or statutory claims recorded yet. Add your key dates and legal elements."}) (cons (record Panel {id := "panel-cross-exam", heading := "4. Step 3 (Challenge): Witness Examination Builder, Objections & Cross-Exam Rehearsal Deck", viewpointId := "VP-COUNSEL-EXAMS", artifactIds := (cons "pivots-md" (cons "witnesses-md" (cons "direct-exam-md" (cons "courtroom-page" (nil String))))), Empty := "No cross-examination topics or witnesses added yet. Add anticipated tough questions and calm responses."}) (cons (record Panel {id := "panel-evidence", heading := "5. Step 4 (Proof): Document & Exhibit Organizer, Direct Testimony & Admission Tracker", viewpointId := "VP-COUNSEL-EXAMS", artifactIds := (cons "timeline-svg" (cons "visual-evidence-md" (cons "register-json" (cons "standards-json" (nil String))))), Empty := "No documents or exhibits added yet. Add the records, photos, or statements that prove your facts."}) (cons (record Panel {id := "panel-financial", heading := "6. Step 4B (Calculators): Support Guidelines, Disability Rating & Damages Worksheets", viewpointId := "VP-COUNSEL-BENCH", artifactIds := (cons "remedies-md" (cons "support-svg" (nil String))), Empty := "Select a worksheet calculator to compute support, disability rating, or contract/housing damages."}) (cons (record Panel {id := "panel-lawyer-tuner", heading := "7. Step 5 (Resolution): Client-Attorney Collaboration Agenda, Readiness Checklist & Case Packet Export", viewpointId := "VP-COUNSEL-TUNER", artifactIds := (cons "lawyer-page" (cons "lawyer-tuner-md" (cons "direct-exam-md" (cons "tuning-json" (cons "register-json" (nil String)))))), Empty := "No collaboration notes recorded yet. Add questions for counsel or export your matter packet."}) (nil Panel)))))))),
+  axioms: []
+}
+
+definition{
+  name: journeys,
+  parameters: [],
+  result: (List Journey),
+  body: (cons (record Journey {id := "journey-client-preparation", stakeholderId := "SH-CLIENT", summary := "Client 5-Step Guided Case Preparation Journey: Define your matter and relief goals, build your chronological timeline and document list, rehearse calm answers to tough cross-examination questions, practice direct testimony, and export your case packet for counsel or court.", steps := (cons (record JourneyStep {id := "client-step-1", pole := "orientation", panelId := "panel-strategy", action := "Step 1 \u2014 Define My Matter & Relief Goals: Enter your case details, court, hearing date, and the specific outcomes you are asking the judge to order.", artifactId := "client-guide-md"}) (cons (record JourneyStep {id := "client-step-2", pole := "substance", panelId := "panel-parenting", action := "Step 2 \u2014 Build My Timeline & Documents: Add the key dates and events in your case and organize the documents or photos that support each fact.", artifactId := "factors-md"}) (cons (record JourneyStep {id := "client-step-3", pole := "challenge", panelId := "panel-cross-exam", action := "Step 3 \u2014 Prepare for Tough Questions: Write down criticisms or allegations the other side might raise and rehearse calm, fact-based answers with flashcards.", artifactId := "pivots-md"}) (cons (record JourneyStep {id := "client-step-4", pole := "proof", panelId := "panel-evidence", action := "Step 4 \u2014 Practice My Direct Testimony: Organize the questions you will answer in court, link each answer to your documents, and rehearse step-by-step.", artifactId := "direct-exam-md"}) (cons (record JourneyStep {id := "client-step-5", pole := "resolution", panelId := "panel-lawyer-tuner", action := "Step 5 \u2014 Collaborate with Counsel & Export Packet: List questions for your attorney, check your hearing readiness, and download your .prismlegal.json file or printable summary.", artifactId := "tuning-json"}) (nil JourneyStep))))))}) (cons (record Journey {id := "journey-counsel-workbench", stakeholderId := "SH-LAWYER", summary := "Attorney 5-Step Guided Workbench Journey: Intake a client matter or create a new docket, map statutory elements and claims to exhibits, script witness examinations and objections, audit exhibit foundations and run statutory calculators, and generate the trial brief.", steps := (cons (record JourneyStep {id := "counsel-step-1", pole := "orientation", panelId := "panel-hub", action := "Step 1 \u2014 Matter Intake & Case Theory: Open a client's matter file or create a new docket, select the governing legal framework, and align on relief targets.", artifactId := "site"}) (cons (record JourneyStep {id := "counsel-step-2", pole := "substance", panelId := "panel-parenting", action := "Step 2 \u2014 Statutory Elements & Claims Proof Matrix: Map every legal element or factual claim to its governing statute, evidentiary status, and supporting exhibits.", artifactId := "factors-md"}) (cons (record JourneyStep {id := "counsel-step-3", pole := "challenge", panelId := "panel-cross-exam", action := "Step 3 \u2014 Witness Examinations & Evidentiary Objections: Script direct examinations and cross-examination impeachment, prepare objections, and budget hearing minutes.", artifactId := "witnesses-md"}) (cons (record JourneyStep {id := "counsel-step-4", pole := "proof", panelId := "panel-financial", action := "Step 4 \u2014 Exhibit Foundations & Statutory Calculators: Audit exhibit admissibility foundations and compute support, disability rating, or damages worksheets.", artifactId := "remedies-md"}) (cons (record JourneyStep {id := "counsel-step-5", pole := "resolution", panelId := "panel-lawyer-tuner", action := "Step 5 \u2014 Trial Brief, Client Guidance & Courtroom Handoff: Answer client agenda questions, review prioritized argument schedules, and export the trial brief or launch Courtroom Mode.", artifactId := "lawyer-tuner-md"}) (nil JourneyStep))))))}) (cons (record Journey {id := "journey-court-bench", stakeholderId := "SH-COURT", summary := "Presiding Fact-Finder Hearing Journey: Review stipulated vs. contested issues, evaluate statutory elements against admitted exhibits, weigh witness credibility, verify guideline/damages calculations, and enter findings of fact and conclusions of law.", steps := (cons (record JourneyStep {id := "court-step-1", pole := "orientation", panelId := "panel-strategy", action := "Stage 1 \u2014 Review Pretrial Stipulations & Narrowed Issues Before the Court.", artifactId := "compass-md"}) (cons (record JourneyStep {id := "court-step-2", pole := "substance", panelId := "panel-parenting", action := "Stage 2 \u2014 Evaluate Statutory Factors & Element-by-Element Factual Record.", artifactId := "factors-md"}) (cons (record JourneyStep {id := "court-step-3", pole := "challenge", panelId := "panel-cross-exam", action := "Stage 3 \u2014 Weigh Witness Credibility, Cross-Examination Responses & Rule 106 Context.", artifactId := "pivots-md"}) (cons (record JourneyStep {id := "court-step-4", pole := "proof", panelId := "panel-financial", action := "Stage 4 \u2014 Verify Statutory Worksheets, Mandatory Disclosures & Documentary Foundations.", artifactId := "remedies-md"}) (cons (record JourneyStep {id := "court-step-5", pole := "resolution", panelId := "panel-evidence", action := "Stage 5 \u2014 Enter Final Orders Grounded in Admitted Exhibits and Statutory Findings.", artifactId := "support-svg"}) (nil JourneyStep))))))}) (cons (record Journey {id := "journey-beneficiaries-stability", stakeholderId := "SH-BENEFICIARIES", summary := "Protected Beneficiaries & Dependents Journey: Ensure continuity of care, predictable schedules, healthcare coverage, and balanced household or statutory resources.", steps := (cons (record JourneyStep {id := "beneficiaries-step-1", pole := "orientation", panelId := "panel-strategy", action := "Step 1 \u2014 Establish Core Stability, Safety, and Best-Interests Objectives.", artifactId := "compass-md"}) (cons (record JourneyStep {id := "beneficiaries-step-2", pole := "substance", panelId := "panel-parenting", action := "Step 2 \u2014 Evaluate Caregiving History, Educational Continuity, and Routine Schedule.", artifactId := "schedule-svg"}) (cons (record JourneyStep {id := "beneficiaries-step-3", pole := "challenge", panelId := "panel-cross-exam", action := "Step 3 \u2014 Replace High-Conflict Disputes with Predictable Transitions and Direct Care.", artifactId := "pivots-md"}) (cons (record JourneyStep {id := "beneficiaries-step-4", pole := "proof", panelId := "panel-evidence", action := "Step 4 \u2014 Corroborate Dependent Well-Being Through School, Medical, and Activity Records.", artifactId := "timeline-svg"}) (cons (record JourneyStep {id := "beneficiaries-step-5", pole := "resolution", panelId := "panel-financial", action := "Step 5 \u2014 Secure Healthcare Coverage and Accurate Guideline Support Across Households.", artifactId := "support-svg"}) (nil JourneyStep))))))}) (cons (record Journey {id := "journey-counterparty-protocol", stakeholderId := "SH-COUNTERPARTY", summary := "Counterparty Resolution & Governance Journey: Narrow disputed issues through stipulations, enforce mandatory disclosures, and establish clear post-order protocols.", steps := (cons (record JourneyStep {id := "counterparty-step-1", pole := "orientation", panelId := "panel-strategy", action := "Step 1 \u2014 Identify Stipulated Baselines and Narrow Remaining Contested Issues.", artifactId := "compass-md"}) (cons (record JourneyStep {id := "counterparty-step-2", pole := "substance", panelId := "panel-parenting", action := "Step 2 \u2014 Establish Predictable Exchange, Notice, and Communication Protocols.", artifactId := "factors-md"}) (cons (record JourneyStep {id := "counterparty-step-3", pole := "challenge", panelId := "panel-cross-exam", action := "Step 3 \u2014 Resolve Disagreements Through Structured Written Channels and Mediation.", artifactId := "pivots-md"}) (cons (record JourneyStep {id := "counterparty-step-4", pole := "proof", panelId := "panel-financial", action := "Step 4 \u2014 Exchange Complete Financial and Evidentiary Disclosures Under Rule 26(e).", artifactId := "remedies-md"}) (cons (record JourneyStep {id := "counterparty-step-5", pole := "resolution", panelId := "panel-evidence", action := "Step 5 \u2014 Maintain Shared Access to Official Records and Post-Decree Compliance.", artifactId := "standards-json"}) (nil JourneyStep))))))}) (nil Journey)))))),
+  axioms: []
+}
+
+definition{
+  name: navPatterns,
+  parameters: [],
+  result: (List Pattern),
+  body: (cons (record Pattern {id := "tablist-navigation", authority := "https://www.w3.org/WAI/ARIA/apg/patterns/tabs/", statement := "A WAI-ARIA tablist (role=tablist, role=tab, aria-selected, aria-controls) switching between the domain workspace panels."}) (cons (record Pattern {id := "vantage-selector", authority := "https://www.w3.org/WAI/ARIA/apg/patterns/button/", statement := "A group of toggle buttons (aria-pressed) selecting the active role or matter context."}) (cons (record Pattern {id := "stepper-sequence", authority := "https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/", statement := "An ordered five-pole step sequence (aria-current=step) walking the active preparation journey."}) (nil Pattern)))),
+  axioms: []
+}
+
+definition{
+  name: navigations,
+  parameters: [],
+  result: (List Navigation),
+  body: (cons (record Navigation {id := "nav-primary", label := "Workspace Viewpoint Tabs", pattern := "tablist-navigation", statement := "Primary navigation bar reaching all seven domain panels."}) (cons (record Navigation {id := "nav-vantages", label := "Role & Journey Selector", pattern := "vantage-selector", statement := "Switches between Client, Counsel, Bench, Beneficiaries, and Counterparty journeys."}) (cons (record Navigation {id := "nav-stepper", label := "Five-Pole Journey Stepper", pattern := "stepper-sequence", statement := "Ordered five-pole progression (orientation, substance, challenge, proof, resolution) for each journey."}) (nil Navigation)))),
+  axioms: []
+}
+
+definition{
+  name: navItems,
+  parameters: [],
+  result: (List NavItem),
+  body: (cons (record NavItem {id := "nav-tab-panel-hub", navigation := "nav-primary", pattern := "tablist-navigation", kind := "panel", target := "panel-hub", order := 1}) (cons (record NavItem {id := "nav-tab-panel-strategy", navigation := "nav-primary", pattern := "tablist-navigation", kind := "panel", target := "panel-strategy", order := 2}) (cons (record NavItem {id := "nav-tab-panel-parenting", navigation := "nav-primary", pattern := "tablist-navigation", kind := "panel", target := "panel-parenting", order := 3}) (cons (record NavItem {id := "nav-tab-panel-cross-exam", navigation := "nav-primary", pattern := "tablist-navigation", kind := "panel", target := "panel-cross-exam", order := 4}) (cons (record NavItem {id := "nav-tab-panel-evidence", navigation := "nav-primary", pattern := "tablist-navigation", kind := "panel", target := "panel-evidence", order := 5}) (cons (record NavItem {id := "nav-tab-panel-financial", navigation := "nav-primary", pattern := "tablist-navigation", kind := "panel", target := "panel-financial", order := 6}) (cons (record NavItem {id := "nav-tab-panel-lawyer-tuner", navigation := "nav-primary", pattern := "tablist-navigation", kind := "panel", target := "panel-lawyer-tuner", order := 7}) (cons (record NavItem {id := "nav-vantage-journey-client-preparation", navigation := "nav-vantages", pattern := "vantage-selector", kind := "journey", target := "journey-client-preparation", order := 1}) (cons (record NavItem {id := "nav-vantage-journey-counsel-workbench", navigation := "nav-vantages", pattern := "vantage-selector", kind := "journey", target := "journey-counsel-workbench", order := 2}) (cons (record NavItem {id := "nav-vantage-journey-court-bench", navigation := "nav-vantages", pattern := "vantage-selector", kind := "journey", target := "journey-court-bench", order := 3}) (cons (record NavItem {id := "nav-vantage-journey-beneficiaries-stability", navigation := "nav-vantages", pattern := "vantage-selector", kind := "journey", target := "journey-beneficiaries-stability", order := 4}) (cons (record NavItem {id := "nav-vantage-journey-counterparty-protocol", navigation := "nav-vantages", pattern := "vantage-selector", kind := "journey", target := "journey-counterparty-protocol", order := 5}) (cons (record NavItem {id := "nav-stepper-journey-client-preparation", navigation := "nav-stepper", pattern := "stepper-sequence", kind := "journey", target := "journey-client-preparation", order := 1}) (cons (record NavItem {id := "nav-stepper-journey-counsel-workbench", navigation := "nav-stepper", pattern := "stepper-sequence", kind := "journey", target := "journey-counsel-workbench", order := 2}) (cons (record NavItem {id := "nav-stepper-journey-court-bench", navigation := "nav-stepper", pattern := "stepper-sequence", kind := "journey", target := "journey-court-bench", order := 3}) (cons (record NavItem {id := "nav-stepper-journey-beneficiaries-stability", navigation := "nav-stepper", pattern := "stepper-sequence", kind := "journey", target := "journey-beneficiaries-stability", order := 4}) (cons (record NavItem {id := "nav-stepper-journey-counterparty-protocol", navigation := "nav-stepper", pattern := "stepper-sequence", kind := "journey", target := "journey-counterparty-protocol", order := 5}) (nil NavItem)))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: vizPanels,
+  parameters: [],
+  result: (List VizPanel),
+  body: (cons (record VizPanel {id := "viz-platform-hub", panelId := "panel-hub", artifactId := "site", renders := (cons "CLM-01" (cons "CLM-09" (cons "CLM-13" (cons "CLM-22" (cons "CLM-23" (cons "CLM-24" (nil String)))))))}) (cons (record VizPanel {id := "viz-client-strategy", panelId := "panel-strategy", artifactId := "client-guide-md", renders := (cons "CLM-01" (cons "CLM-02" (cons "CLM-05" (cons "CLM-10" (cons "CLM-22" (cons "CLM-23" (cons "CLM-24" (nil String))))))))}) (cons (record VizPanel {id := "viz-lawyer-tuner", panelId := "panel-lawyer-tuner", artifactId := "lawyer-tuner-md", renders := (cons "CLM-01" (cons "CLM-05" (cons "CLM-09" (cons "CLM-10" (cons "CLM-13" (cons "CLM-14" (cons "CLM-22" (cons "CLM-23" (cons "CLM-24" (nil String))))))))))}) (cons (record VizPanel {id := "viz-parenting-schedule", panelId := "panel-parenting", artifactId := "schedule-svg", renders := (cons "CLM-01" (cons "CLM-02" (cons "CLM-03" (cons "CLM-04" (cons "CLM-22" (nil String))))))}) (cons (record VizPanel {id := "viz-remedies-waterfall", panelId := "panel-financial", artifactId := "support-svg", renders := (cons "CLM-09" (cons "CLM-10" (cons "CLM-11" (cons "CLM-12" (cons "CLM-15" (cons "CLM-16" (cons "CLM-24" (nil String))))))))}) (cons (record VizPanel {id := "viz-factors-matrix", panelId := "panel-parenting", artifactId := "factors-md", renders := (cons "CLM-01" (cons "CLM-02" (cons "CLM-05" (cons "CLM-06" (cons "CLM-07" (cons "CLM-08" (cons "CLM-22" (cons "CLM-23" (nil String)))))))))}) (cons (record VizPanel {id := "viz-disclosure-audit", panelId := "panel-financial", artifactId := "remedies-md", renders := (cons "CLM-13" (cons "CLM-14" (cons "CLM-17" (nil String))))}) (cons (record VizPanel {id := "viz-timeline", panelId := "panel-evidence", artifactId := "timeline-svg", renders := (cons "CLM-01" (cons "CLM-03" (cons "CLM-07" (cons "CLM-13" (cons "CLM-18" (cons "CLM-21" (nil String)))))))}) (cons (record VizPanel {id := "viz-claim-dag", panelId := "panel-evidence", artifactId := "register-json", renders := (cons "CLM-01" (cons "CLM-22" (cons "CLM-23" (cons "CLM-24" (nil String)))))}) (nil VizPanel)))))))))),
+  axioms: []
+}
+
+definition{
+  name: pedagogyGuides,
+  parameters: [],
+  result: (List PedagogyGuide),
+  body: (cons (record PedagogyGuide {id := "ped-client-1", stepId := "client-step-1", pole := "orientation", panelId := "panel-strategy", standardId := "uniform-dom-402", heading := "Why Courts Ask for Specific Relief Orders First", whyItMatters := "A judge or hearing officer can only grant orders that are clearly stated and authorized by statute. Vague requests like 'be fair' are hard for a court to enforce, whereas concrete requests (such as a specific parenting schedule, a specific repair deadline, or a specific benefit effective date) give the court a clear roadmap.", coachingTip := "State each goal in one calm, forward-looking sentence describing the exact order you want the judge to sign, followed by the practical reason it helps your household or resolves the dispute.", ruleContext := "Uniform Marriage & Divorce Act \u00a7 402 \u00b7 URLTA \u00a7 4.104 \u00b7 38 C.F.R. \u00a7 3.102 \u00b7 Scoped Unbundled Representation (ABA Model Rule 1.2(c))"}) (cons (record PedagogyGuide {id := "ped-client-2", stepId := "client-step-2", pole := "substance", panelId := "panel-parenting", standardId := "fre-evidence", heading := "How a Chronological Timeline & Linked Exhibits Build Credibility", whyItMatters := "Hearings move quickly. When your facts are arranged in chronological order and linked to a specific record\u2014such as a school log, certified notice, bank statement, or medical report\u2014the judge can verify your testimony immediately.", coachingTip := "Focus on observable dates, actions, and records rather than emotional characterizations. Whenever a document or photo proves an event, enter its Exhibit Label (e.g., Ex. A) so it links automatically.", ruleContext := "Federal Rules of Evidence 401 (Relevance), 803(6) (Business Records), 803(8) (Public Records) & 901 (Authentication)"}) (cons (record PedagogyGuide {id := "ped-client-3", stepId := "client-step-3", pole := "challenge", panelId := "panel-cross-exam", standardId := "dung-aspic-arg", heading := "How to Handle Hostile Questions & Out-of-Context Quotes Calmly", whyItMatters := "Cross-examination is often designed to provoke frustration or pull a single sentence from an email, text, or journal out of context. A calm, measured witness who answers directly and points to the complete written record wins the court's trust.", coachingTip := "Pause for two seconds before answering. Never argue with opposing counsel. Acknowledge any undisputed baseline fact, then calmly direct the court to the full context and supporting exhibit.", ruleContext := "Federal Rule of Evidence 106 (Rule of Completeness \u2014 Requiring Full Context for Partial Quotes) & Rule 611 (Mode and Order of Examining Witnesses)"}) (cons (record PedagogyGuide {id := "ped-client-4", stepId := "client-step-4", pole := "proof", panelId := "panel-evidence", standardId := "fre-evidence", heading := "How Direct Examination Establishes Your Case-in-Chief", whyItMatters := "Direct examination is your opportunity to tell your story through open-ended questions ('Who, What, When, Where, How'). Unlike cross-examination, your attorney cannot ask leading questions on direct, so your answers must supply the concrete facts and introduce your exhibits.", coachingTip := "Practice speaking in clear 2-to-3 sentence answers. When a question references an exhibit, identify the document, confirm how you recognize it, and state the key fact it shows.", ruleContext := "Federal Rule of Evidence 602 (Personal Knowledge), Rule 611(c) (Non-Leading Direct Questions) & Rule 901(b)(1) (Testimony of Witness with Knowledge)"}) (cons (record PedagogyGuide {id := "ped-client-5", stepId := "client-step-5", pole := "resolution", panelId := "panel-lawyer-tuner", standardId := "aba-rpc-webauthn-sharing", heading := "How to Review Case Consistency & Share with Counsel", whyItMatters := "Before stepping into court or meeting with a legal-aid clinic or consulting attorney, checking that every goal is backed by timeline events, exhibits, and rehearsed testimony saves hours of preparation time.", coachingTip := "Use the Automated Case Consistency Check below to spot any unlinked documents or unrehearsed questions, log your specific questions for counsel, and save your portable .prismlegal.json file.", ruleContext := "ABA Model Rules 1.1 (Competence), 1.2(c) (Limited-Scope Representation), 1.4 (Client Communication) & 1.6 (Confidentiality)"}) (cons (record PedagogyGuide {id := "ped-counsel-1", stepId := "counsel-step-1", pole := "orientation", panelId := "panel-hub", standardId := "aba-rpc-webauthn-sharing", heading := "Scoping the Engagement, Forum & Theory of the Case", whyItMatters := "Whether appearing as full-scope trial counsel or providing unbundled limited-scope representation under Rule 1.2(c), defining the governing statutory framework, forum rules, and relief posture upfront anchors every downstream proof requirement.", coachingTip := "Select the governing Area of Law and Representation Scope below. Use the one-click Domain Scaffolding tool to populate standard statutory elements if starting a fresh docket.", ruleContext := "ABA Model Rule 1.2(c) (Unbundled Legal Services), Rule 1.1 (Competence) & Pretrial Management Under Civil Rule 16"}) (cons (record PedagogyGuide {id := "ped-counsel-2", stepId := "counsel-step-2", pole := "substance", panelId := "panel-parenting", standardId := "oasis-legalruleml-1.0", heading := "Mapping Statutory Elements, Proposed Findings & Rule Exceptions", whyItMatters := "Trial courts must enter findings of fact and conclusions of law on each statutory element. An explicit proof matrix prevents evidentiary gaps, compiles each backed proposition into a proposed court finding, and pairs general rules with controlling statutory exceptions.", coachingTip := "Ensure every claim is linked to at least one exhibit so the Refusal Guard clears it for your proposed findings. Record any statutory exceptions or immunities (such as protected disability income or mandatory-disclosure bars) in the Rule Exceptions drawer.", ruleContext := "Civil Rule 52(a) (Findings and Conclusions by the Court), Rule 26(e) / 16.2 (Disclosure Duty) & Controlling Statutory Exceptions"}) (cons (record PedagogyGuide {id := "ped-counsel-3", stepId := "counsel-step-3", pole := "challenge", panelId := "panel-cross-exam", standardId := "fre-evidence", heading := "Homeostatic Hearing Clock Budgeting & Examination Scripting", whyItMatters := "Trial judges strictly enforce time limits. Overrunning direct or cross-examination can forfeit time needed for closing argument and final-order requests. Stage-by-stage budgeting protects your closing gate reserve.", coachingTip := "Allocate realistic minutes to each witness and check the 4-Stage Hearing Clock breakdown below to verify that your Closing & Final Orders Gate reserve remains protected.", ruleContext := "Federal Rule of Evidence 611(a) (Control by the Court Over Time and Mode of Examination) & Rule 103 (Preserving Evidentiary Rulings)"}) (cons (record PedagogyGuide {id := "ped-counsel-4", stepId := "counsel-step-4", pole := "proof", panelId := "panel-financial", standardId := "iso-15489-27037", heading := "Auditing Admissibility Foundations, Chain of Custody & Guideline Math", whyItMatters := "Even persuasive documents can be excluded if their authentication or hearsay exception foundation is not ready at counsel table. Likewise, support, rating, and damages requests must be backed by transparent statutory worksheet calculations.", coachingTip := "Assign an explicit rule foundation (e.g., FRE 803(6), 803(8), 901) to every exhibit, optionally compute a local SHA-256 verification digest for digital files, and verify the statutory calculator outputs for your jurisdiction.", ruleContext := "Federal Rules of Evidence 901\u2013902 (Authentication), 803 (Hearsay Exceptions), Uniform Support Guidelines \u00a7 305, 38 C.F.R. \u00a7 4.25 & URLTA \u00a7 4.104"}) (cons (record PedagogyGuide {id := "ped-counsel-5", stepId := "counsel-step-5", pole := "resolution", panelId := "panel-lawyer-tuner", standardId := "hohfeld-1913", heading := "Consistency Audit, Priority Ranking & Trial Brief Handoff", whyItMatters := "Before hearing day, counsel needs an automated check across all claims, exhibits, and witness scripts, a ranked priority order for examination themes if time is cut short, and written answers to client strategy questions.", coachingTip := "Review the Automated Consistency Audit and Priority Strategy Schedule below, answer any open client questions, and export either the updated .prismlegal.json file or the compiled Markdown Trial Brief.", ruleContext := "Civil Rule 16 (Pretrial Conferences and Trial Briefs), Rule 52(a) (Proposed Findings) & ABA Model Rule 1.4 (Client Alignment)"}) (cons (record PedagogyGuide {id := "ped-court-1", stepId := "court-step-1", pole := "orientation", panelId := "panel-cross-exam", standardId := "dung-aspic-arg", heading := "Live Witness Stand & Counsel Table Cross-Exam Responder", whyItMatters := "During live cross-examination, quick access to the exact rebuttal exhibit, the trap to avoid, the Rule 106 full-context citation, and the calm one-sentence answer keeps testimony focused on the court's statutory factors.", coachingTip := "Click any topic pill below as soon as opposing counsel raises that subject to display the calm response and supporting exhibit in high-contrast large type.", ruleContext := "Federal Rule of Evidence 106 (Remainder of Related Writings) & Rule 611(b) (Scope of Cross-Examination)"}) (cons (record PedagogyGuide {id := "ped-court-2", stepId := "court-step-2", pole := "substance", panelId := "panel-evidence", standardId := "fre-evidence", heading := "Live Direct Examination Checklist & Foundation Pacing", whyItMatters := "Checking off each direct examination question as it is asked ensures that no required statutory element or exhibit admission offer is inadvertently skipped under courtroom time pressure.", coachingTip := "Use the search filter or priority badges to track essential testimony points and offer each linked exhibit into evidence as soon as its foundation is laid.", ruleContext := "Federal Rules of Evidence 611(a), 602 & 901 (Offering Exhibits During Case-in-Chief)"}) (cons (record PedagogyGuide {id := "ped-court-3", stepId := "court-step-3", pole := "proof", panelId := "panel-evidence", standardId := "iso-15489-27037", heading := "Live Exhibit Offer & Admission Status Tracker", whyItMatters := "Before resting your case-in-chief, counsel must confirm that every exhibit relied upon for proposed findings or closing argument has been formally offered and admitted into the record.", coachingTip := "Update each exhibit's status to 'Offered at Hearing' or 'Admitted' in real time so you can verify your complete evidentiary record before resting.", ruleContext := "Federal Rule of Evidence 103 (Rulings on Evidence) & Trial Record Completeness"}) (nil PedagogyGuide)))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: allMembers,
+  parameters: [values : (List String), ids : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head ids) then (allMembers tail ids) else false)),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head tail) then false else (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: appendStrings,
+  parameters: [xs : (List String), ys : (List String)],
+  result: (List String),
+  body: (match xs
+    | List.nil => ys
+    | List.cons head tail => (cons head (appendStrings tail ys))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: sameMembers,
+  parameters: [xs : (List String), ys : (List String)],
+  result: Bool,
+  body: (if (allMembers xs ys) then (allMembers ys xs) else false),
+  axioms: []
+}
+
+definition{
+  name: artifactIds,
+  parameters: [xs : (List Artifact)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (artifactIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: artifactPaths,
+  parameters: [xs : (List Artifact)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head path) (artifactPaths tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: portalPageIds,
+  parameters: [xs : (List PortalPage)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (portalPageIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: portalPagePaths,
+  parameters: [xs : (List PortalPage)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head path) (portalPagePaths tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: portalPageArtifacts,
+  parameters: [xs : (List PortalPage)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head artifactId) (portalPageArtifacts tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: portalPageTitles,
+  parameters: [xs : (List PortalPage)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head title) (portalPageTitles tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: panelIds,
+  parameters: [xs : (List Panel)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (panelIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: panelHeadings,
+  parameters: [xs : (List Panel)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head heading) (panelHeadings tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: panelViewpoints,
+  parameters: [xs : (List Panel)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head viewpointId) (panelViewpoints tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: journeyIds,
+  parameters: [xs : (List Journey)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (journeyIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: journeyStakeholders,
+  parameters: [xs : (List Journey)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head stakeholderId) (journeyStakeholders tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: stepPoles,
+  parameters: [xs : (List JourneyStep)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head pole) (stepPoles tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: stepPanels,
+  parameters: [xs : (List JourneyStep)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head panelId) (stepPanels tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: stepArtifacts,
+  parameters: [xs : (List JourneyStep)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head artifactId) (stepArtifacts tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: patternIds,
+  parameters: [xs : (List Pattern)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (patternIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: navigationIds,
+  parameters: [xs : (List Navigation)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (navigationIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: navigationPatterns,
+  parameters: [xs : (List Navigation)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head pattern) (navigationPatterns tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: navItemIds,
+  parameters: [xs : (List NavItem)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (navItemIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: navItemNavigations,
+  parameters: [xs : (List NavItem)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head navigation) (navItemNavigations tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: navItemPatterns,
+  parameters: [xs : (List NavItem)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head pattern) (navItemPatterns tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: navItemTargets,
+  parameters: [xs : (List NavItem)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head target) (navItemTargets tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: vizPanelIds,
+  parameters: [xs : (List VizPanel)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (vizPanelIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: vizHostPanels,
+  parameters: [xs : (List VizPanel)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head panelId) (vizHostPanels tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: vizArtifacts,
+  parameters: [xs : (List VizPanel)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head artifactId) (vizArtifacts tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: pedagogyIds,
+  parameters: [xs : (List PedagogyGuide)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (pedagogyIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: pedagogyPoles,
+  parameters: [xs : (List PedagogyGuide)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head pole) (pedagogyPoles tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: pedagogyPanels,
+  parameters: [xs : (List PedagogyGuide)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head panelId) (pedagogyPanels tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: pedagogyHeadings,
+  parameters: [xs : (List PedagogyGuide)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head heading) (pedagogyHeadings tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: vizRenders,
+  parameters: [xs : (List VizPanel)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (appendStrings (project head renders) (vizRenders tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: vizEachRenders,
+  parameters: [xs : (List VizPanel)],
+  result: Bool,
+  body: (match xs
+    | List.nil => true
+    | List.cons head tail => (match (project head renders)
+    | List.nil => false
+    | List.cons r rs => (vizEachRenders tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: panelsReadArtifacts,
+  parameters: [ps : (List Panel), aIds : (List String)],
+  result: Bool,
+  body: (match ps
+    | List.nil => true
+    | List.cons head tail => (if (allMembers (project head artifactIds) aIds) then (panelsReadArtifacts tail aIds) else false)),
+  axioms: [],
+  recursive_argument: ps
+}
+
+definition{
+  name: equalStringLists,
+  parameters: [xs : (List String), ys : (List String)],
+  result: Bool,
+  body: (match xs
+    | List.nil => (match ys
+    | List.nil => true
+    | List.cons yh yt => false)
+    | List.cons xh xt => (match ys
+    | List.nil => false
+    | List.cons yh yt => (if (prim equal xh yh : Bool) then (equalStringLists xt yt) else false))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: journeysWalkPolesAndResolve,
+  parameters: [js : (List Journey), pIds : (List String), aIds : (List String)],
+  result: Bool,
+  body: (match js
+    | List.nil => true
+    | List.cons head tail => (if (equalStringLists (stepPoles (project head steps)) (poles)) then (if (allMembers (stepPanels (project head steps)) pIds) then (if (allMembers (stepArtifacts (project head steps)) aIds) then (journeysWalkPolesAndResolve tail pIds aIds) else false) else false) else false)),
+  axioms: [],
+  recursive_argument: js
+}
+
+theorem{
+  name: artifactIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (artifactIds (artifacts))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: artifactPathsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (artifactPaths (artifacts))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: panelsGovernedByViewpoints,
+  parameters: [],
+  statement: ((allMembers (panelViewpoints (panels)) (Architecture::viewpointIds (Architecture::viewpoints))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: panelArtifactsValid,
+  parameters: [],
+  statement: ((panelsReadArtifacts (panels) (artifactIds (artifacts))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: journeysServeStakeholders,
+  parameters: [],
+  statement: ((allMembers (journeyStakeholders (journeys)) (Architecture::stakeholderIds (Architecture::stakeholders))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everyStakeholderHasJourney,
+  parameters: [],
+  statement: ((allMembers (Architecture::stakeholderIds (Architecture::stakeholders)) (journeyStakeholders (journeys))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: journeysValid,
+  parameters: [],
+  statement: ((journeysWalkPolesAndResolve (journeys) (panelIds (panels)) (artifactIds (artifacts))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: navIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (appendStrings (navigationIds (navigations)) (navItemIds (navItems)))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: navigationsNamePatterns,
+  parameters: [],
+  statement: ((allMembers (navigationPatterns (navigations)) (patternIds (navPatterns))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: navItemsNamePatterns,
+  parameters: [],
+  statement: ((allMembers (navItemPatterns (navItems)) (patternIds (navPatterns))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: navItemsInNavigations,
+  parameters: [],
+  statement: ((allMembers (navItemNavigations (navItems)) (navigationIds (navigations))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everyPanelInPrimaryNavigation,
+  parameters: [],
+  statement: ((allMembers (panelIds (panels)) (navItemTargets (navItems))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everyJourneyInVantageNavigation,
+  parameters: [],
+  statement: ((allMembers (journeyIds (journeys)) (navItemTargets (navItems))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: vizPanelIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (vizPanelIds (vizPanels))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: vizHostPanelsValid,
+  parameters: [],
+  statement: ((allMembers (vizHostPanels (vizPanels)) (panelIds (panels))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: vizArtifactsPublished,
+  parameters: [],
+  statement: ((allMembers (vizArtifacts (vizPanels)) (artifactIds (artifacts))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: vizPanelsRender,
+  parameters: [],
+  statement: ((vizEachRenders (vizPanels)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: vizRendersAreClaims,
+  parameters: [],
+  statement: ((allMembers (vizRenders (vizPanels)) (Register::claimIds (Register::claims))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+definition{
+  name: checkPagesCognitiveBudget,
+  parameters: [pgs : (List PortalPage)],
+  result: Bool,
+  body: (match pgs
+    | List.nil => true
+    | List.cons head tail => (if (1 <=? (project head sectionCount)) then (if ((project head sectionCount) <=? (project head maxSectionsBudget)) then (if ((project head maxSectionsBudget) <=? 5) then (checkPagesCognitiveBudget tail) else false) else false) else false)),
+  axioms: [],
+  recursive_argument: pgs
+}
+
+definition{
+  name: noneMembers,
+  parameters: [values : (List String), forbidden : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head forbidden) then false else (noneMembers tail forbidden))),
+  axioms: [],
+  recursive_argument: values
+}
+
+theorem{
+  name: portalPageIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (portalPageIds (portalPages))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: portalPagePathsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (portalPagePaths (portalPages))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: portalPageArtifactsValid,
+  parameters: [],
+  statement: ((allMembers (portalPageArtifacts (portalPages)) (artifactIds (artifacts))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everyPageWithinCognitiveLoadBudget,
+  parameters: [],
+  statement: ((checkPagesCognitiveBudget (portalPages)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: domainLabelsFreeOfMetaTaxonomy,
+  parameters: [],
+  statement: ((noneMembers (appendStrings (portalPageTitles (portalPages)) (panelHeadings (panels))) (forbiddenMetaTerms)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: pedagogyIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (pedagogyIds (pedagogyGuides))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: pedagogyPolesValid,
+  parameters: [],
+  statement: ((allMembers (pedagogyPoles (pedagogyGuides)) (poles)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: pedagogyPanelsValid,
+  parameters: [],
+  statement: ((allMembers (pedagogyPanels (pedagogyGuides)) (panelIds (panels))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: pedagogyFreeOfMetaTaxonomy,
+  parameters: [],
+  statement: ((noneMembers (pedagogyHeadings (pedagogyGuides)) (forbiddenMetaTerms)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+structure{
+  name: Token,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: theme, type: String},
+    {name: hex, type: String},
+    {name: r, type: Nat},
+    {name: g, type: Nat},
+    {name: b, type: Nat},
+    {name: luminance, type: Nat},
+    {name: purpose, type: String}
+  ]
+}
+
+structure{
+  name: ContrastPair,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: foreground, type: String},
+    {name: background, type: String},
+    {name: kind, type: String},
+    {name: minimumTenths, type: Nat},
+    {name: purpose, type: String}
+  ]
+}
+
+structure{
+  name: TypeStep,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: milliRem, type: Nat},
+    {name: lineHeightCenti, type: Nat},
+    {name: role, type: String}
+  ]
+}
+
+structure{
+  name: SpaceStep,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: px, type: Nat}
+  ]
+}
+
+structure{
+  name: Motion,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: durationMs, type: Nat},
+    {name: reducedDurationMs, type: Nat},
+    {name: focusRingPx, type: Nat},
+    {name: minTargetPx, type: Nat}
+  ]
+}
+
+definition{
+  name: designTokens,
+  parameters: [],
+  result: (List Token),
+  body: (cons (record Token {id := "bg", theme := "light", hex := "#f8fafc", r := 248, g := 250, b := 252, luminance := 9535592622, purpose := "Page canvas background"}) (cons (record Token {id := "bg", theme := "dark", hex := "#0b1120", r := 11, g := 17, b := 32, luminance := 57631250, purpose := "Page canvas background"}) (cons (record Token {id := "surface", theme := "light", hex := "#ffffff", r := 255, g := 255, b := 255, luminance := 10000000000, purpose := "Card and header surface"}) (cons (record Token {id := "surface", theme := "dark", hex := "#111827", r := 17, g := 24, b := 39, luminance := 91891256, purpose := "Card and header surface"}) (cons (record Token {id := "surface-alt", theme := "light", hex := "#f1f5f9", r := 241, g := 245, b := 249, luminance := 9084516074, purpose := "Secondary control and table header surface"}) (cons (record Token {id := "surface-alt", theme := "dark", hex := "#1e293b", r := 30, g := 41, b := 59, luminance := 217766976, purpose := "Secondary control and table header surface"}) (cons (record Token {id := "ink", theme := "light", hex := "#0f172a", r := 15, g := 23, b := 42, luminance := 88150704, purpose := "Primary body and testimony text"}) (cons (record Token {id := "ink", theme := "dark", hex := "#f1f5f9", r := 241, g := 245, b := 249, luminance := 9084516074, purpose := "Primary body and testimony text"}) (cons (record Token {id := "muted", theme := "light", hex := "#334155", r := 51, g := 65, b := 85, luminance := 514031026, purpose := "Secondary labels and metadata"}) (cons (record Token {id := "muted", theme := "dark", hex := "#cbd5e1", r := 203, g := 213, b := 225, luminance := 6572123400, purpose := "Secondary labels and metadata"}) (cons (record Token {id := "accent", theme := "light", hex := "#1e3a8a", r := 30, g := 58, b := 138, luminance := 513707874, purpose := "Primary courtroom links and active controls"}) (cons (record Token {id := "accent", theme := "dark", hex := "#93c5fd", r := 147, g := 197, b := 253, luminance := 5322738048, purpose := "Primary courtroom links and active controls"}) (cons (record Token {id := "stipulated", theme := "light", hex := "#14532d", r := 20, g := 83, b := 45, luminance := 652465372, purpose := "Stipulated facts and Opening-aligned pivots"}) (cons (record Token {id := "stipulated", theme := "dark", hex := "#86efac", r := 134, g := 239, b := 172, luminance := 6977989058, purpose := "Stipulated facts and Opening-aligned pivots"}) (cons (record Token {id := "warning", theme := "light", hex := "#7c2d12", r := 124, g := 45, b := 18, luminance := 620551066, purpose := "Contested claims and FRCP 26(e) & Rule 16.2 warnings"}) (cons (record Token {id := "warning", theme := "dark", hex := "#fdba74", r := 253, g := 186, b := 116, luminance := 5726142952, purpose := "Contested claims and FRCP 26(e) & Rule 16.2 warnings"}) (cons (record Token {id := "danger", theme := "light", hex := "#7f1d1d", r := 127, g := 29, b := 29, luminance := 547943070, purpose := "Cross-examination trap warnings"}) (cons (record Token {id := "danger", theme := "dark", hex := "#fca5a5", r := 252, g := 165, b := 165, luminance := 5032231058, purpose := "Cross-examination trap warnings"}) (cons (record Token {id := "border", theme := "light", hex := "#475569", r := 71, g := 85, b := 105, luminance := 885653130, purpose := "Interactive control and focus boundary"}) (cons (record Token {id := "border", theme := "dark", hex := "#64748b", r := 100, g := 116, b := 139, luminance := 1706416658, purpose := "Interactive control and focus boundary"}) (nil Token))))))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: contrastPairs,
+  parameters: [],
+  result: (List ContrastPair),
+  body: (cons (record ContrastPair {foreground := "ink", background := "bg", kind := "text", minimumTenths := 45, purpose := "Primary text on page canvas"}) (cons (record ContrastPair {foreground := "ink", background := "surface", kind := "text", minimumTenths := 45, purpose := "Primary text on card surface"}) (cons (record ContrastPair {foreground := "ink", background := "surface-alt", kind := "text", minimumTenths := 45, purpose := "Primary text on secondary surface"}) (cons (record ContrastPair {foreground := "muted", background := "bg", kind := "text", minimumTenths := 45, purpose := "Secondary text on page canvas"}) (cons (record ContrastPair {foreground := "muted", background := "surface", kind := "text", minimumTenths := 45, purpose := "Secondary text on card surface"}) (cons (record ContrastPair {foreground := "accent", background := "bg", kind := "text", minimumTenths := 45, purpose := "Courtroom link on page canvas"}) (cons (record ContrastPair {foreground := "accent", background := "surface", kind := "text", minimumTenths := 45, purpose := "Courtroom link on card surface"}) (cons (record ContrastPair {foreground := "stipulated", background := "bg", kind := "text", minimumTenths := 45, purpose := "Stipulated badge ink on page canvas"}) (cons (record ContrastPair {foreground := "stipulated", background := "surface", kind := "text", minimumTenths := 45, purpose := "Stipulated badge ink on card surface"}) (cons (record ContrastPair {foreground := "warning", background := "bg", kind := "text", minimumTenths := 45, purpose := "Warning ink on page canvas"}) (cons (record ContrastPair {foreground := "warning", background := "surface", kind := "text", minimumTenths := 45, purpose := "Warning ink on card surface"}) (cons (record ContrastPair {foreground := "danger", background := "bg", kind := "text", minimumTenths := 45, purpose := "Trap warning ink on page canvas"}) (cons (record ContrastPair {foreground := "danger", background := "surface", kind := "text", minimumTenths := 45, purpose := "Trap warning ink on card surface"}) (cons (record ContrastPair {foreground := "border", background := "bg", kind := "ui", minimumTenths := 30, purpose := "Control border on page canvas"}) (cons (record ContrastPair {foreground := "border", background := "surface", kind := "ui", minimumTenths := 30, purpose := "Control border on card surface"}) (nil ContrastPair)))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: typeScale,
+  parameters: [],
+  result: (List TypeStep),
+  body: (cons (record TypeStep {id := "xs", milliRem := 780, lineHeightCenti := 140, role := "Badges and exhibit pill codes"}) (cons (record TypeStep {id := "sm", milliRem := 880, lineHeightCenti := 145, role := "Table metadata and secondary captions"}) (cons (record TypeStep {id := "base", milliRem := 1000, lineHeightCenti := 155, role := "Body copy and witness examination points"}) (cons (record TypeStep {id := "lg", milliRem := 1140, lineHeightCenti := 145, role := "Card headings and verbatim Opening quotes"}) (cons (record TypeStep {id := "xl", milliRem := 1350, lineHeightCenti := 130, role := "Panel titles and KPI values"}) (cons (record TypeStep {id := "2xl", milliRem := 1650, lineHeightCenti := 120, role := "Courtroom banner heading"}) (nil TypeStep))))))),
+  axioms: []
+}
+
+definition{
+  name: spacingScale,
+  parameters: [],
+  result: (List SpaceStep),
+  body: (cons (record SpaceStep {id := "1", px := 4}) (cons (record SpaceStep {id := "2", px := 8}) (cons (record SpaceStep {id := "3", px := 12}) (cons (record SpaceStep {id := "4", px := 16}) (cons (record SpaceStep {id := "5", px := 24}) (cons (record SpaceStep {id := "6", px := 32}) (cons (record SpaceStep {id := "7", px := 48}) (nil SpaceStep)))))))),
+  axioms: []
+}
+
+definition{
+  name: motion,
+  parameters: [],
+  result: Motion,
+  body: (record Motion {durationMs := 150, reducedDurationMs := 0, focusRingPx := 3, minTargetPx := 24}),
+  axioms: []
+}
+
+definition{
+  name: srgbLinear,
+  parameters: [c : Nat],
+  result: Nat,
+  body: (if (c =? 11) then 3347 else (if (c =? 15) then 4777 else (if (c =? 17) then 5605 else (if (c =? 18) then 6049 else (if (c =? 20) then 6995 else (if (c =? 23) then 8568 else (if (c =? 24) then 9134 else (if (c =? 29) then 12286 else (if (c =? 30) then 12983 else (if (c =? 32) then 14444 else (if (c =? 39) then 20289 else (if (c =? 41) then 22174 else (if (c =? 42) then 23153 else (if (c =? 45) then 26241 else (if (c =? 51) then 33105 else (if (c =? 58) then 42311 else (if (c =? 59) then 43735 else (if (c =? 65) then 52861 else (if (c =? 71) then 63010 else (if (c =? 83) then 86500 else (if (c =? 85) then 90842 else (if (c =? 100) then 127438 else (if (c =? 105) then 141263 else (if (c =? 116) then 174647 else (if (c =? 124) then 201556 else (if (c =? 127) then 212231 else (if (c =? 134) then 238398 else (if (c =? 138) then 254152 else (if (c =? 139) then 258183 else (if (c =? 147) then 291771 else (if (c =? 165) then 376262 else (if (c =? 172) then 412543 else (if (c =? 186) then 491021 else (if (c =? 197) then 558340 else (if (c =? 203) then 597202 else (if (c =? 213) then 665387 else (if (c =? 225) then 752942 else (if (c =? 239) then 863157 else (if (c =? 241) then 879622 else (if (c =? 245) then 913099 else (if (c =? 248) then 938686 else (if (c =? 249) then 947307 else (if (c =? 250) then 955973 else (if (c =? 252) then 973445 else (if (c =? 253) then 982251 else (if (c =? 255) then 1000000 else 0)))))))))))))))))))))))))))))))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: relativeLuminance,
+  parameters: [r : Nat, g : Nat, b : Nat],
+  result: Nat,
+  body: (((prim multiply 2126 (srgbLinear r) : Nat) + (prim multiply 7152 (srgbLinear g) : Nat)) + (prim multiply 722 (srgbLinear b) : Nat)),
+  axioms: []
+}
+
+definition{
+  name: luminancesMatch,
+  parameters: [xs : (List Token)],
+  result: Bool,
+  body: (match xs
+    | List.nil => true
+    | List.cons head tail => (if ((project head luminance) =? (relativeLuminance (project head r) (project head g) (project head b))) then (luminancesMatch tail) else false)),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: tokensOfTheme,
+  parameters: [theme : String, xs : (List Token)],
+  result: (List Token),
+  body: (match xs
+    | List.nil => (nil Token)
+    | List.cons head tail => (if (prim equal theme (project head theme) : Bool) then (cons head (tokensOfTheme theme tail)) else (tokensOfTheme theme tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: tokenIds,
+  parameters: [xs : (List Token)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (tokenIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: pairForegrounds,
+  parameters: [xs : (List ContrastPair)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head foreground) (pairForegrounds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: pairBackgrounds,
+  parameters: [xs : (List ContrastPair)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head background) (pairBackgrounds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: typeMilliRems,
+  parameters: [xs : (List TypeStep)],
+  result: (List Nat),
+  body: (match xs
+    | List.nil => (nil Nat)
+    | List.cons head tail => (cons (project head milliRem) (typeMilliRems tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: spacePxs,
+  parameters: [xs : (List SpaceStep)],
+  result: (List Nat),
+  body: (match xs
+    | List.nil => (nil Nat)
+    | List.cons head tail => (cons (project head px) (spacePxs tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: typeMilliRem,
+  parameters: [key : String, xs : (List TypeStep)],
+  result: Nat,
+  body: (match xs
+    | List.nil => 0
+    | List.cons head tail => (if (prim equal key (project head id) : Bool) then (project head milliRem) else (typeMilliRem key tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: tokenLuminance,
+  parameters: [tokenId : String, theme : String, xs : (List Token)],
+  result: Nat,
+  body: (match xs
+    | List.nil => 0
+    | List.cons head tail => (if (prim equal tokenId (project head id) : Bool) then (if (prim equal theme (project head theme) : Bool) then (project head luminance) else (tokenLuminance tokenId theme tail)) else (tokenLuminance tokenId theme tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: meetsContrast,
+  parameters: [la : Nat, lc : Nat, minimumTenths : Nat],
+  result: Bool,
+  body: (if (lc <=? la) then ((prim multiply minimumTenths (lc + 500000000) : Nat) <=? (prim multiply 10 (la + 500000000) : Nat)) else ((prim multiply minimumTenths (la + 500000000) : Nat) <=? (prim multiply 10 (lc + 500000000) : Nat))),
+  axioms: []
+}
+
+definition{
+  name: pairsMeetContrast,
+  parameters: [ps : (List ContrastPair), theme : String, ts : (List Token)],
+  result: Bool,
+  body: (match ps
+    | List.nil => true
+    | List.cons head tail => (if (meetsContrast (tokenLuminance (project head foreground) theme ts) (tokenLuminance (project head background) theme ts) (project head minimumTenths)) then (pairsMeetContrast tail theme ts) else false)),
+  axioms: [],
+  recursive_argument: ps
+}
+
+definition{
+  name: strictlyIncreasing,
+  parameters: [xs : (List Nat), previous : Nat],
+  result: Bool,
+  body: (match xs
+    | List.nil => true
+    | List.cons head tail => (if (previous <? head) then (strictlyIncreasing tail head) else false)),
+  axioms: [],
+  recursive_argument: xs
+}
+
+theorem{
+  name: lightTokenIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (tokenIds (tokensOfTheme "light" (designTokens)))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: darkTokenIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (tokenIds (tokensOfTheme "dark" (designTokens)))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: themesHaveSameTokens,
+  parameters: [],
+  statement: ((sameMembers (tokenIds (tokensOfTheme "light" (designTokens))) (tokenIds (tokensOfTheme "dark" (designTokens)))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: pairsReferenceTokens,
+  parameters: [],
+  statement: ((allMembers (pairForegrounds (contrastPairs)) (tokenIds (tokensOfTheme "light" (designTokens)))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: pairBackgroundsReferenceTokens,
+  parameters: [],
+  statement: ((allMembers (pairBackgrounds (contrastPairs)) (tokenIds (tokensOfTheme "light" (designTokens)))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: tokenLuminancesComputed,
+  parameters: [],
+  statement: ((luminancesMatch (designTokens)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everyPairMeetsContrastLight,
+  parameters: [],
+  statement: ((pairsMeetContrast (contrastPairs) "light" (designTokens)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everyPairMeetsContrastDark,
+  parameters: [],
+  statement: ((pairsMeetContrast (contrastPairs) "dark" (designTokens)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: typeScaleIncreasing,
+  parameters: [],
+  statement: ((strictlyIncreasing (typeMilliRems (typeScale)) 0) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: spacingIncreasing,
+  parameters: [],
+  statement: ((strictlyIncreasing (spacePxs (spacingScale)) 0) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: bodyTextAtLeastOneRem,
+  parameters: [],
+  statement: ((1000 <=? (typeMilliRem "base" (typeScale))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: focusRingAtLeast2px,
+  parameters: [],
+  statement: ((2 <=? (project (motion) focusRingPx)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: targetSizeAtLeast24px,
+  parameters: [],
+  statement: ((24 <=? (project (motion) minTargetPx)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: reducedMotionZero,
+  parameters: [],
+  statement: (((project (motion) reducedDurationMs) =? 0) = true),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

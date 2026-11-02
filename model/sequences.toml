@@ -1,0 +1,120 @@
+# Evidentiary indicator bit-vector sequences (src/Sequences.lex.tex)
+spec = "prism-legal/sequences/1"
+window = 64
+
+[[sequence]]
+id = "one"
+lexeme = "lexlean.std.bool::true"
+lean = "Bool.true"
+parameters = []
+kappa = "sha256:38ff7ae89d6d95c44da0bf7996bb067c7ff75ed6c766ba266a41e4e917bf19da"
+window = [4294967295, 4294967295]
+description = "Constant reference indicator (1 across all 64 record checkpoints)"
+
+[[sequence]]
+id = "equal-overnights"
+lexeme = "prism.legal::equal-overnights"
+lean = "PrismLegal.Parenting.equalOvernights"
+parameters = []
+kappa = "sha256:f7fcb60ff84b62efc46fdf56268e0a8cede7261317744fe8cd84036dcb29d711"
+window = [2863311530, 2863311530]
+description = "Alternating equal parenting time parity (Uniform Domestic Relations Act \u00a7 402(a))"
+
+[[sequence]]
+id = "week-parity"
+lexeme = "prism.legal::overnights-of"
+lean = "PrismLegal.Parenting.overnightsOf"
+parameters = [7]
+kappa = "sha256:ed27121b27553552f1de6cd1e366a39a71dca90771d238fe38a8a252d3fe1488"
+window = [3435973836, 3435973836]
+description = "Week-on/week-off block schedule period-4 indicator (Ex. L)"
+
+[[sequence]]
+id = "routine-continuity"
+lexeme = "prism.legal::routine-continuity"
+lean = "PrismLegal.Parenting.routineContinuity"
+parameters = []
+kappa = "sha256:beb0d8ae924a735b05031da82fcbde3478b413aa5119519821598c34262b7651"
+window = [2004318071, 2004318071]
+description = "Daily school, medical, and bedtime continuity indicator (Ex. B, E, K, O)"
+
+[[sequence]]
+id = "corroborated-finding"
+lexeme = "prism.legal::corroborated-finding"
+lean = "PrismLegal.Litigation.corroboratedFinding"
+parameters = []
+kappa = "sha256:a7268cee1c358e75649ca429946f0d65e1c7c500bc88841038549cf4b906f685"
+window = [3722304989, 3722304989]
+description = "Composite Uniform Domestic Relations Act \u00a7 402(a) corroborated-finding indicator"
+
+[[sequence]]
+id = "joint-governance"
+lexeme = "prism.legal::joint-governance"
+lean = "PrismLegal.Governance.jointGovernance"
+parameters = []
+kappa = "sha256:70de484c4a4d1235190a022b583f4c98d0f1a985a038427f3893e8196638e4ad"
+window = [3681400539, 3067833782]
+description = "Joint major decision-making & mutual consent indicator (Ex. A, D, L)"
+
+[[sequence]]
+id = "unilateral-act"
+lexeme = "prism.legal::unilateral-action"
+lean = "PrismLegal.Governance.unilateralAction"
+parameters = []
+kappa = "sha256:6dc7a08a0cce3eadf249fd48676ffd762136c76ddf244a4007046f0a94e48745"
+window = [613566756, 1227133513]
+description = "Unilateral relocation / schedule cut indicator (one XOR joint-governance)"
+
+[[sequence]]
+id = "stipulated-income"
+lexeme = "prism.legal::stipulated-income"
+lean = "PrismLegal.Remedies.stipulatedIncome"
+parameters = []
+kappa = "sha256:d91f536810b848daf1d2fc7d3809e991180bd3a5c812e269dbaf34d8147a02d4"
+window = [4294967295, 4294967295]
+description = "Stipulated JTMC income baseline ($8,000/mo vs. $5,000/mo, Ex. N)"
+
+[[sequence]]
+id = "statutory-benefit"
+lexeme = "prism.legal::statutory-benefit-covered"
+lean = "PrismLegal.Remedies.statutoryBenefitCovered"
+parameters = []
+kappa = "sha256:b0d64c3deff69787235b260fedde9f5ce7261595dc808bf71e39dd0ff034a3d4"
+window = [4294967295, 4294967295]
+description = "38 U.S.C. \u00a7 1781 statutory dependent healthcare coverage (Ex. E)"
+
+[[sequence]]
+id = "duplicate-expense"
+lexeme = "prism.legal::duplicate-expense-addon"
+lean = "PrismLegal.Remedies.duplicateExpenseAddon"
+parameters = []
+kappa = "sha256:ea3eade39e77f1ba78955913fe33d5017fcca2bba28d3c313dfc840c4af3363f"
+window = [0, 0]
+description = "Duplicate medical insurance add-on (vanishes under 38 U.S.C. \u00a7 1781, Ex. N vs. OP Ex. 2)"
+
+[[sequence]]
+id = "reserve-omission"
+lexeme = "prism.legal::undisclosed-balance"
+lean = "PrismLegal.Disclosure.undisclosedBalance"
+parameters = []
+kappa = "sha256:95da94b2517d1768b61eb41b9629a849def70b5e736727324e9707f112d2a0f3"
+window = [1801115317, 1524020653]
+description = "Undisclosed $30,000.00 escrow bank accounts indicator (Ex. G, H, J)"
+
+[[sequence]]
+id = "disclosure-reopening"
+lexeme = "prism.legal::mandatory-disclosure-reopening"
+lean = "PrismLegal.Disclosure.mandatoryDisclosureReopening"
+parameters = []
+kappa = "sha256:3b7bb1a8f6c83be2723735f1da3cae02b8184dd059145031621fcd63fc4b5651"
+window = [1801115317, 1524020653]
+description = "FRCP 26(e) / Rule 16.2(e)(10) mandatory reopening trigger (equals reserve-omission)"
+
+[[sequence]]
+id = "order-compliant"
+lexeme = "prism.legal::court-order-compliant"
+lean = "PrismLegal.Compliance.courtOrderCompliant"
+parameters = []
+kappa = "sha256:b67547d79617b39cf4f09e3147fad5c9cb1180eb4ba069c07acc3969b96643bb"
+window = [3722304989, 3722304989]
+description = "512-yd transit telemetry & order-compliance indicator (Ex. A, J, M)"

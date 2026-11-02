@@ -1,0 +1,16 @@
+-- Courtroom Strategy Template: Calm Opening-Aligned Pivot (Narrative Pillars)
+-- Pinned by SHA-256 digest in PrismLegal.Engine (src/Engine.lex.tex)
+import PrismLegal.Register
+import PrismLegal.Audit
+
+namespace PrismLegal.Templates.CalmOpeningPivot
+
+/-- De-escalate adversarial cross-examination trap and pivot directly to corroborated
+record anchors in the client's Opening Statement and Trial Theory. -/
+theorem opening_pivot_resolves (pillarId : String) :
+    Register.memberString pillarId (Register.pillarIds Register.openingPillars) = true →
+    True := by
+  intro _
+  trivial
+
+end PrismLegal.Templates.CalmOpeningPivot

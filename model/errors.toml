@@ -1,0 +1,17 @@
+spec = "prismpm/errors/1"
+
+[[error]]
+code = "LEGAL1001"
+message = "Unknown claim, exhibit, witness, or trap ID requested."
+
+[[error]]
+code = "LEGAL2001"
+message = "Model drift detected between domain specification and generated LexLean/PrismPM artifacts."
+
+[[error]]
+code = "LEGAL3001"
+message = "LexLean / Lean 4 kernel verification failed on one or more semantic modules."
+
+[[error]]
+code = "LEGAL4001"
+message = "Zero-PII sanitization check failed; private case token or forbidden media detected."

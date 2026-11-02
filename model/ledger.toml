@@ -1,0 +1,169 @@
+spec = "prismpm/ledger/1"
+
+[[entry]]
+id = "CLM-01"
+status = "corroborated"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)(1)\u2013(11)"
+exhibits = ["Ex-B", "Ex-K", "Ex-L", "Ex-O"]
+depends = ["CLM-02", "CLM-03", "CLM-04"]
+
+[[entry]]
+id = "CLM-02"
+status = "corroborated"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)(3), (7)"
+exhibits = ["Ex-B", "Ex-K", "Ex-O"]
+depends = []
+
+[[entry]]
+id = "CLM-03"
+status = "corroborated"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)(4)"
+exhibits = ["Ex-B", "Ex-K", "Ex-L"]
+depends = []
+
+[[entry]]
+id = "CLM-04"
+status = "stipulated"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)(4), (8)"
+exhibits = ["Ex-L", "Ex-O"]
+depends = []
+
+[[entry]]
+id = "CLM-05"
+status = "corroborated"
+statutory = "Uniform Domestic Relations Act \u00a7 402(b)(1)\u2013(3)"
+exhibits = ["Ex-A", "Ex-B", "Ex-D", "Ex-L"]
+depends = ["CLM-06"]
+
+[[entry]]
+id = "CLM-06"
+status = "corroborated"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)(6), (9)"
+exhibits = ["Ex-D"]
+depends = []
+
+[[entry]]
+id = "CLM-07"
+status = "stipulated"
+statutory = "Uniform Support Guidelines \u00a7 305(2)"
+exhibits = ["Ex-E", "Ex-I", "Ex-N"]
+depends = []
+
+[[entry]]
+id = "CLM-08"
+status = "corroborated"
+statutory = "Uniform Support Guidelines \u00a7 305(8)"
+exhibits = ["Ex-E", "Ex-N"]
+depends = ["CLM-01", "CLM-07", "CLM-09", "CLM-11", "CLM-12"]
+
+[[entry]]
+id = "CLM-09"
+status = "corroborated"
+statutory = "Uniform Support Guidelines \u00a7 305(5)(b)"
+exhibits = ["Ex-E", "Ex-I", "Ex-N"]
+depends = []
+
+[[entry]]
+id = "CLM-10"
+status = "corroborated"
+statutory = "Uniform Support Guidelines \u00a7 305(3) & FRE 803(8)"
+exhibits = ["Ex-I", "Ex-N"]
+depends = []
+
+[[entry]]
+id = "CLM-11"
+status = "corroborated"
+statutory = "38 U.S.C. \u00a7 1781 & Support Guidelines \u00a7 305(9)"
+exhibits = ["Ex-E", "Ex-N", "OP-Ex-02"]
+depends = []
+
+[[entry]]
+id = "CLM-12"
+status = "corroborated"
+statutory = "Uniform Support Guidelines \u00a7 305(9)(a) & \u00a7 402(a)(9)"
+exhibits = ["Ex-E", "Ex-L", "Ex-N", "OP-Ex-02", "OP-Ex-08"]
+depends = []
+
+[[entry]]
+id = "CLM-13"
+status = "corroborated"
+statutory = "FRCP 26(e) & Civil Rule 16.2(e)(10)"
+exhibits = ["Ex-G", "Ex-H", "Ex-J", "Ex-N"]
+depends = []
+
+[[entry]]
+id = "CLM-14"
+status = "corroborated"
+statutory = "Civil Rule 16.2(e)(10)"
+exhibits = ["Ex-G", "Ex-H", "Ex-J", "Ex-N", "OP-Ex-11"]
+depends = ["CLM-13"]
+
+[[entry]]
+id = "CLM-15"
+status = "corroborated"
+statutory = "FRE 106 (Rule of Completeness)"
+exhibits = ["Ex-D", "OP-Ex-13"]
+depends = []
+
+[[entry]]
+id = "CLM-16"
+status = "corroborated"
+statutory = "FRE 106 & Uniform Act \u00a7 402(a)(2), (6)"
+exhibits = ["Ex-A", "Ex-B", "OP-Ex-05", "OP-Ex-14"]
+depends = []
+
+[[entry]]
+id = "CLM-17"
+status = "corroborated"
+statutory = "FRE 602 & FRE 802"
+exhibits = ["Ex-B", "Ex-K", "Ex-O"]
+depends = []
+
+[[entry]]
+id = "CLM-18"
+status = "corroborated"
+statutory = "FRE 901(b)(9) & Uniform Act \u00a7 402(a)(9)"
+exhibits = ["Ex-F", "Ex-L", "Ex-M", "OP-Ex-06", "OP-Ex-07"]
+depends = []
+
+[[entry]]
+id = "CLM-19"
+status = "stipulated"
+statutory = "Doctrine of Issue Preclusion & Stipulation (Ex. C)"
+exhibits = ["Ex-C", "Ex-F", "Ex-L"]
+depends = []
+
+[[entry]]
+id = "CLM-20"
+status = "corroborated"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)(3), (9)"
+exhibits = ["Ex-B", "Ex-L", "OP-Ex-03"]
+depends = ["CLM-01", "CLM-12"]
+
+[[entry]]
+id = "CLM-21"
+status = "corroborated"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)(4)"
+exhibits = ["Ex-K", "Ex-L", "Ex-O"]
+depends = []
+
+[[entry]]
+id = "CLM-22"
+status = "corroborated"
+statutory = "Uniform Marital Property & Equitable Offset Principles"
+exhibits = ["Ex-G", "Ex-H", "Ex-J", "Ex-N"]
+depends = ["CLM-13"]
+
+[[entry]]
+id = "CLM-23"
+status = "corroborated"
+statutory = "Uniform Domestic Relations Act \u00a7 408"
+exhibits = ["Ex-B", "Ex-K", "Ex-L"]
+depends = []
+
+[[entry]]
+id = "CLM-24"
+status = "contested"
+statutory = "Uniform Domestic Relations Act \u00a7 402(a)(1)\u2013(11)"
+exhibits = ["Ex-B", "Ex-F", "Ex-K", "Ex-L", "Ex-O", "OP-Ex-01"]
+depends = ["CLM-01", "CLM-02", "CLM-03", "CLM-18"]

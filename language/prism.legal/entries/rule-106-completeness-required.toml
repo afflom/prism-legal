@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "rule-106-completeness-required"
+category = "function"
+signature = "(pi ((explicit x (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Evidence"
+name = "PrismLegal.Evidence.rule106CompletenessRequired"
+
+[[form]]
+id = "rule-106-completeness-required"
+channel = "math"
+surface = "rule106CompletenessRequired"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name rule106CompletenessRequired) (paren (seq (slot 0))))"

@@ -1,0 +1,331 @@
+\begin{lexlean}{VisualEvidence}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: HandwrittenDiaryEntry,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: exhibitId, type: String},
+    {name: entryDate, type: String},
+    {name: pageRange, type: String},
+    {name: fullContextRebuttal, type: String}
+  ]
+}
+
+structure{
+  name: VisualForensicRecord,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: exhibitId, type: String},
+    {name: modality, type: String},
+    {name: pageCount, type: Nat},
+    {name: trialPivot, type: String}
+  ]
+}
+
+structure{
+  name: PhotoPageRecord,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: exhibitId, type: String},
+    {name: pageNumber, type: Nat},
+    {name: subjects, type: String},
+    {name: statutoryFactorId, type: String}
+  ]
+}
+
+structure{
+  name: ExhibitSemanticMapping,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: exhibitId, type: String},
+    {name: proponent, type: String},
+    {name: modality, type: String},
+    {name: contentMeaning, type: String},
+    {name: contextualMeaning, type: String},
+    {name: proponentTrialIntent, type: String},
+    {name: trialPivotIntent, type: String}
+  ]
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: allMembers,
+  parameters: [values : (List String), ids : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head ids) then (allMembers tail ids) else false)),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head tail) then false else (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: registerExhibitIds,
+  parameters: [],
+  result: (List String),
+  body: (cons "Ex-A" (cons "Ex-B" (cons "Ex-C" (cons "Ex-D" (cons "Ex-E" (cons "Ex-F" (cons "Ex-G" (cons "Ex-H" (cons "Ex-I" (cons "Ex-J" (cons "Ex-K" (cons "Ex-L" (cons "Ex-M" (cons "Ex-N" (cons "Ex-O" (cons "OP-Ex-01" (cons "OP-Ex-02" (cons "OP-Ex-03" (cons "OP-Ex-04" (cons "OP-Ex-05" (cons "OP-Ex-06" (cons "OP-Ex-07" (cons "OP-Ex-08" (cons "OP-Ex-09" (cons "OP-Ex-10" (cons "OP-Ex-11" (cons "OP-Ex-12" (cons "OP-Ex-13" (cons "OP-Ex-14" (cons "OP-Ex-15" (nil String))))))))))))))))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: diaryEntries,
+  parameters: [],
+  result: (List HandwrittenDiaryEntry),
+  body: (cons (record HandwrittenDiaryEntry {id := "DIARY-01", exhibitId := "OP-Ex-13", entryDate := "2028-09-10", pageRange := "pp. 1-2", fullContextRebuttal := "FRE 106 full page shows loving commitment to morning routines and family stability."}) (cons (record HandwrittenDiaryEntry {id := "DIARY-02", exhibitId := "OP-Ex-13", entryDate := "2028-09-24", pageRange := "pp. 3-5", fullContextRebuttal := "Corroborates OS-2 shared sacrifice and joint planning for graduate credentials."}) (cons (record HandwrittenDiaryEntry {id := "DIARY-03", exhibitId := "OP-Ex-13", entryDate := "2028-10-14 (Lines 1-14)", pageRange := "p. 6, ll. 1-14", fullContextRebuttal := "Immediately refuted by lines 15-28 on the exact same page (DIARY-04) under FRE 106."}) (cons (record HandwrittenDiaryEntry {id := "DIARY-04", exhibitId := "OP-Ex-13", entryDate := "2028-10-14 (Lines 15-28)", pageRange := "p. 6, ll. 15-28", fullContextRebuttal := "FRE 106 completeness rebuttal: proves Respondent committed to patient, positive study habits."}) (cons (record HandwrittenDiaryEntry {id := "DIARY-05", exhibitId := "OP-Ex-13", entryDate := "2028-11-18", pageRange := "pp. 7-10", fullContextRebuttal := "Proves hands-on daily caregiving immediately upon November 2028 retirement."}) (cons (record HandwrittenDiaryEntry {id := "DIARY-06", exhibitId := "OP-Ex-13", entryDate := "2029-01-15", pageRange := "pp. 11-13", fullContextRebuttal := "Documents deep emotional bond and organized daily routine with all three children."}) (cons (record HandwrittenDiaryEntry {id := "DIARY-07", exhibitId := "OP-Ex-13", entryDate := "2029-03-08", pageRange := "pp. 14-17", fullContextRebuttal := "Demonstrates seamless solo caregiving across medical and educational routines."}) (cons (record HandwrittenDiaryEntry {id := "DIARY-08", exhibitId := "OP-Ex-13", entryDate := "2029-06-12", pageRange := "pp. 18-21", fullContextRebuttal := "Closes the 21-page study log on a theme of patience and child-focused devotion."}) (nil HandwrittenDiaryEntry))))))))),
+  axioms: []
+}
+
+definition{
+  name: visualForensics,
+  parameters: [],
+  result: (List VisualForensicRecord),
+  body: (cons (record VisualForensicRecord {id := "VIS-01", exhibitId := "Ex-A", modality := "Digital Transit Telemetry Map", pageCount := 4, trialPivot := "Admit in DX-021 and cross-examination of OP-Ex-09."}) (cons (record VisualForensicRecord {id := "VIS-02", exhibitId := "Ex-E", modality := "Official Retirement Board Decision", pageCount := 8, trialPivot := "Admit in DX-010 and cite on support worksheet Ex-N."}) (cons (record VisualForensicRecord {id := "VIS-03", exhibitId := "Ex-G", modality := "Sworn Financial Statement (Initial)", pageCount := 7, trialPivot := "Pair with Ex-H bank statements to defeat retroactive expense claim."}) (cons (record VisualForensicRecord {id := "VIS-04", exhibitId := "Ex-H", modality := "Subpoenaed Bank Statements", pageCount := 18, trialPivot := "Admit in DX-018 and cross-examination of W-02."}) (cons (record VisualForensicRecord {id := "VIS-05", exhibitId := "Ex-I", modality := "Photographic Compendium", pageCount := 11, trialPivot := "Walk through page-by-page in DX-025."}) (cons (record VisualForensicRecord {id := "VIS-06", exhibitId := "Ex-K", modality := "Multimedia & Activity Stills", pageCount := 9, trialPivot := "Admit in DX-019."}) (cons (record VisualForensicRecord {id := "VIS-07", exhibitId := "Ex-M", modality := "Signed Completion Certificate", pageCount := 1, trialPivot := "Admit in DX-031."}) (cons (record VisualForensicRecord {id := "VIS-08", exhibitId := "Ex-N", modality := "Signed Court Order & Guideline Worksheet", pageCount := 12, trialPivot := "Admit in DX-034."}) (cons (record VisualForensicRecord {id := "VIS-09", exhibitId := "OP-Ex-04", modality := "Commercial Childcare Quote", pageCount := 5, trialPivot := "Rebut in DX-029 and TRAP-07."}) (cons (record VisualForensicRecord {id := "VIS-10", exhibitId := "OP-Ex-11", modality := "Handwritten Calendar Annotations", pageCount := 3, trialPivot := "Turn into affirmative proof for Ex-L \u00a7 2.3 in TRAP-10."}) (cons (record VisualForensicRecord {id := "VIS-11", exhibitId := "OP-Ex-13", modality := "Scanned Homework Study Log (2028-2029)", pageCount := 21, trialPivot := "Read p. 6 ll. 15-28 verbatim in DX-023 and TRAP-12."}) (cons (record VisualForensicRecord {id := "VIS-12", exhibitId := "OP-Ex-14", modality := "Youth Device Message Screenshots", pageCount := 6, trialPivot := "Cite full thread under FRE 106 in TRAP-14."}) (nil VisualForensicRecord))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: photoCatalog,
+  parameters: [],
+  result: (List PhotoPageRecord),
+  body: (cons (record PhotoPageRecord {id := "PHOTO-01", exhibitId := "Ex-I", pageNumber := 1, subjects := "Townhouse Exterior & Courtyard Walkway", statutoryFactorId := "SF-04"}) (cons (record PhotoPageRecord {id := "PHOTO-02", exhibitId := "Ex-I", pageNumber := 2, subjects := "Living Room & Family Reading Area", statutoryFactorId := "SF-04"}) (cons (record PhotoPageRecord {id := "PHOTO-03", exhibitId := "Ex-I", pageNumber := 3, subjects := "Kitchen & Family Dining Table", statutoryFactorId := "SF-03"}) (cons (record PhotoPageRecord {id := "PHOTO-04", exhibitId := "Ex-I", pageNumber := 4, subjects := "Oldest Minor Child's Bedroom & Study Desk (Age 15)", statutoryFactorId := "SF-02"}) (cons (record PhotoPageRecord {id := "PHOTO-05", exhibitId := "Ex-I", pageNumber := 5, subjects := "Middle Minor Child's Bedroom & Music Corner (Age 11)", statutoryFactorId := "SF-03"}) (cons (record PhotoPageRecord {id := "PHOTO-06", exhibitId := "Ex-I", pageNumber := 6, subjects := "Youngest Minor Child's Bedroom & Reading Nook (Age 6)", statutoryFactorId := "SF-03"}) (cons (record PhotoPageRecord {id := "PHOTO-07", exhibitId := "Ex-I", pageNumber := 7, subjects := "Dedicated Homework & Music Alcove", statutoryFactorId := "SF-04"}) (cons (record PhotoPageRecord {id := "PHOTO-08", exhibitId := "Ex-I", pageNumber := 8, subjects := "Children's Courtyard Planter Project", statutoryFactorId := "SF-03"}) (cons (record PhotoPageRecord {id := "PHOTO-09", exhibitId := "Ex-I", pageNumber := 9, subjects := "Summer 2030 50/50 Bicycle & Park Outing", statutoryFactorId := "SF-04"}) (cons (record PhotoPageRecord {id := "PHOTO-10", exhibitId := "Ex-K", pageNumber := 1, subjects := "Family Board Game Night (2029)", statutoryFactorId := "SF-06"}) (cons (record PhotoPageRecord {id := "PHOTO-11", exhibitId := "Ex-K", pageNumber := 2, subjects := "School Robotics & Science Fair Preparation", statutoryFactorId := "SF-07"}) (cons (record PhotoPageRecord {id := "PHOTO-12", exhibitId := "Ex-K", pageNumber := 3, subjects := "Neighborhood Community Picnic Dinner", statutoryFactorId := "SF-03"}) (nil PhotoPageRecord))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: semanticMappings,
+  parameters: [],
+  result: (List ExhibitSemanticMapping),
+  body: (cons (record ExhibitSemanticMapping {id := "MAP-Ex-A", exhibitId := "Ex-A", proponent := "Respondent", modality := "Co-Parenting Communications", contentMeaning := "Co-Parenting Portal Communication Summary & Response-Time Audit (2029\u20132030)", contextualMeaning := "Demonstrates Respondent's 100 percent calm, child-focused written communication and timely scheduling coordination.", proponentTrialIntent := "Admit Exhibit A to establish CLM-05, CLM-16.", trialPivotIntent := "Use Exhibit A as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-B", exhibitId := "Ex-B", proponent := "Respondent", modality := "Parenting History", contentMeaning := "Verified 2023\u20132030 Caregiving Calendar, Medical Transport & 2028 Solo-Parenting Log", contextualMeaning := "Documents 6 years of hands-on parenting, 2028 4-month solo caregiving during Petitioner's regional assignment, and the 2030 90-day 50/50 rotation.", proponentTrialIntent := "Admit Exhibit B to establish CLM-01, CLM-02, CLM-03, CLM-05, CLM-16, CLM-17, CLM-20, CLM-23, CLM-24.", trialPivotIntent := "Use Exhibit B as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-C", exhibitId := "Ex-C", proponent := "Respondent", modality := "Court Orders & Stipulations", contentMeaning := "October 1, 2029 Stipulated Dismissal With Prejudice of Interim Restriction Motion", contextualMeaning := "Establishes that prior interim restriction allegations were voluntarily dismissed with prejudice in favor of neutral school-curb exchanges.", proponentTrialIntent := "Admit Exhibit C to establish CLM-19.", trialPivotIntent := "Use Exhibit C as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-D", exhibitId := "Ex-D", proponent := "Respondent", modality := "Compliance & Training", contentMeaning := "Certified 16-Hour Co-Parenting & Conflict-Resolution Seminar Completion Certificate (June 1, 2030)", contextualMeaning := "Proves Respondent completed the court-ordered 16-hour co-parenting seminar 30 days ahead of the judicial deadline.", proponentTrialIntent := "Admit Exhibit D to establish CLM-05, CLM-06, CLM-15.", trialPivotIntent := "Use Exhibit D as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-E", exhibitId := "Ex-E", proponent := "Respondent", modality := "Income & Benefits Verification", contentMeaning := "Certified Public-Service Disability Pension Award ($5,000/mo) & $0-Premium Dependent Medical Plan", contextualMeaning := "Verifies Respondent's $5,000.00/mo statutory disability pension, bars speculative wage imputation under \u00a7 305(5)(b), and proves $0-premium dependent health coverage.", proponentTrialIntent := "Admit Exhibit E to establish CLM-07, CLM-08, CLM-09, CLM-11, CLM-12.", trialPivotIntent := "Use Exhibit E as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-F", exhibitId := "Ex-F", proponent := "Respondent", modality := "Order Compliance Telemetry", contentMeaning := "Certified School Check-In Badge & Arterial Transit Telemetry Log (512 Yards Distance)", contextualMeaning := "Proves Respondent remained 512 yards from Petitioner's residence on the public arterial avenue while completing routine school drop-off.", proponentTrialIntent := "Admit Exhibit F to establish CLM-18, CLM-19, CLM-24.", trialPivotIntent := "Use Exhibit F as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-G", exhibitId := "Ex-G", proponent := "Respondent", modality := "Financial Disclosure", contentMeaning := "Petitioner's Initial Sworn Financial Statement (Filed June 10, 2029)", contextualMeaning := "Establishes that Petitioner swore under oath she held $0 in secondary escrow or reserve accounts on June 10, 2029.", proponentTrialIntent := "Admit Exhibit G to establish CLM-13, CLM-14, CLM-22.", trialPivotIntent := "Use Exhibit G as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-H", exhibitId := "Ex-H", proponent := "Respondent", modality := "Financial Disclosure Audit", contentMeaning := "Subpoenaed Statements for Escrow Checking x4102 & Reserve Savings x4109 ($30,000.00 Balance)", contextualMeaning := "Proves Petitioner held $30,000.00 ($3,000,000 cents) in undisclosed liquid funds on the exact date she signed Exhibit G.", proponentTrialIntent := "Admit Exhibit H to establish CLM-13, CLM-14, CLM-22.", trialPivotIntent := "Use Exhibit H as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-I", exhibitId := "Ex-I", proponent := "Respondent", modality := "Tax & Income Verification", contentMeaning := "Certified IRS Tax Return Transcripts (2026, 2027, 2028 & 2029 \u2014 $0 Civic Software Revenue)", contextualMeaning := "Proves Respondent earned $0 in commercial revenue or draws from open-source civic software contributions across 2026\u20132029.", proponentTrialIntent := "Admit Exhibit I to establish CLM-07, CLM-09, CLM-10.", trialPivotIntent := "Use Exhibit I as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-J", exhibitId := "Ex-J", proponent := "Respondent", modality := "Financial Accounting", contentMeaning := "Joint Household Checking Reconciliation & August 28, 2029 $6,400.00 Withdrawal Audit", contextualMeaning := "Documents Petitioner's unilateral $6,400.00 withdrawal from joint household funds immediately prior to separation.", proponentTrialIntent := "Admit Exhibit J to establish CLM-13, CLM-14, CLM-22.", trialPivotIntent := "Use Exhibit J as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-K", exhibitId := "Ex-K", proponent := "Respondent", modality := "Educational Records", contentMeaning := "Certified School District Attendance, Grade & Zero-Tardy Records (2028\u20132030)", contextualMeaning := "Confirms zero tardies, 100 percent homework completion, and honor-roll standing during Respondent's caregiving blocks and the 2030 50/50 period.", proponentTrialIntent := "Admit Exhibit K to establish CLM-01, CLM-02, CLM-03, CLM-17, CLM-21, CLM-23, CLM-24.", trialPivotIntent := "Use Exhibit K as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-L", exhibitId := "Ex-L", proponent := "Respondent", modality := "Proposed Court Orders", contentMeaning := "Respondent's Proposed Equal 50/50 Parenting Plan & Joint Governance Protocol", contextualMeaning := "Sets forth the week-on/week-off schedule (182.5 overnights each), Wednesday school-curb exchanges, right of first refusal during travel shifts, and mediation-first joint decision-making.", proponentTrialIntent := "Admit Exhibit L to establish CLM-01, CLM-03, CLM-04, CLM-05, CLM-12, CLM-18, CLM-19, CLM-20, CLM-21, CLM-23, CLM-24.", trialPivotIntent := "Use Exhibit L as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-M", exhibitId := "Ex-M", proponent := "Respondent", modality := "Demonstrative Map", contentMeaning := "Municipal Subdivision Map & School-Route Corridor Diagram (512-Yard Buffer Proof)", contextualMeaning := "Visually plots the school drop-off arterial corridor and confirms the 512-yard separation distance recorded in Exhibit F.", proponentTrialIntent := "Admit Exhibit M to establish CLM-18.", trialPivotIntent := "Use Exhibit M as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-N", exhibitId := "Ex-N", proponent := "Respondent", modality := "Support Guidelines Worksheet", contentMeaning := "Verified Guideline Child Support Worksheet ($250.00/mo Petitioner -> Respondent) & Rule 16.2 Brief", contextualMeaning := "Computes the exact $250.00/mo ($25,000 cents) guideline transfer at 182.5 equal overnights on the stipulated $8,000/$5,000 baseline.", proponentTrialIntent := "Admit Exhibit N to establish CLM-07, CLM-08, CLM-09, CLM-10, CLM-11, CLM-12, CLM-13, CLM-14, CLM-22.", trialPivotIntent := "Use Exhibit N as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-Ex-O", exhibitId := "Ex-O", proponent := "Respondent", modality := "Home Environment & Caregiving", contentMeaning := "Suburban Residence Photographs, Bedrooms, Study Desks & Family Activities Portfolio", contextualMeaning := "Shows dedicated bedrooms, homework stations, and active caregiving in Respondent's residence 8 minutes from school.", proponentTrialIntent := "Admit Exhibit O to establish CLM-01, CLM-02, CLM-04, CLM-17, CLM-21, CLM-24.", trialPivotIntent := "Use Exhibit O as objective documentary proof anchoring Opening Statement pillars."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-01", exhibitId := "OP-Ex-01", proponent := "Petitioner", modality := "Opposing Proposed Orders", contentMeaning := "Petitioner's Proposed Parenting Plan (90 Overnights / Alternating Weekends)", contextualMeaning := "Seeks to reduce Respondent to 90 overnights/year (24.7 percent) and grant Petitioner sole decision-making.", proponentTrialIntent := "Seeks to reduce Respondent to 90 overnights/year (24.7 percent) and grant Petitioner sole decision-making.", trialPivotIntent := "Refuted by 6 years of primary caregiving (Ex. B), zero tardies during the 2030 50/50 rotation (Ex. K), and full daytime availability (Ex. E)."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-02", exhibitId := "OP-Ex-02", proponent := "Petitioner", modality := "Opposing Support Worksheet", contentMeaning := "Petitioner's Proposed Support Worksheet ($750.00/mo Respondent -> Petitioner)", contextualMeaning := "Claims Respondent owes $750.00/mo by assuming 90 overnights, a $180/mo medical add-on, and a $450/mo commercial vendor add-on.", proponentTrialIntent := "Claims Respondent owes $750.00/mo by assuming 90 overnights, a $180/mo medical add-on, and a $450/mo commercial vendor add-on.", trialPivotIntent := "Defeated by Ex. N ($250.00/mo to Respondent at 182.5 overnights), $0-premium dependent medical coverage (Ex. E), and free parental care during travel shifts (Ex. L)."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-03", exhibitId := "OP-Ex-03", proponent := "Petitioner", modality := "Employment Schedule", contentMeaning := "Petitioner's Regional Logistics Travel & Shift Calendar (2029\u20132030)", contextualMeaning := "Offered to justify hiring a $1,500/mo commercial after-school care agency during Petitioner's multi-day regional travel shifts.", proponentTrialIntent := "Offered to justify hiring a $1,500/mo commercial after-school care agency during Petitioner's multi-day regional travel shifts.", trialPivotIntent := "Proves why equal 50/50 parenting time and right of first refusal (Ex. L \u00a7 4.3) are essential so the dependents stay with Respondent rather than commercial strangers."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-04", exhibitId := "OP-Ex-04", proponent := "Petitioner", modality := "Financial Disclosure", contentMeaning := "Petitioner's Amended Financial Statement (FiledMay 2030)", contextualMeaning := "Attempts to cure the June 10, 2029 omission after Respondent subpoenaed bank records.", proponentTrialIntent := "Attempts to cure the June 10, 2029 omission after Respondent subpoenaed bank records.", trialPivotIntent := "Confirms that the $30,000.00 in accounts x4102 and x4109 was only disclosed after subpoena production (Ex. H), triggering Rule 16.2(e)(10)."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-05", exhibitId := "OP-Ex-05", proponent := "Petitioner", modality := "Communications", contentMeaning := "Selected Co-Parenting Portal Screenshots (Cropped Logistics Thread)", contextualMeaning := "Cites isolated scheduling messages to argue communication friction.", proponentTrialIntent := "Cites isolated scheduling messages to argue communication friction.", trialPivotIntent := "Under FRE 106, the complete unredacted portal log (Ex. A, Ex. B) shows Respondent politely offering three alternative exchange times."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-06", exhibitId := "OP-Ex-06", proponent := "Petitioner", modality := "Interim Pleadings", contentMeaning := "Motion Regarding Arterial Avenue Proximity (Filed April 2030)", contextualMeaning := "Alleges Respondent drove too close to Petitioner's neighborhood during a morning school drop-off.", proponentTrialIntent := "Alleges Respondent drove too close to Petitioner's neighborhood during a morning school drop-off.", trialPivotIntent := "Refuted by certified transit telemetry and school check-in logs (Ex. F, Ex. M) proving Respondent was 512 yards away on the main school arterial."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-07", exhibitId := "OP-Ex-07", proponent := "Petitioner", modality := "Photographs", contentMeaning := "Driveway Camera Still Frame of Arterial Intersection", contextualMeaning := "Shows a vehicle on the distant arterial collector road.", proponentTrialIntent := "Shows a vehicle on the distant arterial collector road.", trialPivotIntent := "Cross-referenced with Ex. F and Ex. M to confirm the intersection is 512 yards from Petitioner's home on the direct route to the Elementary Academy."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-08", exhibitId := "OP-Ex-08", proponent := "Petitioner", modality := "Childcare Invoice", contentMeaning := "Commercial After-School Care Agency Brochure & Rate Sheet ($1,500/mo)", contextualMeaning := "Supports request for a $450/mo worksheet add-on for third-party after-school care.", proponentTrialIntent := "Supports request for a $450/mo worksheet add-on for third-party after-school care.", trialPivotIntent := "Unnecessary under \u00a7 305(9)(a) because Respondent lives 8 minutes from school and provides direct parental care at $0 cost (Ex. E, Ex. L)."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-09", exhibitId := "OP-Ex-09", proponent := "Petitioner", modality := "Insurance Records", contentMeaning := "Employer Health Plan Summary ($180/mo Optional Dependent Rider)", contextualMeaning := "Seeks $180/mo credit for optional employer dependent coverage.", proponentTrialIntent := "Seeks $180/mo credit for optional employer dependent coverage.", trialPivotIntent := "Duplicate expense: all three dependents already have comprehensive statutory medical coverage through Respondent at $0 monthly premium (Ex. E)."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-10", exhibitId := "OP-Ex-10", proponent := "Petitioner", modality := "Imputation Allegation", contentMeaning := "Public Git Repository Commit Log Printouts (2028\u20132029)", contextualMeaning := "Suggests Respondent's open-source civic software commits represent a commercial consulting business.", proponentTrialIntent := "Suggests Respondent's open-source civic software commits represent a commercial consulting business.", trialPivotIntent := "Certified 2026\u20132029 IRS tax transcripts (Ex. I) prove $0 gross revenue; open-source civic research is uncompensated community service, and \u00a7 305(5)(b) bars imputation (Ex. E)."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-11", exhibitId := "OP-Ex-11", proponent := "Petitioner", modality := "Financial Summary", contentMeaning := "Interim Household Expense Summary Spreadsheet (Unverified)", contextualMeaning := "Requests retroactive reimbursement of interim household expenses.", proponentTrialIntent := "Requests retroactive reimbursement of interim household expenses.", trialPivotIntent := "Barred by Civil Rule 16.2(e)(10) due to Petitioner's omission of $30,000.00 in accounts x4102/x4109 (Ex. G, Ex. H) and offset by her unilateral $6,400.00 withdrawal (Ex. J)."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-12", exhibitId := "OP-Ex-12", proponent := "Petitioner", modality := "Real Property", contentMeaning := "Suburban Residence Listing & Deed Printout", contextualMeaning := "Questions residential lease/ownership terms of Respondent's suburban home.", proponentTrialIntent := "Questions residential lease/ownership terms of Respondent's suburban home.", trialPivotIntent := "Corroborates Ex. O: confirms Respondent's long-term residential stability inside the dependents' school attendance zone."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-13", exhibitId := "OP-Ex-13", proponent := "Petitioner", modality := "Handwritten Notebook", contentMeaning := "2028 Handwritten Co-Parenting & Homework Study Log (12 Pages)", contextualMeaning := "Selectively quotes a single line from page 4 regarding firm weeknight screen-time limits to allege overly strict rules.", proponentTrialIntent := "Selectively quotes a single line from page 4 regarding firm weeknight screen-time limits to allege overly strict rules.", trialPivotIntent := "Under FRE 106 Rule of Completeness, page 4 lines 10\u201324 (October 12, 2028) proves both parents jointly agreed on calm homework tutoring, patience, and positive reinforcement."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-14", exhibitId := "OP-Ex-14", proponent := "Petitioner", modality := "Text Messages", contentMeaning := "Family Group Message Thread Export (6 Pages, Spring 2030)", contextualMeaning := "Cites a single message where the 15-year-old asked about schedule changes.", proponentTrialIntent := "Cites a single message where the 15-year-old asked about schedule changes.", trialPivotIntent := "Under FRE 106, pages 1\u20136 show the 15-year-old asking 'When do we get our 50/50 week-on/week-off schedule back?' and Respondent encouraging respect for both parents."}) (cons (record ExhibitSemanticMapping {id := "MAP-OP-Ex-15", exhibitId := "OP-Ex-15", proponent := "Petitioner", modality := "Activity Records", contentMeaning := "Extracurricular Activity Registration Receipts (2029\u20132030)", contextualMeaning := "Offered to show Petitioner registered the dependents for youth sports.", proponentTrialIntent := "Offered to show Petitioner registered the dependents for youth sports.", trialPivotIntent := "Ex. B and Ex. O show Respondent coached and transported the dependents to 85 percent of practices and games across 2028\u20132030."}) (nil ExhibitSemanticMapping))))))))))))))))))))))))))))))),
+  axioms: []
+}
+
+definition{
+  name: diaryIds,
+  parameters: [xs : (List HandwrittenDiaryEntry)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (diaryIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: visIds,
+  parameters: [xs : (List VisualForensicRecord)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (visIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: visExhibitIds,
+  parameters: [xs : (List VisualForensicRecord)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head exhibitId) (visExhibitIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: photoIds,
+  parameters: [xs : (List PhotoPageRecord)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (photoIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: photoExhibitIds,
+  parameters: [xs : (List PhotoPageRecord)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head exhibitId) (photoExhibitIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: mappingIds,
+  parameters: [xs : (List ExhibitSemanticMapping)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (mappingIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: mappedExhibitIds,
+  parameters: [xs : (List ExhibitSemanticMapping)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head exhibitId) (mappedExhibitIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+definition{
+  name: diaryEntryCount,
+  parameters: [],
+  result: Nat,
+  body: (prim length (diaryEntries) : Nat),
+  axioms: []
+}
+
+definition{
+  name: visualForensicCount,
+  parameters: [],
+  result: Nat,
+  body: (prim length (visualForensics) : Nat),
+  axioms: []
+}
+
+definition{
+  name: photoCatalogCount,
+  parameters: [],
+  result: Nat,
+  body: (prim length (photoCatalog) : Nat),
+  axioms: []
+}
+
+definition{
+  name: semanticMappingCount,
+  parameters: [],
+  result: Nat,
+  body: (prim length (semanticMappings) : Nat),
+  axioms: []
+}
+
+theorem{
+  name: diaryIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (diaryIds (diaryEntries))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: visualForensicIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (visIds (visualForensics))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: visualForensicExhibitsResolve,
+  parameters: [],
+  statement: ((allMembers (visExhibitIds (visualForensics)) (registerExhibitIds)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: photoIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (photoIds (photoCatalog))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: photoExhibitsResolve,
+  parameters: [],
+  statement: ((allMembers (photoExhibitIds (photoCatalog)) (registerExhibitIds)) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: semanticMappingIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (mappingIds (semanticMappings))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: everyRegisterExhibitHasSemanticAndIntentMapping,
+  parameters: [],
+  statement: ((allMembers (registerExhibitIds) (mappedExhibitIds (semanticMappings))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: diaryEntryCountIs8,
+  parameters: [],
+  statement: ((diaryEntryCount) = 8),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: visualForensicCountIs12,
+  parameters: [],
+  statement: ((visualForensicCount) = 12),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: photoCatalogCountIs12,
+  parameters: [],
+  statement: ((photoCatalogCount) = 12),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: semanticMappingCountIs30,
+  parameters: [],
+  statement: ((semanticMappingCount) = 30),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

@@ -1,0 +1,5 @@
+spec = "prismpm/dependencies/1"
+lean_toolchain = "leanprover/lean4:v4.32.1"
+lexlean_version = "0.4.0"
+prismpm_version = "0.4.0"
+packages = ["prism.legal@1.0.0", "lexlean.std.bool@1.2.0", "lexlean.std.int@1.2.0", "lexlean.std.nat@1.2.0", "prism.arch@1.0.0", "prism.qual@1.0.0", "prism.sec@1.0.0"]

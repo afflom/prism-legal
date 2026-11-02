@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "fiduciary-accounting-duty"
+category = "function"
+signature = "(pi ((explicit m (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Governance"
+name = "PrismLegal.Governance.fiduciaryAccountingDuty"
+
+[[form]]
+id = "fiduciary-accounting-duty"
+channel = "math"
+surface = "fiduciaryAccountingDuty"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name fiduciaryAccountingDuty) (paren (seq (slot 0))))"

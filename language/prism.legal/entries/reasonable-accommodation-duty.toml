@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "reasonable-accommodation-duty"
+category = "function"
+signature = "(pi ((explicit e (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Employment"
+name = "PrismLegal.Employment.reasonableAccommodationDuty"
+
+[[form]]
+id = "reasonable-accommodation-duty"
+channel = "math"
+surface = "reasonableAccommodationDuty"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name reasonableAccommodationDuty) (paren (seq (slot 0))))"

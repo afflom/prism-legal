@@ -1,0 +1,7 @@
+.lake/
+build/
+__pycache__/
+*.pyc
+target/
+.DS_Store
+.lexlean/

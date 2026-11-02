@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 290" role="img" aria-labelledby="sched-title sched-desc">
+  <title id="sched-title">Annual Parenting Overnights Comparison (Uniform Domestic Relations Act § 402)</title>
+  <desc id="sched-desc">Comparison of Respondent's Proposed Equal 50/50 Plan for the Three Minor Children (182.5 overnights each) versus Petitioner's Proposed 90-Overnight Restriction (24.7% Respondent, 75.3% Petitioner).</desc>
+  <rect width="820" height="290" rx="12" fill="#0f172a"/>
+  <text x="28" y="38" fill="#f8fafc" font-family="Inter, sans-serif" font-size="18" font-weight="700">Statutory Best-Interests Parenting Time (Ages 15, 11 &amp; 6) — Annual Overnights (365 Days)</text>
+  <text x="28" y="62" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="13">Respondent's Proposal (Ex. L): Equal 2-2-5-5 Rotation with Seamless Monday/Wednesday School Exchanges</text>
+  <rect x="28" y="76" width="380" height="46" rx="6" fill="#15803d"/>
+  <rect x="412" y="76" width="380" height="46" rx="6" fill="#1d4ed8"/>
+  <text x="218" y="104" text-anchor="middle" fill="#ffffff" font-family="Inter, sans-serif" font-size="14" font-weight="700">Respondent: 182.5 Overnights (50.0%)</text>
+  <text x="602" y="104" text-anchor="middle" fill="#ffffff" font-family="Inter, sans-serif" font-size="14" font-weight="700">Petitioner: 182.5 Overnights (50.0%)</text>
+
+  <text x="28" y="162" fill="#cbd5e1" font-family="Inter, sans-serif" font-size="13">Petitioner's Proposal: Restricts Respondent to 90 Overnights/Year + Replaces Available Parent with $2,400/mo After-School Agency (OP Ex. 4)</text>
+  <rect x="28" y="176" width="188" height="46" rx="6" fill="#b45309"/>
+  <rect x="220" y="176" width="572" height="46" rx="6" fill="#334155"/>
+  <text x="122" y="204" text-anchor="middle" fill="#ffffff" font-family="Inter, sans-serif" font-size="13" font-weight="700">90 (24.7%)</text>
+  <text x="506" y="204" text-anchor="middle" fill="#f8fafc" font-family="Inter, sans-serif" font-size="14" font-weight="700">Petitioner + Commercial Agency (OP Ex. 4): 275 Overnights (75.3%)</text>
+
+  <text x="28" y="256" fill="#86efac" font-family="Inter, sans-serif" font-size="12.5" font-weight="600">✓ Temporary Orders (Ex. N ¶ 8): Court found NO basis to restrict Respondent's parenting time; parties practiced 50/50 from March 1 to May 1, 2030.</text>
+</svg>

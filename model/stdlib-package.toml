@@ -1,0 +1,5 @@
+spec = "prismpm/stdlib-package/1"
+name = "prism-stdlib"
+version = "0.2.0"
+license = "MIT OR Apache-2.0"
+modules = ["Foundation.Arch", "Foundation.Bytes", "Foundation.Codec", "Foundation.Core", "Foundation.Outcome", "Foundation.Qual", "Foundation.Sec", "Foundation.Text", "Foundation.Utf8"]

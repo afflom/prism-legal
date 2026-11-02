@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "joint-governance"
+category = "function"
+signature = "(pi ((explicit d (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Governance"
+name = "PrismLegal.Governance.jointGovernance"
+
+[[form]]
+id = "joint-governance"
+channel = "math"
+surface = "jointGovernance"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name jointGovernance) (paren (seq (slot 0))))"

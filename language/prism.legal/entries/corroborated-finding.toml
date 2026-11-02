@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "corroborated-finding"
+category = "function"
+signature = "(pi ((explicit c (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Litigation"
+name = "PrismLegal.Litigation.corroboratedFinding"
+
+[[form]]
+id = "corroborated-finding"
+channel = "math"
+surface = "corroboratedFinding"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name corroboratedFinding) (paren (seq (slot 0))))"

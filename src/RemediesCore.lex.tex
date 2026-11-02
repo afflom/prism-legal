@@ -1,0 +1,158 @@
+\begin{lexlean}{RemediesCore}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\title{Boolean}
+\begin{semanticmodule}
+structure{
+  name: SupportWorksheet,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: id, type: String},
+    {name: label, type: String},
+    {name: partyAIncomeCents, type: Nat},
+    {name: partyBIncomeCents, type: Nat},
+    {name: combinedIncomeCents, type: Nat},
+    {name: partyBOvernights, type: Nat},
+    {name: medicalAddonCents, type: Nat},
+    {name: childcareAddonCents, type: Nat},
+    {name: netTransferCents, type: Nat}
+  ]
+}
+
+definition{
+  name: memberString,
+  parameters: [value : String, values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => false
+    | List.cons head tail => (if (prim equal value head : Bool) then true else (memberString value tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: distinctStrings,
+  parameters: [values : (List String)],
+  result: Bool,
+  body: (match values
+    | List.nil => true
+    | List.cons head tail => (if (memberString head tail) then false else (distinctStrings tail))),
+  axioms: [],
+  recursive_argument: values
+}
+
+definition{
+  name: petitionerStipulatedMonthlyCents,
+  parameters: [],
+  result: Nat,
+  body: 800000,
+  axioms: [],
+  executable: true,
+  production: {effects: [overflow], targets: [rust-core, rust-std]}
+}
+
+definition{
+  name: respondentStipulatedDisabilityCents,
+  parameters: [],
+  result: Nat,
+  body: 500000,
+  axioms: [],
+  executable: true,
+  production: {effects: [overflow], targets: [rust-core, rust-std]}
+}
+
+definition{
+  name: stipulatedBaselineCents,
+  parameters: [],
+  result: Nat,
+  body: ((petitionerStipulatedMonthlyCents) + (respondentStipulatedDisabilityCents)),
+  axioms: [],
+  executable: true,
+  production: {effects: [overflow], targets: [rust-core, rust-std]}
+}
+
+definition{
+  name: guidelineNetTransferCents,
+  parameters: [],
+  result: Nat,
+  body: 25000,
+  axioms: [],
+  executable: true,
+  production: {effects: [overflow], targets: [rust-core, rust-std]}
+}
+
+definition{
+  name: undisclosedReserveBalanceCents,
+  parameters: [],
+  result: Nat,
+  body: 3000000,
+  axioms: [],
+  executable: true,
+  production: {effects: [overflow], targets: [rust-core, rust-std]}
+}
+
+definition{
+  name: sharedParentingAdjustedCents,
+  parameters: [],
+  result: Nat,
+  body: 342000,
+  axioms: [],
+  executable: true,
+  production: {effects: [overflow], targets: [rust-core, rust-std]}
+}
+
+definition{
+  name: worksheets,
+  parameters: [],
+  result: (List SupportWorksheet),
+  body: (cons (record SupportWorksheet {id := "WS-RESPONDENT-GUIDELINE", label := "Respondent's Stipulated Guideline Worksheet (Ex. N)", partyAIncomeCents := 800000, partyBIncomeCents := 500000, combinedIncomeCents := 1300000, partyBOvernights := 182, medicalAddonCents := 0, childcareAddonCents := 0, netTransferCents := 25000}) (cons (record SupportWorksheet {id := "WS-PETITIONER-IMPUTED", label := "Petitioner's Contested Imputed Worksheet (OP Ex. 2)", partyAIncomeCents := 800000, partyBIncomeCents := 1400000, combinedIncomeCents := 2200000, partyBOvernights := 90, medicalAddonCents := 32000, childcareAddonCents := 90000, netTransferCents := 240000}) (nil SupportWorksheet))),
+  axioms: [],
+  executable: true,
+  production: {effects: [allocation], targets: [rust-std]}
+}
+
+definition{
+  name: worksheetIds,
+  parameters: [xs : (List SupportWorksheet)],
+  result: (List String),
+  body: (match xs
+    | List.nil => (nil String)
+    | List.cons head tail => (cons (project head id) (worksheetIds tail))),
+  axioms: [],
+  recursive_argument: xs
+}
+
+theorem{
+  name: worksheetIdsDistinct,
+  parameters: [],
+  statement: ((distinctStrings (worksheetIds (worksheets))) = true),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: stipulatedBaselineCentsVerified,
+  parameters: [],
+  statement: ((stipulatedBaselineCents) = 1300000),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: guidelineTransferCentsVerified,
+  parameters: [],
+  statement: ((guidelineNetTransferCents) = 25000),
+  proof: decide{},
+  axioms: []
+}
+
+theorem{
+  name: undisclosedReserveCentsVerified,
+  parameters: [],
+  statement: ((undisclosedReserveBalanceCents) = 3000000),
+  proof: decide{},
+  axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

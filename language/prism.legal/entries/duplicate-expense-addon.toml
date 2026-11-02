@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "duplicate-expense-addon"
+category = "function"
+signature = "(pi ((explicit c (const lexlean.std.nat::nat))) (const lexlean.std.nat::nat))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Remedies"
+name = "PrismLegal.Remedies.duplicateExpenseAddon"
+
+[[form]]
+id = "duplicate-expense-addon"
+channel = "math"
+surface = "duplicateExpenseAddon"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name duplicateExpenseAddon) (paren (seq (slot 0))))"

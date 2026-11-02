@@ -1,0 +1,21 @@
+spec = "lexlean/entry/1"
+id = "tdiu-schedular-eligible"
+category = "function"
+signature = "(pi ((explicit v (const lexlean.std.nat::nat))) (sort prop))"
+surface_arity = 1
+frame = "call"
+
+[denotation]
+kind = "lean"
+module = "PrismLegal.Veterans"
+name = "PrismLegal.Veterans.tdiuSchedularEligible"
+
+[[form]]
+id = "tdiu-schedular-eligible"
+channel = "math"
+surface = "tdiuSchedularEligible"
+canonical_source = true
+features = []
+
+[render]
+math = "(seq (operator-name tdiuSchedularEligible) (paren (seq (slot 0))))"
