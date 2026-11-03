@@ -470,7 +470,7 @@ fn additional_review_preserves_ambiguity_instead_of_prefilling_an_answer() {
     assert!(extra.meaning.ambiguous);
     let view = overview(&s, Role::Client).unwrap();
     assert!(view.context.iter().any(|text| text.contains("Reviewed examples disagree")));
-    assert!(nextStep(&s, Role::Client, &view).unwrap().ends_with("3:day0:"), "disagreement requires an editable empty meaning");
+    assert!(nextStep(&s, Role::Client, &view).unwrap().ends_with("3:day0:0:"), "disagreement requires an editable empty meaning");
 }
 
 #[test]
@@ -902,4 +902,55 @@ fn source_context_paginates_wide_rows_around_the_selected_cell_with_no_missing_c
     let page=sourceItemPage(&content.items,496,8).unwrap();assert_eq!(page.values.len(),8);assert!(page.values[4].contains("column 501 — a500: 500"));
     let last=sourceItemPage(&content.items,504,8).unwrap();assert_eq!(last.values.len(),8);assert!(last.values[7].contains("a511: 511"));
     for page in ["0","129","-1","1x","01"] {assert_eq!(resourcePageNumber(page.into(),0).unwrap(),None);}
+}
+
+#[test]
+fn selected_pending_passage_review_preserves_other_sources_and_replays_exactly() {
+    let journal=repeated_resource_journal();let s=replay(journal.clone()).unwrap().session;
+    let selected=reviewLocated(journal,&s,"client".into(),"record.kind".into(),"second".into(),"Records · resource 2 · line 1".into()).unwrap();
+    assert_eq!(selected.code,"");
+    let node=selected.session.matter.nodes.iter().find(|n|n.accepted).unwrap();
+    assert_eq!(node.citations[0].source,2);assert_eq!(node.value,"second");
+    assert!(selected.session.matter.nodes.iter().filter(|n|n.citations[0].source==1).all(|n|!n.accepted));
+    assert_eq!(replay(selected.journal.clone()).unwrap().session,selected.session);
+    let following=reviewLocated(selected.journal,&selected.session,"client".into(),"record.kind".into(),"first".into(),"".into()).unwrap();
+    assert_eq!(following.code,"");assert!(following.session.matter.nodes.iter().any(|n|n.accepted&&n.value=="first"&&n.citations[0].source==1));
+}
+
+#[test]
+fn selected_review_refuses_accepted_withdrawn_historical_and_unknown_locations() {
+    let journal=repeated_resource_journal();let s=replay(journal.clone()).unwrap().session;
+    for (role,location) in [("client","Records · line 1"),("client","Records · resource 2 · line 9"),("reader","Records · resource 2 · line 1")] {
+        let denied=reviewLocated(journal.clone(),&s,role.into(),"kind".into(),"second".into(),location.into()).unwrap();
+        assert!(!denied.code.is_empty());assert_eq!(denied.journal,journal);assert_eq!(denied.session,s);
+    }
+    let accepted=reviewLocated(journal,&s,"client".into(),"kind".into(),"second".into(),"Records · resource 2 · line 1".into()).unwrap();assert_eq!(accepted.code,"");
+    let denied=reviewLocated(accepted.journal.clone(),&accepted.session,"client".into(),"kind".into(),"rewritten".into(),"Records · resource 2 · line 1".into()).unwrap();assert_eq!(denied.code,"select-passage");assert_eq!(denied.session,accepted.session);
+    let withdrawn=alterInterpretation(accepted.journal,&accepted.session,"withdraw".into(),"client".into(),&["".into(),"client".into(),"kind".into(),"second".into(),"Records · resource 2 · line 1".into()]).unwrap();assert_eq!(withdrawn.code,"");
+    let denied=reviewLocated(withdrawn.journal.clone(),&withdrawn.session,"client".into(),"kind".into(),"second".into(),"Records · resource 2 · line 1".into()).unwrap();assert_eq!(denied.code,"select-passage");assert_eq!(denied.journal,withdrawn.journal);
+    let replaced=replaceResource(withdrawn.journal,&withdrawn.session,"client".into(),"Records".into(),"Replacement".into(),"Records · resource 2 · line 1".into()).unwrap();assert_eq!(replaced.code,"");
+    let denied=reviewLocated(replaced.journal.clone(),&replaced.session,"client".into(),"kind".into(),"old".into(),"Records · resource 2 · earlier version 1 · line 1".into()).unwrap();assert_eq!(denied.code,"select-passage");assert_eq!(denied.journal,replaced.journal);
+}
+
+#[test]
+fn source_context_review_form_is_bound_to_current_pending_location_and_role() {
+    let imported=csv_journal("person,authority\nZoë,Reviewed provision");
+    let cell=imported.session.matter.nodes.iter().find(|n|n.facet=="authority").unwrap();let citation=cell.citations[0].clone();
+    assert_eq!(sourceReviewStep(&imported.session,Role::Client,Some(citation.clone())).unwrap(),"");
+    assert_eq!(sourceReviewStep(&imported.session,Role::Reader,Some(citation.clone())).unwrap(),"");
+    let prepared=sourceReviewStep(&imported.session,Role::Lawyer,Some(citation.clone())).unwrap();
+    assert!(prepared.starts_with("review\u{1f}"));assert!(prepared.contains("Records · row 2 · column 2"));
+    let reviewed=reviewLocated(imported.journal,&imported.session,"lawyer".into(),"".into(),"".into(),"Records · row 2 · column 2".into()).unwrap();assert_eq!(reviewed.code,"");
+    assert_eq!(sourceReviewStep(&reviewed.session,Role::Lawyer,Some(citation)).unwrap(),"");
+    assert!(!reviewed.session.matter.nodes.iter().find(|n|n.facet=="person").unwrap().accepted);
+}
+
+#[test]
+fn selected_csv_review_uses_the_selected_decoded_cell_and_preserves_raw_citation() {
+    let imported=csv_journal("person,notes\nZoë,\"said \"\"yes\"\", then\nleft\"");
+    let raw=imported.session.matter.nodes.iter().find(|n|n.facet=="notes").unwrap().citations.clone();
+    let reviewed=reviewLocated(imported.journal,&imported.session,"client".into(),"".into(),"".into(),"Records · row 2 · column 2".into()).unwrap();assert_eq!(reviewed.code,"");
+    let cell=reviewed.session.matter.nodes.iter().find(|n|n.accepted).unwrap();assert_eq!(cell.facet,"notes");assert_eq!(cell.value,"said \"yes\", then\nleft");assert_eq!(cell.citations,raw);
+    assert!(citationsCurrent(&reviewed.session.matter.sources,&cell.citations));
+    assert_eq!(replay(reviewed.journal).unwrap().session,reviewed.session);
 }

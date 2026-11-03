@@ -243,4 +243,15 @@ let sourceText=invoke('ingest',[csv,'client','Text',longText]).response;
 result=invoke('resource',[sourceText,'client','Text','Text · line 20','']);assert.equal(result.status,'ok');assert.equal(result.response,sourceText);assert.match(result.details[0],/page 3 of 3/);assert.match(result.details.join(' '),/line 17 — Zoë line 17/);assert.match(result.details.join(' '),/line 20 — Zoë line 20/);assert.doesNotMatch(result.details.join(' '),/line 16 —/);
 result=invoke('resource',[sourceText,'client','','','']);assert.equal(result.status,'ok');assert.equal(result.response,sourceText);assert.match(result.message,/Resources/);assert.match(result.details.join(' '),/Text · line 1/);assert.match(result.details.join(' '),/Records · row 2 · column 1/);
 
+// A source-context form selects its displayed pending passage, not the queue head.
+let selected=invoke('create',['','Selected review']).response;
+selected=invoke('ingest',[selected,'client','Text','First pending\nSecond pending']).response;
+selected=invoke('goal',[selected,'client','Review a chosen passage']).response;
+result=invoke('resource',[selected,'client','','Text · line 2','']);assert.equal(result.response,selected);assert.match(result.request,/^review\u001f/);assert.match(result.request,/Text · line 2/);
+result=invoke('review',[selected,'client','event','second','Text · line 2']);assert.equal(result.status,'ok');selected=result.response;
+result=invoke('inspect',[selected,'client','event','1']);assert.match(result.details.join(' '),/Current interpretation: second/);assert.match(result.details.join(' '),/Text · line 2/);
+result=invoke('overview',[selected,'client']);assert.match(result.details.join(' '),/First pending/);assert.match(result.request,/Text · line 1/);
+for(const location of ['Text · line 2','Text · line 8','Missing · line 1']) {result=invoke('review',[selected,'client','event','overwritten',location]);assert.equal(result.status,'error');assert.equal(result.error,'passage-selection');assert.equal(result.response,selected);}
+result=invoke('resource',[selected,'client','','Text · line 2','']);assert.equal(result.request,'');assert.equal(result.response,selected);
+assert.equal(invoke('restore',[selected]).response,selected);
 console.log(`PASS: ${model.acceptance_vectors.length} source vectors plus unseen journal, Unicode, control-display, input-boundary, multiple-facet and joint-slot learning, withdrawal and refusal cases in generated Wasm`);

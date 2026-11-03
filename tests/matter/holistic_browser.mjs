@@ -51,7 +51,7 @@ try{
  await run('annotate',{'from-facet':'amount','from-value':'50',facet:'day',interpretation:'Monday'});
  assert.match(await page.locator('#result-details').textContent(),/amount: 75/);assert.match(await page.locator('#result-details').textContent(),/day: Tuesday/);
  await run('review',{facet:'amount'});assert.equal(await message(),'Review another aspect of this passage');
- const beforeDay=await save();assert.equal(await page.locator('#next-form').textContent(),'Review the next interpretation');
+ const beforeDay=await save();assert.equal(await page.locator('#next-form').textContent(),'Review interpretation');
  await page.locator('#next-form').click();assert.equal(await page.locator('#operation').inputValue(),'review');
  assert.equal(await page.locator('#field-facet').inputValue(),'day');assert.equal(await page.locator('#field-interpretation').inputValue(),'Tuesday');
  assert.deepEqual(await save(),beforeDay,'opening the additional facet form must not accept it');
@@ -153,6 +153,17 @@ try{
  await run('ingest',{title:'Text',content:Array.from({length:24},(_,i)=>`Zoë line ${i+1}`).join('\r\n')});const beforeTextContext=await save();
  await run('resource',{title:'Text',location:'Text · line 20',page:''});assert.match(await page.locator('#result-details').textContent(),/page 3 of 3/);assert.match(await page.locator('#result-details').textContent(),/line 20 — Zoë line 20/);assert.deepEqual(await save(),beforeTextContext);
  await run('resource',{title:'',location:'',page:''});assert.match(await message(),/Resources/);assert.match(await page.locator('#result-details').textContent(),/Text · line 1/);assert.deepEqual(await save(),beforeTextContext);
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
+ await run('resource',{title:'Text',location:'Text · line 20',page:''});
+ assert.equal(await page.locator('#next-form').textContent(),'Review interpretation');
+ const beforeSelectedReview=await save();await page.locator('#next-form').click();
+ assert.equal(await page.locator('#field-location').inputValue(),'Text · line 20');assert.deepEqual(await save(),beforeSelectedReview);
+ await page.locator('#field-facet').fill('note');await page.locator('#field-interpretation').fill('Reviewed line twenty');
+ await page.locator('#guided-submit').click();await ready();assert.equal(await page.locator('#result-error').isVisible(),false);
+ await run('inspect',{facet:'note',page:'1'});assert.match(await page.locator('#result-details').textContent(),/Reviewed line twenty/);assert.match(await page.locator('#result-details').textContent(),/Text · line 20/);
+ const afterSelectedReview=await save();await run('review',{facet:'note',interpretation:'Overwrite',location:'Text · line 20'});
+ assert.equal(await page.locator('#result-error').isVisible(),true);assert.deepEqual(await save(),afterSelectedReview);
+ await run('resource',{title:'Text',location:'Text · line 20',page:''});assert.equal(await page.locator('#next-form').isVisible(),false);
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
  if(process.env.SCREENSHOT_PATH)await page.screenshot({path:process.env.SCREENSHOT_PATH,fullPage:true});
  console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet and joint-slot interpretation, withdrawal, next-form navigation, and mobile layout');

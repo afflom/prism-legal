@@ -200,12 +200,14 @@ Withdrawing the only supporting training removes its pending suggestion.
 
 The existing review operation applies to the exact displayed passage. It can
 therefore review equal values at distinct source locations without an ambiguous
-text selector. Its prepared form contains only the aspect and editable meaning.
+text selector. Its prepared form contains the aspect, editable meaning, and exact source location. A blank location retains the automatic next-review path; an explicit location selects one current pending source interpretation.
 Changing an aspect with an empty meaning cannot reuse a different aspect's
 inference. Conflicting meanings require explicit interpretation. The focused
 node and facet are independent of workflow role: switching between client and
 lawyer does not silently change the source. A privileged aspect remains a lawyer
 review task; client and reader views do not prepare an unauthorized action.
+
+A selected source-context view can prepare that pending passage’s review form. Opening it is read-only; submitting uses the same journal command and workflow checks as automatic review. Accepted, withdrawn, historical, missing, and ambiguous selections cannot silently replace an interpretation. Current interpretations use the correction and withdrawal operations. Older four-field review requests remain supported.
 
 Review context names the resource and its original text line. Duplicate resource
 titles include their resource number. UTF-8 and CRLF do not shift those locations.
@@ -231,7 +233,7 @@ Historical interpretations show their source revision and original line, using
 the retained source bytes rather than the replacement resource's text.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 60 acceptance vectors. Unused help and
+controls, errors, empty states, and 82 acceptance vectors. Unused help and
 transport details are collapsed. Shorter field guidance and the neutral Continue
 action serve both review and read-only forms. Acceptance bytes are factored into
 closed byte aliases, preserving their exact values while reducing large inline
@@ -286,15 +288,15 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`94d8be75aa7fd7132351281e1c8a838f76e7fef5d0588d65cdd197b25430103f`
+`1ab5e60d3b814867c4b50de90f5f6ad67094b43791cd385394cf1ea0742b8441`
 and semantic ID
-`10434c3ab1807225e1e9f7ba537b01fe1425a691fcc4bb228a7e221c06563409`
+`3352ec2fc2b33d1a4ba331eb8613a6074214c164643dd54064b00ab4d52c8c48`
 was emitted as build
-`4188ec7506e6db707be550e2f58f5cb0278ae8a2cc790cc0e5776dae121c9cd8`
+`459ee5a8d897b3054e462949dcff5a8f1534dfafd3805a747dad0a424526daed`
 and passed LexLean verification with attestation
-`135dbf883e4a0e5908f3e3ea911be90f2ea642003d1cc0019f304b5318386fc4`.
+`7918203695c34db42bdc935374626a5685114487c61bdc0b471b27ac0c31e6ae`.
 
-The generated native library passes 62 tests across `behavior.rs` and
+The generated native library passes 66 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
@@ -315,7 +317,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 60 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 82 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -324,11 +326,13 @@ inspection, save/reopen, failed restoration, learned multi-facet review, withdra
 next-form navigation, source locations, additional-facet review, role consistency,
 source-qualified corrections, historical source locations, learned date chronology,
 combined date aspects, source-qualified resource replacement, CSV file import
-and refusal, table revision and replay, source-context browsing, and mobile layout.
+and refusal, table revision and replay, source-context browsing, source-selected review, and mobile layout.
+
+The source corpus also exercises a complete strategy lifecycle: reviewed authority and conditions, proposal creation, refused client acceptance, lawyer acceptance, a newly observed exception, fresh proposal and review after withdrawal, correction, source replacement, and replay.
 
 The source corpus includes a 70,831-byte restore request containing nine imported
 resources. It exceeds the old portable transport limit and returns the exact
-accepted journal. The current 60-vector artifact passes native, Wasm and
+accepted journal. The current 82-vector artifact passes native, Wasm and
 application-browser checks. Its portable gate has not been rerun. The prior
 40-vector and 34-vector artifacts' development portable-browser runs failed while
 reading a response through Playwright (`Network.getResponseBody: No data found
@@ -368,7 +372,7 @@ and source `3688c15bdc0fcaf3f5ad46166016f29aed79f9abf4393dbae2ec8bcf20e1b060`.
 The artifact ZIP SHA-256 is
 `29b4e58916be64b861432a6296f667cf7e80ad3ae13a010b4b8517ab34dd16a6`.
 This evidence applies to that revision; later changes still require their own
-full verification before publication. The upstream SDK PR also needs its
+full verification before publication. The later 42-vector commit `fff875e` passed native, Wasm and application-browser checks in [CI run 41620717145](https://github.com/afflom/prism-legal/actions/runs/41620717145), but its Hologram oracle exited with `Elapsed(())`. That portable timeout is unresolved and the run is not a full verification pass. Two later local diagnostic runs of its 42-vector source produced a browser failure and a pass of direct/resident execution and all nine portable journeys in Chromium 154; this does not establish the cause of the pinned CI timeout. The upstream SDK PR also needs its
 reviewed native golden records regenerated in the required environment; existing
 records must not be relabeled as current evidence.
 
