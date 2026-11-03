@@ -18,7 +18,7 @@ The view offers the next useful form, with focused facet inspection and
 supporting source context available when needed. Source locations distinguish
 equal interpretations during correction or withdrawal and retain the original
 line and version after a resource changes. Resource replacement can also use
-these locations to distinguish duplicate filenames. A chronology combines selected date
+these locations to distinguish duplicate filenames. Source inspection opens the complete CSV row or the text page containing a passage, including retained earlier versions. A chronology combines selected date
 aspects, orders valid dates, and keeps uncertain or conflicting dates visible
 for review.
 

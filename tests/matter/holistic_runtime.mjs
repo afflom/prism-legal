@@ -229,4 +229,18 @@ assert.equal(invoke('restore',[csv]).response,csv);
 result=invoke('timeline',[csv,'client','date','1']);assert.match(result.details.join(' '),/Current dates: 0/);
 result=invoke('inspect',[csv,'client','date','1']);assert.match(result.details.join(' '),/Records · earlier version 1 · row 2 · column 3/);
 
+// Read-only source inspection keeps record context and retained versions separate.
+const sourceContextJournal=csv;
+result=invoke('resource',[csv,'client','Records','Records · earlier version 1 · row 2 · column 2','']);assert.equal(result.status,'ok');assert.equal(result.response,csv);
+assert.match(result.details.join(' '),/CSV source · row 2 · earlier version 1/);assert.match(result.details.join(' '),/person: Zoë/);assert.match(result.details.join(' '),/notes: said "yes", then +left/);assert.match(result.details.join(' '),/date: 2024-02-29/);
+result=invoke('resource',[csv,'client','Records','Records · row 2 · column 3','']);assert.equal(result.status,'ok');assert.equal(result.response,csv);
+assert.match(result.details.join(' '),/person: 李/);assert.match(result.details.join(' '),/notes: Empty source cell/);assert.doesNotMatch(result.details.join(' '),/2024-02-29/);
+result=invoke('resource',[csv,'client','Missing','Records · row 2 · column 3','']);assert.equal(result.status,'error');assert.equal(result.error,'source-selection');assert.equal(result.response,csv);
+for(const page of ['0','129','01']){result=invoke('resource',[csv,'client','Records','',page]);assert.equal(result.status,'error');assert.equal(result.response,csv);}
+assert.equal(csv,sourceContextJournal);
+const longText=Array.from({length:24},(_,i)=>`Zoë line ${i+1}\r`).join('\n');
+let sourceText=invoke('ingest',[csv,'client','Text',longText]).response;
+result=invoke('resource',[sourceText,'client','Text','Text · line 20','']);assert.equal(result.status,'ok');assert.equal(result.response,sourceText);assert.match(result.details[0],/page 3 of 3/);assert.match(result.details.join(' '),/line 17 — Zoë line 17/);assert.match(result.details.join(' '),/line 20 — Zoë line 20/);assert.doesNotMatch(result.details.join(' '),/line 16 —/);
+result=invoke('resource',[sourceText,'client','','','']);assert.equal(result.status,'ok');assert.equal(result.response,sourceText);assert.match(result.message,/Resources/);assert.match(result.details.join(' '),/Text · line 1/);assert.match(result.details.join(' '),/Records · row 2 · column 1/);
+
 console.log(`PASS: ${model.acceptance_vectors.length} source vectors plus unseen journal, Unicode, control-display, input-boundary, multiple-facet and joint-slot learning, withdrawal and refusal cases in generated Wasm`);

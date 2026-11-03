@@ -842,3 +842,64 @@ fn csv_additional_learning_preserves_column_context_for_equal_cell_values() {
     assert_eq!(additional.meaning.facet,"claimed.amount");
     assert_eq!(interpretationLocation(&result.session,&additional.node.unwrap()).unwrap(),"Records · row 3 · column 1");
 }
+
+#[test]
+fn source_context_shows_the_whole_csv_record_including_empty_cells() {
+    let imported=csv_journal("person,notes,date\r\nZoë,\"first\r\nsecond\",2024-02-29\r\n李,,2024-03-01");
+    let s=&imported.session;let source=&s.matter.sources[0];
+    let selected=matchingSourceVersions(&s.matter.sources,s,"Records".into(),"Records · row 2 · column 2".into()).unwrap();assert_eq!(selected.count,1);
+    let context=resourceContent(source,true,selected.citation).unwrap().unwrap();
+    assert_eq!(context.scope,"CSV source · row 2");assert_eq!(context.focusIndex,1);assert_eq!(context.items.len(),3);
+    assert_eq!(context.items.iter().map(|i|(i.heading.as_str(),i.value.as_str())).collect::<Vec<_>>(),vec![("person","Zoë"),("notes","first\r\nsecond"),("date","2024-02-29")]);
+    let selected=matchingSourceVersions(&s.matter.sources,s,"".into(),"Records · row 3 · column 3".into()).unwrap();
+    let context=resourceContent(source,true,selected.citation).unwrap().unwrap();
+    assert_eq!(context.items.len(),3);assert_eq!(context.items[1].value,"");assert_eq!(context.items[2].value,"2024-03-01");
+    assert!(s.matter.nodes.iter().all(|n|!n.accepted));
+}
+
+#[test]
+fn text_source_context_opens_the_page_containing_the_original_utf8_passage() {
+    let text=(1..=24).map(|i|format!("Zoë line {i}\r")).collect::<Vec<_>>().join("\n");
+    let s=accepted(ingest(&initial("Text".into()),0,Role::Client,"client".into(),"Records".into(),text.as_bytes().to_vec()).unwrap());
+    let selected=matchingSourceVersions(&s.matter.sources,&s,"Records".into(),"Records · line 20".into()).unwrap();assert_eq!(selected.count,1);
+    let context=resourceContent(&s.matter.sources[0],false,selected.citation).unwrap().unwrap();
+    assert_eq!(context.focusIndex,19);assert_eq!(resourcePageNumber("".into(),context.focusIndex).unwrap(),Some(3));
+    let page=sourceItemPage(&context.items,16,8).unwrap();assert_eq!(page.values.len(),8);assert!(page.values[0].starts_with("line 17 — Zoë line 17"));assert!(page.values[3].contains("Zoë line 20"));
+    assert_eq!(s.matter.sources[0].content,text.as_bytes());
+}
+
+#[test]
+fn source_context_resolves_retained_versions_without_mixing_new_rows_or_headings() {
+    let imported=csv_journal("person,notes,date\nZoë,original,2024-02-29");
+    let changed=replaceResource(imported.journal,&imported.session,"client".into(),"Records".into(),"person,date\n李,2024-03-01".into(),"".into()).unwrap();assert_eq!(changed.code,"");
+    let s=&changed.session;let versions=[s.matter.sources.clone(),s.sourceHistory.clone()].concat();
+    let selected=matchingSourceVersions(&versions,s,"".into(),"Records · earlier version 1 · row 2 · column 2".into()).unwrap();assert_eq!(selected.count,1);
+    let source=selected.source.unwrap();assert_eq!(source.revision,1);
+    let content=resourceContent(&source,true,selected.citation).unwrap().unwrap();assert_eq!(content.items.len(),3);assert_eq!(content.items[1].heading,"notes");assert_eq!(content.items[1].value,"original");
+    let current=matchingSourceVersions(&versions,s,"".into(),"Records · row 2 · column 2".into()).unwrap();assert_eq!(current.count,1);
+    let content=resourceContent(&current.source.unwrap(),true,current.citation).unwrap().unwrap();assert_eq!(content.items.len(),2);assert_eq!(content.items[1].heading,"date");assert_eq!(content.items[1].value,"2024-03-01");
+    assert_eq!(replay(changed.journal).unwrap().session,*s);
+}
+
+#[test]
+fn source_context_browses_duplicate_names_and_refuses_inconsistent_selection() {
+    let journal=repeated_resource_journal();let s=replay(journal.clone()).unwrap().session;
+    assert_eq!(matchingSourceVersions(&s.matter.sources,&s,"Records".into(),"".into()).unwrap().count,2);
+    let catalogue=sourceCatalogueItems(&s.matter.sources,&s).unwrap();assert_eq!(catalogue.values.len(),2);assert!(catalogue.values.iter().any(|v|v=="Records · resource 1 · line 1"));assert!(catalogue.values.iter().any(|v|v=="Records · resource 2 · line 1"));
+    for (title,location) in [("Missing","Records · resource 1 · line 1"),("Records","Records · line 1"),("Records","Records · resource 9 · line 1")] {
+        assert_eq!(matchingSourceVersions(&s.matter.sources,&s,title.into(),location.into()).unwrap().count,0);
+    }
+    let selected=matchingSourceVersions(&s.matter.sources,&s,"".into(),"Records · resource 2 · line 1".into()).unwrap();assert_eq!(selected.count,1);assert_eq!(selected.source.unwrap().content,b"Second resource");
+    assert_eq!(replay(journal).unwrap().session,s);
+}
+
+#[test]
+fn source_context_paginates_wide_rows_around_the_selected_cell_with_no_missing_cells() {
+    let headers=(0..512).map(|i|format!("a{i}")).collect::<Vec<_>>().join(",");let values=(0..512).map(|i|i.to_string()).collect::<Vec<_>>().join(",");
+    let s=accepted(ingestCsv(&initial("Table".into()),0,Role::Client,"client".into(),"Records".into(),format!("{headers}\n{values}").into_bytes()).unwrap());
+    let focus=s.matter.nodes[500].citations[0].clone();let content=resourceContent(&s.matter.sources[0],true,Some(focus)).unwrap().unwrap();assert_eq!(content.items.len(),512);assert_eq!(content.focusIndex,500);
+    assert_eq!(resourcePageNumber("".into(),500).unwrap(),Some(63));
+    let page=sourceItemPage(&content.items,496,8).unwrap();assert_eq!(page.values.len(),8);assert!(page.values[4].contains("column 501 — a500: 500"));
+    let last=sourceItemPage(&content.items,504,8).unwrap();assert_eq!(last.values.len(),8);assert!(last.values[7].contains("a511: 511"));
+    for page in ["0","129","-1","1x","01"] {assert_eq!(resourcePageNumber(page.into(),0).unwrap(),None);}
+}

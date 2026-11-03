@@ -143,5 +143,17 @@ try{
  await page.locator('#open-session').setInputFiles({name:'table.prismlegal',mimeType:'application/octet-stream',buffer:csvReplaced});
  await page.waitForFunction(()=>document.querySelector('#save-session').disabled===false);await ready();assert.deepEqual(await save(),csvReplaced);
  await page.setViewportSize({width:390,height:844});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
+ const beforeContext=await save();
+ await run('resource',{title:'Records',location:'Records · earlier version 1 · row 2 · column 2',page:''});
+ assert.match(await page.locator('#result-details').textContent(),/CSV source · row 2 · earlier version 1/);
+ assert.match(await page.locator('#result-details').textContent(),/person: Zoë/);assert.match(await page.locator('#result-details').textContent(),/notes: said "yes", then +left/);assert.match(await page.locator('#result-details').textContent(),/date: 2024-02-29/);assert.deepEqual(await save(),beforeContext);
+ await run('resource',{title:'Records',location:'Records · row 2 · column 3',page:''});
+ assert.match(await page.locator('#result-details').textContent(),/notes: Empty source cell/);assert.match(await page.locator('#result-details').textContent(),/person: 李/);assert.doesNotMatch(await page.locator('#result-details').textContent(),/2024-02-29/);assert.deepEqual(await save(),beforeContext);
+ await run('resource',{title:'Missing',location:'Records · row 2 · column 3',page:''});assert.equal(await page.locator('#result-error').isVisible(),true);assert.deepEqual(await save(),beforeContext);
+ await run('ingest',{title:'Text',content:Array.from({length:24},(_,i)=>`Zoë line ${i+1}`).join('\r\n')});const beforeTextContext=await save();
+ await run('resource',{title:'Text',location:'Text · line 20',page:''});assert.match(await page.locator('#result-details').textContent(),/page 3 of 3/);assert.match(await page.locator('#result-details').textContent(),/line 20 — Zoë line 20/);assert.deepEqual(await save(),beforeTextContext);
+ await run('resource',{title:'',location:'',page:''});assert.match(await message(),/Resources/);assert.match(await page.locator('#result-details').textContent(),/Text · line 1/);assert.deepEqual(await save(),beforeTextContext);
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
+ if(process.env.SCREENSHOT_PATH)await page.screenshot({path:process.env.SCREENSHOT_PATH,fullPage:true});
  console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet and joint-slot interpretation, withdrawal, next-form navigation, and mobile layout');
 }finally{await context.close();await browser.close();}

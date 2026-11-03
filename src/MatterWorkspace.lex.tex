@@ -9,6 +9,7 @@
 \importmodule{MatterLanguage}
 \importmodule{MatterContext}
 \importmodule{MatterChronology}
+\importmodule{MatterResources}
 \importmodule{MatterJourney}
 \importmodule{MatterJournal}
 \importmodule{MatterText}
@@ -274,13 +275,14 @@ definition{
 definition{
  name: workspaceError, parameters: [operation : String, code : String, journal : String], result: Bytes,
  body: (MatterWire::reportState "error" operation
+ (if (prim equal code "source-selection" : Bool) then "Choose a resource name or copy one source location. Leave both blank to browse resources." else
  (if (prim equal code "csv" : Bool) then "Check the CSV headings, quoting and row lengths. Use up to 8192 UTF-8 bytes, 64 text lines and 1024 cells including the header." else
  (if (prim equal code "no-matter" : Bool) then "Create or open a matter to continue." else
  (if (prim equal code "existing-matter" : Bool) then "Save this matter and open a new window to start another." else
  (if (prim equal code "role" : Bool) then "Choose the client or lawyer workflow." else
  (if (prim equal code "selection" : Bool) then "Inspect the aspect, then use its exact wording and source location to identify one current item." else
  (if (prim equal code "conditions" : Bool) then "Write one condition per line as facet = value." else
- (if (prim equal code "limit" : Bool) then "This change exceeds the supported matter size. Your matter is unchanged." else "This change could not be accepted. Check the input and its current matter context.")))))))
+ (if (prim equal code "limit" : Bool) then "This change exceeds the supported matter size. Your matter is unchanged." else "This change could not be accepted. Check the input and its current matter context."))))))))
  0 0 (nil String) (nil String) code journal),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
@@ -530,6 +532,112 @@ definition{
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
+structure{
+ name: SourceSelection, type_parameters: [], parameters: [],
+ fields: [{name: source, type: (Option Matter::Source)}, {name: citation, type: (Option Matter::Citation)}, {name: count, type: Nat}]
+}
+definition{
+ name: versionCitationIn, parameters: [citations : (List Matter::Citation), session : MatterSession::Session, source : Matter::Source, location : String], result: (Option Matter::Citation),
+ body: (match citations | List.nil => (ctor Option.none [Matter::Citation]) | List.cons citation rest =>
+ (if (((project citation source) =? (project source id)) && (((project citation revision) =? (project source revision)) &&
+ ((Matter::citationsCurrent (cons source (nil Matter::Source)) (cons citation (nil Matter::Citation))) &&
+ ((prim equal location "" : Bool) || (prim equal location (displayText (prim join (project (MatterJourney::sourceHeadings (cons citation (nil Matter::Citation)) session) values) "; " : String)) : Bool))))) then
+ (ctor Option.some [Matter::Citation] citation) else (versionCitationIn rest session source location))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
+}
+definition{
+ name: versionCitation, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, source : Matter::Source, location : String], result: (Option Matter::Citation),
+ body: (match nodes | List.nil => (ctor Option.none [Matter::Citation]) | List.cons node rest =>
+ (match (versionCitationIn (project node citations) session source location) | Option.some citation => (ctor Option.some [Matter::Citation] citation) | Option.none => (versionCitation rest session source location))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
+}
+definition{
+ name: matchingSourceVersions, parameters: [sources : (List Matter::Source), session : MatterSession::Session, title : String, location : String], result: SourceSelection,
+ body: (match sources | List.nil => (record SourceSelection {source := (ctor Option.none [Matter::Source]), citation := (ctor Option.none [Matter::Citation]), count := 0}) | List.cons source rest =>
+ (let following : SourceSelection := (matchingSourceVersions rest session title location);
+ (if ((not (prim equal title "" : Bool)) && (not (prim equal title (MatterJourney::resourceName (project session labels) (project source id)) : Bool))) then following else
+ (if (prim equal location "" : Bool) then (record SourceSelection {source := (ctor Option.some [Matter::Source] source), citation := (ctor Option.none [Matter::Citation]), count := ((project following count) + 1)}) else
+ (match (versionCitation (project (project session matter) nodes) session source location) | Option.none => following | Option.some citation =>
+ (record SourceSelection {source := (ctor Option.some [Matter::Source] source), citation := (ctor Option.some [Matter::Citation] citation), count := ((project following count) + 1)})))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: sources
+}
+definition{
+ name: resourceTitle, parameters: [session : MatterSession::Session, source : Matter::Source], result: String,
+ body: (let title : String := (MatterJourney::resourceName (project session labels) (project source id));
+ (if (prim equal title "" : Bool) then (MatterText::concat "Resource " (MatterText::decimalLoop 20 (project source id))) else
+ (if (1 <? (MatterJourney::resourceNameCount (project session labels) title)) then (MatterText::concat title (MatterText::concat " · resource " (MatterText::decimalLoop 20 (project source id)))) else title))),
+ executable: true, axioms: [propext]
+}
+definition{
+ name: sourceCatalogueItems, parameters: [sources : (List Matter::Source), session : MatterSession::Session], result: MatterText::TextItems,
+ body: (match sources | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons source rest =>
+ (record MatterText::TextItems {values := (cons
+ (match (versionCitation (project (project session matter) nodes) session source "") | Option.none => (resourceTitle session source) | Option.some citation =>
+ (prim join (project (MatterJourney::sourceHeadings (cons citation (nil Matter::Citation)) session) values) "; " : String))
+ (project (sourceCatalogueItems rest session) values))})),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: sources
+}
+definition{
+ name: resourcePageNumber, parameters: [page : String, focusIndex : Nat], result: (Option Nat),
+ body: (if (prim equal page "" : Bool) then (ctor Option.some [Nat] ((prim quotient focusIndex 8 0 : Nat) + 1)) else
+ (match (MatterJournal::natural page) | Option.none => (ctor Option.none [Nat]) | Option.some number =>
+ (if ((number =? 0) || (128 <? number)) then (ctor Option.none [Nat]) else (ctor Option.some [Nat] number)))),
+ executable: true, axioms: [propext]
+}
+definition{
+ name: sourcePageLabel, parameters: [number : Nat, count : Nat], result: String,
+ body: (MatterText::concat "page " (MatterText::concat (MatterText::decimalLoop 20 number) (MatterText::concat " of " (MatterText::decimalLoop 20 (if (count =? 0) then 1 else ((prim quotient (prim subtract count 1 : Nat) 8 0 : Nat) + 1)))))),
+ executable: true, axioms: [propext]
+}
+definition{
+ name: sourceItemText, parameters: [item : MatterResources::SourceItem], result: String,
+ body: (displayText (MatterText::concat (project item location) (MatterText::concat " — "
+ (MatterText::concat (if (prim equal (project item heading) "" : Bool) then "" else (MatterText::concat (project item heading) ": "))
+ (if (prim equal (project item value) "" : Bool) then (if (prim equal (project item heading) "" : Bool) then "Blank source line" else "Empty source cell") else (project item value)))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+definition{
+ name: sourceItemPage, parameters: [items : (List MatterResources::SourceItem), skip : Nat, fuel : Nat], result: MatterText::TextItems,
+ body: (match items | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons item rest =>
+ (match skip | Nat.succ remaining => (sourceItemPage rest remaining fuel) | Nat.zero =>
+ (match fuel | Nat.zero => (record MatterText::TextItems {values := (nil String)}) | Nat.succ remaining =>
+ (record MatterText::TextItems {values := (cons (sourceItemText item) (project (sourceItemPage rest 0 remaining) values))})))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: items
+}
+definition{
+ name: sourceCatalogue, parameters: [operation : String, journal : String, session : MatterSession::Session, page : String], result: Bytes,
+ body: (match (resourcePageNumber page 0) | Option.none => (workspaceError operation "request" journal) | Option.some number =>
+ (let entries : MatterText::TextItems := (sourceCatalogueItems (project (project session matter) sources) session);
+ (let items : MatterText::TextItems := (itemPage (project entries values) (prim multiply (prim subtract number 1 : Nat) 8 : Nat) 8);
+ (MatterWire::reportState "ok" operation (MatterText::concat "Resources · " (sourcePageLabel number (MatterText::wordCount (project entries values)))) 0 0 (nil String)
+ (cons "Choose a source location to inspect its original context." (match (project items values) | List.nil => (cons "There are no resources on this page." (nil String)) | List.cons item rest => (project items values))) "" journal)))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+definition{
+ name: inspectSourceVersion, parameters: [operation : String, journal : String, session : MatterSession::Session, source : Matter::Source, focus : (Option Matter::Citation), page : String], result: Bytes,
+ body: (match (MatterResources::resourceContent source (prim equal (MatterSession::resourceFormat (project session labels) (project source id)) "csv" : Bool) focus)
+ | Option.none => (workspaceError operation "change" journal) | Option.some content =>
+ (match (resourcePageNumber page (project content focusIndex)) | Option.none => (workspaceError operation "request" journal) | Option.some number =>
+ (let items : MatterText::TextItems := (sourceItemPage (project content items) (prim multiply (prim subtract number 1 : Nat) 8 : Nat) 8);
+ (let historical : Bool := (match (Matter::findSource (project (project session matter) sources) (project source id)) | Option.none => true | Option.some current => (not ((project current revision) =? (project source revision))));
+ (MatterWire::reportState "ok" operation (MatterText::concat "Source context: " (displayText (resourceTitle session source))) 0 0 (nil String)
+ (cons (MatterText::concat (project content scope) (MatterText::concat (if historical then " · earlier version " else " · current version ")
+ (MatterText::concat (MatterText::decimalLoop 20 (project source revision)) (MatterText::concat " · " (sourcePageLabel number (MatterResources::sourceItemCount (project content items)))))))
+ (cons "Original source content; review interpretations separately."
+ (match (project items values) | List.nil => (cons "There is no source content on this page." (nil String)) | List.cons item rest => (project items values)))) "" journal))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+definition{
+ name: inspectResource, parameters: [operation : String, journal : String, session : MatterSession::Session, title : String, location : String, page : String], result: Bytes,
+ body: (let selected : SourceSelection := (matchingSourceVersions
+ (if (prim equal location "" : Bool) then (project (project session matter) sources) else (prim append (project (project session matter) sources) (project session sourceHistory) : (List Matter::Source))) session title location);
+ (if (not ((project selected count) =? 1)) then
+ (if ((prim equal title "" : Bool) && (prim equal location "" : Bool)) then (sourceCatalogue operation journal session page) else (workspaceError operation "source-selection" journal)) else
+ (match (project selected source) | Option.none => (workspaceError operation "source-selection" journal) | Option.some source =>
+ (inspectSourceVersion operation journal session source (project selected citation) page)))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
 definition{
  name: existingFields, parameters: [operation : String, fields : (List String), journal : String], result: Bytes,
  body: (let restored : MatterSession::Outcome := (MatterJournal::replay journal);
@@ -539,11 +647,12 @@ definition{
  (if ((MatterText::wordCount fields) =? 1) then (workspaceView operation journal (MatterJourney::overview session (ctor MatterSession::Role.Client)) session (ctor MatterSession::Role.Client)) else (workspaceError operation "request" journal)) else
  (let role : String := (MatterJournal::fieldAt fields 1);
  (if (not ((prim equal role "client" : Bool) || (prim equal role "lawyer" : Bool))) then (workspaceError operation "role" journal) else (let audience : MatterSession::Role := (MatterJournal::roleField role);
+ (if ((prim equal operation "resource" : Bool) && ((MatterText::wordCount fields) =? 5)) then (inspectResource operation journal session (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4)) else
  (if ((prim equal operation "timeline" : Bool) && ((MatterText::wordCount fields) =? 4)) then (chronologyView operation journal session (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else
  (if (((prim equal operation "overview" : Bool) || (prim equal operation "raw" : Bool)) && ((MatterText::wordCount fields) =? 2)) then (workspaceView operation journal (MatterJourney::overview session audience) session audience) else
  (if (((prim equal operation "impact" : Bool) || (prim equal operation "strategies" : Bool)) && ((MatterText::wordCount fields) =? 3)) then (relatedContext operation journal session (MatterJournal::fieldAt fields 2)) else
  (if ((prim equal operation "strategy" : Bool) && ((MatterText::wordCount fields) =? 3)) then (strategyView operation journal session (MatterJournal::fieldAt fields 2)) else
- (if ((prim equal operation "inspect" : Bool) && ((MatterText::wordCount fields) =? 4)) then (inspectFacet operation journal session audience (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (finishChange operation journal (changeFields operation fields journal session role) audience))))))))))))),
+ (if ((prim equal operation "inspect" : Bool) && ((MatterText::wordCount fields) =? 4)) then (inspectFacet operation journal session audience (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (finishChange operation journal (changeFields operation fields journal session role) audience)))))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 

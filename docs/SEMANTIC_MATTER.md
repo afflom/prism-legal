@@ -127,6 +127,22 @@ recursing once per byte. Fifteen levels cover the declared 8192-byte input plus
 its end-of-input step. The table is also bounded to 64 physical text lines and
 1024 cells, including headings and empty cells. These are execution limits.
 
+## Original source context
+
+`MatterResources` exposes original text lines and decoded CSV cells without
+changing the journal or accepting an interpretation. A source location selects
+the corresponding text page or complete CSV record. Eight items appear per
+page; a wide row opens at the page containing the selected cell. Blank lines
+and empty cells remain visible as source context and create no assertions.
+
+Resource names select a unique current source. With both selectors blank,
+multiple resources appear in a paginated catalogue. Exact displayed source
+locations distinguish duplicate names. Earlier-version locations select the
+retained original bytes and their own CSV headings. A mismatched name and
+location, unknown source, or invalid page refuses without changing the journal.
+Current and earlier versions are labeled explicitly. Text controls are normalized
+only for display; saved resource bytes and citation ranges remain unchanged.
+
 ## Relative changes and history
 
 `Matter.current` computes a least grounded closure starting from no admitted
@@ -195,7 +211,7 @@ Review context names the resource and its original text line. Duplicate resource
 titles include their resource number. UTF-8 and CRLF do not shift those locations.
 Detailed byte citations remain available in the lawyer view. Attention checks
 reuse the current-reference closure across their facet scan.
-`MatterWorkspace` exposes 21 operations for
+`MatterWorkspace` exposes 22 operations for
 creation, intake, review, assertions, chronology, source and rule revisions, strategy,
 proposals, restoration, additional interpretations, withdrawal, change impact,
 and paginated facet and strategy inspection. It selects objects by
@@ -215,7 +231,7 @@ Historical interpretations show their source revision and original line, using
 the retained source bytes rather than the replacement resource's text.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 51 acceptance vectors. Unused help and
+controls, errors, empty states, and 60 acceptance vectors. Unused help and
 transport details are collapsed. Shorter field guidance and the neutral Continue
 action serve both review and read-only forms. Acceptance bytes are factored into
 closed byte aliases, preserving their exact values while reducing large inline
@@ -270,21 +286,21 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`31929412f6437d2bcfba88960cf5bd173d882459a46ddf9a8b5dc4566ea40bac`
+`94d8be75aa7fd7132351281e1c8a838f76e7fef5d0588d65cdd197b25430103f`
 and semantic ID
-`c2abff7e86751d6c560116cfcbef1b8d07f6d24f40a2d29dc6e478f7f5e4d0b2`
+`10434c3ab1807225e1e9f7ba537b01fe1425a691fcc4bb228a7e221c06563409`
 was emitted as build
-`769f8ef1dc7a97f67c23ec932da547347afdd28500a7072911ad80e0c6218224`
+`4188ec7506e6db707be550e2f58f5cb0278ae8a2cc790cc0e5776dae121c9cd8`
 and passed LexLean verification with attestation
-`04a35e0ed3b1c6ffe4546cfc3af508bf2f7f6be71e08bb67274a94e3f59e848c`.
+`135dbf883e4a0e5908f3e3ea911be90f2ea642003d1cc0019f304b5318386fc4`.
 
-The generated native library passes 57 tests across `behavior.rs` and
+The generated native library passes 62 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
 learned literal and joint-slot extraction, overlapping and ambiguous training,
 multiple facets, withdrawal, facet-rename impact, CSV quoting and byte provenance,
-column-aware learning, source replacement, and large-table reconciliation.
+column-aware learning, source replacement, large-table reconciliation, retained-version source inspection, and automatic passage pagination.
 CSV boundaries exercise 8192 bytes and 1024 cells, including 1008 populated
 cells in both an empty matter and a matter with an existing legal rule. Native
 tests retain their ordinary stack configuration; the recursive byte scan, node
@@ -299,7 +315,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 51 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 60 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -308,11 +324,11 @@ inspection, save/reopen, failed restoration, learned multi-facet review, withdra
 next-form navigation, source locations, additional-facet review, role consistency,
 source-qualified corrections, historical source locations, learned date chronology,
 combined date aspects, source-qualified resource replacement, CSV file import
-and refusal, table revision and replay, and mobile layout.
+and refusal, table revision and replay, source-context browsing, and mobile layout.
 
 The source corpus includes a 70,831-byte restore request containing nine imported
 resources. It exceeds the old portable transport limit and returns the exact
-accepted journal. The current 51-vector artifact passes native, Wasm and
+accepted journal. The current 60-vector artifact passes native, Wasm and
 application-browser checks. Its portable gate has not been rerun. The prior
 40-vector and 34-vector artifacts' development portable-browser runs failed while
 reading a response through Playwright (`Network.getResponseBody: No data found
