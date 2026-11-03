@@ -7,7 +7,11 @@ source /etc/profile.d/prismpm-sdk.sh
 CARGO_NET_OFFLINE=false cargo fetch --locked --manifest-path .toolchain/prismpm/Cargo.toml
 cargo build --locked --offline --manifest-path .toolchain/prismpm/Cargo.toml -p prismpm
 prism_sdk="${CARGO_TARGET_DIR:?}/debug/prismpm"
-"$prism_sdk" --project . --json build > matter-build.json
+rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl wasm32-unknown-unknown
+if ! "$prism_sdk" --project . --json build > matter-build.json; then
+  cat matter-build.json
+  exit 1
+fi
 matter_build=$(python3 -c 'import json; print(json.load(open("matter-build.json"))["build_id"])')
 matter_artifact="$PWD/.prism/build/$matter_build"
 cargo test --locked --offline --manifest-path tests/matter/Cargo.toml \
