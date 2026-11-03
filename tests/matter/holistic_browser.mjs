@@ -1,3 +1,4 @@
+import {reviewedArchive} from './archive_fixture.mjs';
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -193,6 +194,12 @@ try{
  await page.reload();await ready();assert.equal(await run('create',{title:'Learned amount'}),'Start with a source');await run('ingest',{title:'Training',content:'Amount: 50.'});await run('review',{facet:'amount',interpretation:'50'});await run('goal',{value:'75'});await run('ingest',{title:'Update',content:'Unrelated context\nAmount: 75.'});
  assert.match(await page.locator('#result-details').textContent(),/amount: 75/);const semanticBefore=await save();await page.locator('#next-form').click();assert.equal(await page.locator('#field-facet').inputValue(),'amount');assert.equal(await page.locator('#field-location').inputValue(),'Update · line 2');assert.deepEqual(await save(),semanticBefore);
  await page.locator('#guided-submit').click();await ready();assert.equal(await page.locator('#result-error').isVisible(),false);await run('inspect',{facet:'amount',page:'1'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: 75/);
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
+ await page.reload();await ready();const archive=Buffer.from(reviewedArchive());
+ await page.locator('#open-session').setInputFiles({name:'archive.prismlegal',mimeType:'application/octet-stream',buffer:archive});
+ await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();assert.equal(await page.locator('#status').getAttribute('data-state'),'ready');assert.deepEqual(await save(),archive);
+ assert.match(await page.locator('#result-details').textContent(),/entry: entry/);await page.locator('#next-form').click();assert.equal(await page.locator('#field-location').inputValue(),'Resource 2 · line 2');assert.deepEqual(await save(),archive);
+ await page.locator('#guided-submit').click();await ready();assert.equal(await page.locator('#status').getAttribute('data-state'),'ready');assert.equal(await page.locator('#result-error').isVisible(),false);assert((await save()).toString().startsWith(archive.toString()));await page.locator('#next-form').click();assert.equal(await page.locator('#field-location').inputValue(),'Resource 2 · line 3');
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
  if(process.env.SCREENSHOT_PATH){await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:process.env.SCREENSHOT_PATH,fullPage:true});}
  console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet and joint-slot interpretation, withdrawal, next-form navigation, and mobile layout');

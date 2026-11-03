@@ -1175,3 +1175,50 @@ fn disputed_learned_values_do_not_create_goal_attention_evidence() {
     assert!(inferFacetMeaning(&s.matter.nodes,&s.matter.sources,"Amount: 75.".into(),"amount".into()).unwrap().ambiguous);
     assert_eq!(nextAttention(&s).unwrap().node.unwrap().value,"Unrelated context","an ambiguous extracted value cannot break the literal attention tie");
 }
+
+fn compiled_meanings_agree(session: &Session, queries: &[&str], facets: &[&str]) {
+    let admitted=current(&session.matter.nodes,&session.matter.sources).unwrap().references;
+    let model=compileMeanings(&session.matter.nodes,&session.matter.nodes,&admitted).unwrap();
+    for query in queries {
+        assert_eq!(inferCompiledMeaning(&model,(*query).into()).unwrap(),inferMeaning(&session.matter.nodes,&session.matter.sources,(*query).into()).unwrap(),"global meaning and complete training provenance for {query}");
+        for facet in facets {
+            assert_eq!(inferCompiledFacetMeaning(&model,(*query).into(),(*facet).into()).unwrap(),inferFacetMeaning(&session.matter.nodes,&session.matter.sources,(*query).into(),(*facet).into()).unwrap(),"facet {facet} and complete training provenance for {query}");
+        }
+    }
+}
+
+#[test]
+fn compiled_training_retains_literal_joint_and_conflicting_meaning_provenance() {
+    let mut s=accepted(ingest(&initial("Compiled meanings".into()),0,Role::Client,"client".into(),"Record".into(),b"Amount: 50; day: Monday.\nAmount: 75; day: Tuesday.".to_vec()).unwrap());
+    let queries=["Amount: 50; day: Monday.","Amount: 75; day: Tuesday.","Unrelated text","Amount: ; day: Tuesday."];
+    let facets=["amount","day","alias","missing",""];
+    compiled_meanings_agree(&s,&queries,&facets);
+    s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:1},"amount".into(),"50".into(),true).unwrap());
+    s=accepted(annotate(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:2},"day".into(),"Monday".into()).unwrap());
+    s=accepted(annotate(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:2},"alias".into(),"50".into()).unwrap());
+    compiled_meanings_agree(&s,&queries,&facets);
+    s=accepted(annotate(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:2},"amount".into(),"unknown".into()).unwrap());
+    s=accepted(annotate(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:2},"amount".into(),"disputed".into()).unwrap());
+    compiled_meanings_agree(&s,&queries,&facets);
+    let conflicts=s.matter.nodes.iter().filter(|n|n.value=="unknown"||n.value=="disputed").map(nodeReference).collect::<Vec<_>>();
+    for conflict in conflicts {s=accepted(withdraw(&s,s.matter.revision,Role::Client,"client".into(),conflict).unwrap());}
+    compiled_meanings_agree(&s,&queries,&facets);
+    s=accepted(reviseSource(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:1},b"Replaced original".to_vec()).unwrap());
+    compiled_meanings_agree(&s,&queries,&facets);
+}
+
+#[test]
+fn correcting_a_full_intake_preserves_every_other_passage_and_its_order() {
+    let mut s=initial("Complete intake".into());
+    for index in 0..16 {s=accepted(ingest(&s,s.matter.revision,Role::Client,"client".into(),format!("Record {index}"),vec!["entry";63].join("\n").into_bytes()).unwrap());}
+    for identifier in [1,32,33,1008] {
+        let before=s.matter.nodes.clone();let selected=before.iter().find(|node|node.id==identifier).unwrap();
+        s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),nodeReference(selected),"entry".into(),format!("Correction {identifier}"),true).unwrap());
+        assert_eq!(s.matter.nodes.len(),before.len());
+        for (old,current) in before.iter().zip(&s.matter.nodes) {
+            assert_eq!(old.id,current.id);
+            if old.id==identifier {assert_eq!(current.value,format!("Correction {identifier}"));assert_eq!(current.revision,old.revision+1);assert_eq!(current.citations,old.citations);assert_eq!(current.dependencies,old.dependencies);}
+            else {assert_eq!(current,old);}
+        }
+    }
+}

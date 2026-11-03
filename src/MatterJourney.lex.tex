@@ -98,14 +98,14 @@ structure{
 }
 
 definition{
- name: pendingInterpretation, parameters: [session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : (List Matter::Node), node : Matter::Node], result: PendingInterpretation,
+ name: pendingInterpretation, parameters: [session : MatterSession::Session, network : MatterNetwork::NeuralModel, training : MatterLanguage::CompiledMeanings, node : Matter::Node], result: PendingInterpretation,
  body: (match (project node origin)
  | Matter::Origin.Reviewed => (record PendingInterpretation {facet := (project node facet), value := (project node value)})
  | Matter::Origin.Inferred => (record PendingInterpretation {facet := (project node facet), value := (project node value)})
  | Matter::Origin.Extracted => (if (MatterSession::csvNode session node) then (record PendingInterpretation {facet := (project node facet), value := (project node value)}) else
- (let meaning : MatterLanguage::MeaningSuggestion := (MatterLanguage::meaningLoop training (project (project session matter) nodes) admitted (project node value) (MatterLanguage::noMeaning));
+ (let meaning : MatterLanguage::MeaningSuggestion := (MatterLanguage::inferCompiledMeaning training (project node value));
  (let facet : String := (if (MatterLanguage::usableMeaning meaning) then (project meaning facet) else (MatterNetwork::suggestedFacet (MatterNetwork::infer network (project node value))));
- (let specific : MatterLanguage::MeaningSuggestion := (MatterLanguage::facetMeaningLoop training (project (project session matter) nodes) admitted (project node value) facet (MatterLanguage::noMeaning));
+ (let specific : MatterLanguage::MeaningSuggestion := (MatterLanguage::inferCompiledFacetMeaning training (project node value) facet);
  (record PendingInterpretation {facet := facet, value := (if (MatterLanguage::usableMeaning specific) then (project specific value) else (project node value))})))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
@@ -116,9 +116,9 @@ structure{
 }
 
 definition{
- name: considerPending, parameters: [node : Matter::Node, session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : (List Matter::Node), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
- body: (if ((not (MatterSession::isWithdrawn (project session audit) node)) && ((not (project node accepted)) && ((Matter::hasCitations (project node citations)) && (Matter::citationsCurrent (project (project session matter) sources) (project node citations))))) then
- (let interpretation : PendingInterpretation := (pendingInterpretation session network admitted training node);
+ name: considerPending, parameters: [node : Matter::Node, session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : MatterLanguage::CompiledMeanings, goal : (List String), focus : ReviewFocus], result: ReviewFocus,
+ body: (if ((not (project node accepted)) && ((not (MatterSession::isWithdrawn (project session audit) node)) && ((Matter::hasCitations (project node citations)) && (Matter::citationsCurrent (project (project session matter) sources) (project node citations))))) then
+ (let interpretation : PendingInterpretation := (pendingInterpretation session network training node);
  (let facet : String := (project interpretation facet);
  (let relevance : Nat := (questionRelevance (project session rules) facet (project (project session matter) nodes) admitted);
  (let goalRelevance : Nat := (goalOverlap goal node facet (project interpretation value));
@@ -128,33 +128,43 @@ definition{
 }
 
 definition{
- name: focusPendingRows, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : (List Matter::Node), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
+ name: focusPendingRows, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : MatterLanguage::CompiledMeanings, goal : (List String), focus : ReviewFocus], result: ReviewFocus,
  body: (match nodes | List.nil => focus | List.cons node rest =>
  (focusPendingRows rest session network admitted training goal (considerPending node session network admitted training goal focus))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
 }
 
 definition{
- name: focusPendingChunks, parameters: [chunks : (List MatterBatch::NodeChunk), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : (List Matter::Node), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
+ name: focusPendingChunks, parameters: [chunks : (List MatterBatch::NodeChunk), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : MatterLanguage::CompiledMeanings, goal : (List String), focus : ReviewFocus], result: ReviewFocus,
  body: (match chunks | List.nil => focus | List.cons chunk rest =>
  (focusPendingChunks rest session network admitted training goal (focusPendingRows (project chunk values) session network admitted training goal focus))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: chunks
 }
 
 definition{
- name: focusPending, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : (List Matter::Node), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
+ name: focusPending, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : MatterLanguage::CompiledMeanings, goal : (List String), focus : ReviewFocus], result: ReviewFocus,
  body: (focusPendingChunks (project (MatterBatch::nodeChunks nodes) values) session network admitted training goal focus),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: needsPendingLanguage, parameters: [nodes : (List Matter::Node), session : MatterSession::Session], result: Bool,
+ body: (match nodes | List.nil => false | List.cons node rest =>
+ (if ((not (project node accepted)) && ((match (project node origin) | Matter::Origin.Extracted => true | Matter::Origin.Reviewed => false | Matter::Origin.Inferred => false) &&
+ ((not (MatterSession::csvNode session node)) && ((not (MatterSession::isWithdrawn (project session audit) node)) &&
+ ((Matter::hasCitations (project node citations)) && (Matter::citationsCurrent (project (project session matter) sources) (project node citations))))))) then true else (needsPendingLanguage rest session))),
+ executable: true, axioms: [], recursive_argument: nodes
 }
 
 definition{
  name: nextReview, parameters: [session : MatterSession::Session], result: (Option Matter::Node),
  body: (let matter : Matter::State := (project session matter);
  (let admitted : (List Matter::Reference) := (project (Matter::current (project matter nodes) (project matter sources)) references);
- (let network : MatterNetwork::NeuralModel := (MatterNetwork::trainLoop (project matter nodes) admitted (record MatterNetwork::NeuralModel {neurons := (nil MatterNetwork::Neuron)}));
- (let training : Matter::Nodes := (MatterLanguage::trainMeaningExamples (project matter nodes) admitted);
- (let focused : ReviewFocus := (focusPending (project matter nodes) session network admitted (project training nodes) (project (goalFeatures session admitted) values) (record ReviewFocus {node := (ctor Option.none [Matter::Node]), relevance := 0, goalRelevance := 0}));
- (match (project focused node) | Option.some node => (ctor Option.some [Matter::Node] node) | Option.none => (pendingProposal (project matter nodes) session))))))),
+ (let needed : Bool := (needsPendingLanguage (project matter nodes) session);
+ (let network : MatterNetwork::NeuralModel := (if needed then (MatterNetwork::trainLoop (project matter nodes) admitted (record MatterNetwork::NeuralModel {neurons := (nil MatterNetwork::Neuron)})) else (record MatterNetwork::NeuralModel {neurons := (nil MatterNetwork::Neuron)}));
+ (let training : MatterLanguage::CompiledMeanings := (if needed then (MatterLanguage::compileMeanings (project matter nodes) (project matter nodes) admitted) else (record MatterLanguage::CompiledMeanings {groups := (nil MatterLanguage::CompiledMeaningGroup)}));
+ (let focused : ReviewFocus := (focusPending (project matter nodes) session network admitted training (project (goalFeatures session admitted) values) (record ReviewFocus {node := (ctor Option.none [Matter::Node]), relevance := 0, goalRelevance := 0}));
+ (match (project focused node) | Option.some node => (ctor Option.some [Matter::Node] node) | Option.none => (pendingProposal (project matter nodes) session)))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -418,7 +428,7 @@ definition{
  (let admitted : (List Matter::Reference) := (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references);
  (let chooseAdditional : Bool := (match (project additional node) | Option.none => false | Option.some extra =>
  (match pendingCandidate | Option.none => true | Option.some node =>
- (let interpretation : PendingInterpretation := (pendingInterpretation session (MatterNetwork::train (project (project session matter) nodes) (project (project session matter) sources)) admitted (project (MatterLanguage::trainMeaningExamples (project (project session matter) nodes) admitted) nodes) node);
+ (let interpretation : PendingInterpretation := (pendingInterpretation session (MatterNetwork::train (project (project session matter) nodes) (project (project session matter) sources)) (MatterLanguage::compileMeanings (project (project session matter) nodes) (project (project session matter) nodes) admitted) node);
  (higherAttention (project additional relevance) (project additional goalRelevance)
  (questionRelevance (project session rules) (project interpretation facet) (project (project session matter) nodes) admitted)
  (goalOverlap (project (goalFeatures session admitted) values) node (project interpretation facet) (project interpretation value))))));

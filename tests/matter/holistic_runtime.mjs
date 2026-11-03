@@ -1,3 +1,4 @@
+import {reviewedArchive} from './archive_fixture.mjs';
 // Native model corpus and unseen boundaries executed through the generated Wasm adapter.
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
@@ -300,4 +301,7 @@ for(const [op,fields] of [['ingest',['client','Training','Amount: 50.']],['revie
 result=invoke('overview',[semanticAttention,'client']);assert.match(result.request,/Update · line 2/);assert(result.details.includes('amount: 75'));assert.equal(result.response,semanticAttention);
 result=invoke('review',[semanticAttention,'client','','']);assert.equal(result.status,'ok');semanticAttention=result.response;
 result=invoke('inspect',[semanticAttention,'client','amount','1']);assert.match(result.details.join(' '),/Current interpretation: 75/);assert.equal(invoke('restore',[semanticAttention]).response,semanticAttention);
+// Reopening a partially reviewed full intake must render real attention, not stall.
+const archive=reviewedArchive();result=invoke('restore',[archive]);assert.equal(result.status,'ok');assert.equal(result.response,archive);assert.match(result.request,/Resource 2 · line 2/);assert(result.details.includes('entry: entry'));
+result=invoke('review',[archive,'client','','']);assert.equal(result.status,'ok');assert(result.response.startsWith(archive));assert.match(result.request,/Resource 2 · line 3/);
 console.log(`PASS: ${model.acceptance_vectors.length} source vectors plus unseen journal, Unicode, control-display, input-boundary, multiple-facet and joint-slot learning, withdrawal and refusal cases in generated Wasm`);

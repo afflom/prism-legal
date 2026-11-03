@@ -222,8 +222,14 @@ reviewed `Amount: 50.` → `amount: 50` interpretation lets `Amount: 75.`
 receive attention for the goal `75`, even though the raw token includes a
 period. A usable learned meaning takes precedence over a conflicting neural
 facet suggestion. Ambiguous literal meanings cannot manufacture goal overlap.
-Current cited training examples are collected once for the pending scan;
-uncited assertions remain classifier context, not literal extraction examples.
+The pending scan compiles current cited training into `CompiledMeanings` once.
+Each example retains its exact quotation, joint extraction slots, conflicting
+references, and training reference. Candidate inference reuses that context;
+it no longer reconstructs source-slot and conflict information for every pending
+passage. The context is rebuilt from current admission after each matter change
+and is not serialized as an independent authority. Uncited assertions remain
+classifier context, not literal extraction examples. Matters with no pending
+text avoid compiling an unused language model.
 A supported strategy cannot hide an unresolved assessment from another rule.
 
 The journey checks reviewed passages' original quotations for additional learned
@@ -280,7 +286,7 @@ Historical interpretations show their source revision and original line, using
 the retained source bytes rather than the replacement resource's text.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 111 acceptance vectors. The shorter opening and help sections leave more room for the active matter. Unused help and
+controls, errors, empty states, and 113 acceptance vectors. The shorter opening and help sections leave more room for the active matter. Unused help and
 transport details are collapsed. Shorter field guidance and the neutral Continue
 action serve both review and read-only forms. Acceptance bytes are factored into
 closed byte aliases, preserving their exact values while reducing large inline
@@ -335,15 +341,15 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`c2898abff40457f8434c873df616790232d8f9368adabb727abb1594221ecb89`
+`5a450a6379fd05208d5c6225199c04c93635b258bfd2cba4ec1e370ff5b4b153`
 and semantic ID
-`fe60ab945da764137e1caf330d92c298dff028865c0b0b76054a1dd1bc5b963b`
+`d027540ef1ab9cb8495470af087d836292b869f0da7248a92b67184b69882efb`
 was emitted as build
-`81f3e4172c57868c6e745480ad3ca2ea995699bc9063c36126001bd73c7d436d`
+`363048e93dbf29ce6e7d51ba26bfa004b99f59513491527b524c6a05e947ed84`
 and passed LexLean verification with attestation
-`cda6c05de4de5cefc56feb7c0f8dcc546e523b5eb1d5ae24f09f90c32b0e99e7`.
+`086d5151285dc65f06fc386ac5bb3f68d64c07d9886c956ec3d4514917fb8449`.
 
-The generated native library passes 82 tests across `behavior.rs` and
+The generated native library passes 84 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
@@ -358,7 +364,13 @@ checking that no pending interpretation remains. This does not establish saved-f
 capacity: the current journal still admits at most 512 operations. Native
 tests retain their ordinary stack configuration; the recursive byte scan, node
 construction and matter reconciliation were refined in the model. No test stack
-limit was increased to conceal a failure.
+limit was increased to conceal a failure. The compiled and direct meaning paths
+are compared with exact training-reference order across joint extraction,
+conflicts, withdrawal and source replacement. Corrections at the first, last
+and traversal-boundary passages preserve every other node and its order.
+Selecting the replacement head before rebuilding the list avoids repeated deep
+copies of the remaining records. Reviews without dependencies avoid computing
+an admission set that the empty dependency check cannot use.
 Patch test dependencies to actual emitted packages rather than editing generated
 code:
 
@@ -368,7 +380,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 111 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 113 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -385,9 +397,17 @@ The source corpus also exercises a complete strategy lifecycle: reviewed authori
 
 The source corpus includes a 70,831-byte restore request containing nine imported
 resources. It exceeds the old portable transport limit and returns the exact
-accepted journal. The current 111-vector artifact passes native, Wasm and
-application-browser checks. Two development Chromium 154 portable diagnostics
-still failed at response-body retrieval: the first at file-session vector 20
+accepted journal. The current 113-vector artifact passes native, Wasm and
+application-browser checks. Its corpus also restores an actual 81-command
+journal with 1,008 source passages and 64 reviews, then continues at the exact
+next passage. The browser imports that saved file and submits the prepared
+review under its existing command deadline. A local Wasm probe of this journal
+fell from exceeding 45 seconds before the refinement to 1,265 ms after it;
+a 512-command, 495-review journal reopened in 11,406 ms. These are local
+measurements, not universal latency guarantees.
+
+Two development Chromium 154 portable diagnostics for the preceding 111-vector
+artifact failed at response-body retrieval: the first at file-session vector 20
 (withdrawal without a matter), the second during saved-file roundtrip restoration.
 The second recorded the exact expected message and nonempty journal in the page,
 ready controls, and `ERR_ABORTED`; Playwright still could not retrieve the response

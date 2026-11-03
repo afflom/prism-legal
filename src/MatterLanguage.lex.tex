@@ -154,8 +154,8 @@ definition{
 
 definition{
  name: considerCitationSlot, parameters: [node : Matter::Node, nodes : (List Matter::Node), admitted : (List Matter::Reference), citation : Matter::Citation, quotation : String, following : (Option MeaningSlots)], result: (Option MeaningSlots),
- body: (if ((Matter::containsReference admitted (Matter::nodeReference node)) && ((MatterInference::passagePresent (project node citations) citation) &&
- (match (project node origin) | Matter::Origin.Reviewed => true | Matter::Origin.Extracted => false | Matter::Origin.Inferred => false))) then
+ body: (if ((MatterInference::passagePresent (project node citations) citation) && ((match (project node origin) | Matter::Origin.Reviewed => true | Matter::Origin.Extracted => false | Matter::Origin.Inferred => false) &&
+ (Matter::containsReference admitted (Matter::nodeReference node)))) then
  (if (MatterInference::competingMeaning nodes admitted node) then (ctor Option.none [MeaningSlots]) else
  (match following | Option.none => (ctor Option.none [MeaningSlots]) | Option.some slots =>
  (ctor Option.some [MeaningSlots] (match (literalSlot quotation node) | Option.none => slots | Option.some slot => (insertMeaningSlot (project slots values) slot))))) else following),
@@ -220,10 +220,8 @@ definition{
 }
 
 definition{
- name: jointMeaning, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), citation : Matter::Citation, quotation : String, facet : String, text : String], result: MeaningSuggestion,
- body: (match (citationSlots nodes nodes admitted citation quotation)
- | Option.none => (noMeaning) | Option.some collection =>
- (let slots : (List MeaningSlot) := (project collection values);
+ name: jointMeaningWithSlots, parameters: [collection : MeaningSlots, quotation : String, facet : String, text : String], result: MeaningSuggestion,
+ body:  (let slots : (List MeaningSlot) := (project collection values);
  (match slots | List.nil => (noMeaning) | List.cons initialSlot rest =>
  (match rest | List.nil => (noMeaning) | List.cons followingSlot more =>
  (if ((not (slotsSeparated slots)) || (((project initialSlot start) =? 0) && ((project initialSlot size) =? (meaningSize quotation)))) then (noMeaning) else
@@ -232,7 +230,14 @@ definition{
  | Option.none => (noMeaning) | Option.some remaining =>
  (match (matchMeaningSlots slots quotation remaining facet (ctor Option.none [String]) false)
  | Option.none => (noMeaning) | Option.some value =>
- (record MeaningSuggestion {facet := facet, value := value, examples := (project (slotExamples slots) references), matched := true, ambiguous := false}))))))))),
+ (record MeaningSuggestion {facet := facet, value := value, examples := (project (slotExamples slots) references), matched := true, ambiguous := false})))))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: jointMeaning, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), citation : Matter::Citation, quotation : String, facet : String, text : String], result: MeaningSuggestion,
+ body: (match (citationSlots nodes nodes admitted citation quotation)
+ | Option.none => (noMeaning) | Option.some collection => (jointMeaningWithSlots collection quotation facet text)),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -245,8 +250,8 @@ definition{
 
 definition{
  name: considerCompetingMeaning, parameters: [node : Matter::Node, admitted : (List Matter::Reference), example : Matter::Node, candidate : MeaningSuggestion], result: MeaningSuggestion,
- body: (if ((Matter::containsReference admitted (Matter::nodeReference node)) && ((prim equal (project node facet) (project example facet) : Bool) &&
- ((not (prim equal (project node value) (project example value) : Bool)) && (MatterInference::sharedPassage (project node citations) (project example citations))))) then
+ body: (if ((prim equal (project node facet) (project example facet) : Bool) && ((not (prim equal (project node value) (project example value) : Bool)) &&
+ ((MatterInference::sharedPassage (project node citations) (project example citations)) && (Matter::containsReference admitted (Matter::nodeReference node))))) then
  (record MeaningSuggestion {facet := (project candidate facet), value := (project candidate value), examples := (if (Matter::containsReference (project candidate examples) (Matter::nodeReference node)) then (project candidate examples) else (cons (Matter::nodeReference node) (project candidate examples))), matched := (project candidate matched), ambiguous := true})
  else candidate),
  executable: true, axioms: []
@@ -309,6 +314,122 @@ definition{
 definition{
  name: meaningLoop, parameters: [nodes : (List Matter::Node), allNodes : (List Matter::Node), admitted : (List Matter::Reference), text : String, candidate : MeaningSuggestion], result: MeaningSuggestion,
  body: (meaningLoopChunks (project (MatterBatch::nodeChunks nodes) values) allNodes admitted text candidate),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+structure{
+ name: CompiledMeaningCitation, type_parameters: [], parameters: [],
+ fields: [{name: quotation, type: String}, {name: slots, type: (Option MeaningSlots)}]
+}
+structure{
+ name: CompiledMeaningCitations, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List CompiledMeaningCitation)}]
+}
+structure{
+ name: CompiledMeaning, type_parameters: [], parameters: [],
+ fields: [{name: facet, type: String}, {name: value, type: String}, {name: example, type: Matter::Reference}, {name: conflicts, type: (List Matter::Reference)}, {name: citations, type: (List CompiledMeaningCitation)}]
+}
+structure{
+ name: CompiledMeaningGroup, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List CompiledMeaning)}]
+}
+structure{
+ name: CompiledMeanings, type_parameters: [], parameters: [],
+ fields: [{name: groups, type: (List CompiledMeaningGroup)}]
+}
+
+definition{
+ name: compileMeaningCitations, parameters: [citations : (List Matter::Citation), nodes : (List Matter::Node), admitted : (List Matter::Reference), context : MatterBatch::NodeChunks], result: CompiledMeaningCitations,
+ body: (match citations | List.nil => (record CompiledMeaningCitations {values := (nil CompiledMeaningCitation)}) | List.cons citation rest =>
+ (let following : CompiledMeaningCitations := (compileMeaningCitations rest nodes admitted context);
+ (match (Foundation.Utf8::decode (project citation quote)) | Option.none => following | Option.some quotation =>
+ (record CompiledMeaningCitations {values := (cons (record CompiledMeaningCitation {quotation := quotation, slots := (citationSlotsChunks (project context values) nodes admitted citation quotation)}) (project following values))})))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
+}
+
+definition{
+ name: compileMeaning, parameters: [node : Matter::Node, nodes : (List Matter::Node), admitted : (List Matter::Reference), context : MatterBatch::NodeChunks], result: CompiledMeaning,
+ body: (record CompiledMeaning {facet := (project node facet), value := (project node value), example := (Matter::nodeReference node),
+ conflicts := (project (includeCompetingMeaningsChunks (project context values) admitted node (noMeaning)) examples),
+ citations := (project (compileMeaningCitations (project node citations) nodes admitted context) values)}),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: compileMeaningRows, parameters: [remaining : (List Matter::Node), nodes : (List Matter::Node), admitted : (List Matter::Reference), context : MatterBatch::NodeChunks], result: CompiledMeaningGroup,
+ body: (match remaining | List.nil => (record CompiledMeaningGroup {values := (nil CompiledMeaning)}) | List.cons node rest =>
+ (record CompiledMeaningGroup {values := (cons (compileMeaning node nodes admitted context) (project (compileMeaningRows rest nodes admitted context) values))})),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: remaining
+}
+
+definition{
+ name: compileMeaningGroups, parameters: [chunks : (List MatterBatch::NodeChunk), nodes : (List Matter::Node), admitted : (List Matter::Reference), context : MatterBatch::NodeChunks], result: CompiledMeanings,
+ body: (match chunks | List.nil => (record CompiledMeanings {groups := (nil CompiledMeaningGroup)}) | List.cons chunk rest =>
+ (record CompiledMeanings {groups := (cons (compileMeaningRows (project chunk values) nodes admitted context) (project (compileMeaningGroups rest nodes admitted context) groups))})),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: chunks
+}
+
+definition{
+ name: compileMeanings, parameters: [training : (List Matter::Node), nodes : (List Matter::Node), admitted : (List Matter::Reference)], result: CompiledMeanings,
+ body: (compileMeaningGroups (project (MatterBatch::nodeChunks (project (trainMeaningExamples training admitted) nodes)) values) nodes admitted (MatterBatch::nodeChunks nodes)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: applyMeaningConflict, parameters: [reference : Matter::Reference, candidate : MeaningSuggestion], result: MeaningSuggestion,
+ body: (record MeaningSuggestion {facet := (project candidate facet), value := (project candidate value), examples := (if (Matter::containsReference (project candidate examples) reference) then (project candidate examples) else (cons reference (project candidate examples))), matched := (project candidate matched), ambiguous := true}),
+ executable: true, axioms: []
+}
+
+definition{
+ name: applyMeaningConflicts, parameters: [references : (List Matter::Reference), candidate : MeaningSuggestion], result: MeaningSuggestion,
+ body: (match references | List.nil => candidate | List.cons reference rest =>
+ (applyMeaningConflict reference (applyMeaningConflicts rest candidate))),
+ executable: true, axioms: [], recursive_argument: references
+}
+
+definition{
+ name: compiledCitationMeaning, parameters: [citation : CompiledMeaningCitation, example : CompiledMeaning, text : String, candidate : MeaningSuggestion], result: MeaningSuggestion,
+ body: (match (transferMeaning (project citation quotation) (project example value) text)
+ | Option.some value => (applyMeaningConflicts (project example conflicts) (combineMeaning candidate (project example facet) value (project example example)))
+ | Option.none => (match (project citation slots) | Option.none => candidate | Option.some slots =>
+ (let joint : MeaningSuggestion := (jointMeaningWithSlots slots (project citation quotation) (project example facet) text);
+ (if (project joint matched) then (combineJointMeaning (project joint examples) (project joint facet) (project joint value) candidate) else candidate)))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: compiledCitationMeanings, parameters: [citations : (List CompiledMeaningCitation), example : CompiledMeaning, text : String, candidate : MeaningSuggestion], result: MeaningSuggestion,
+ body: (match citations | List.nil => candidate | List.cons citation rest =>
+ (compiledCitationMeanings rest example text (compiledCitationMeaning citation example text candidate))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
+}
+
+definition{
+ name: compiledMeaningRows, parameters: [examples : (List CompiledMeaning), text : String, specific : Bool, facet : String, candidate : MeaningSuggestion], result: MeaningSuggestion,
+ body: (match examples | List.nil => candidate | List.cons example rest =>
+ (compiledMeaningRows rest text specific facet
+ (if (specific && (not (prim equal facet (project example facet) : Bool))) then candidate else
+ (compiledCitationMeanings (project example citations) example text candidate)))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: examples
+}
+
+definition{
+ name: compiledMeaningGroups, parameters: [groups : (List CompiledMeaningGroup), text : String, specific : Bool, facet : String, candidate : MeaningSuggestion], result: MeaningSuggestion,
+ body: (match groups | List.nil => candidate | List.cons group rest =>
+ (compiledMeaningGroups rest text specific facet (compiledMeaningRows (project group values) text specific facet candidate))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: groups
+}
+
+definition{
+ name: inferCompiledMeaning, parameters: [model : CompiledMeanings, text : String], result: MeaningSuggestion,
+ body: (compiledMeaningGroups (project model groups) text false "" (noMeaning)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: inferCompiledFacetMeaning, parameters: [model : CompiledMeanings, text : String, facet : String], result: MeaningSuggestion,
+ body: (compiledMeaningGroups (project model groups) text true facet (noMeaning)),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 

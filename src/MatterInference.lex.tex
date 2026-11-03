@@ -80,7 +80,7 @@ definition{
 definition{
  name: competingMeaning, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), candidate : Matter::Node], result: Bool,
  body: (match nodes | List.nil => false | List.cons node rest =>
- (((Matter::containsReference admitted (Matter::nodeReference node)) && ((prim equal (project node facet) (project candidate facet) : Bool) && ((not (prim equal (project node value) (project candidate value) : Bool)) && (sharedPassage (project node citations) (project candidate citations))))) || (competingMeaning rest admitted candidate))),
+ (((prim equal (project node facet) (project candidate facet) : Bool) && ((not (prim equal (project node value) (project candidate value) : Bool)) && ((sharedPassage (project node citations) (project candidate citations)) && (Matter::containsReference admitted (Matter::nodeReference node))))) || (competingMeaning rest admitted candidate))),
  executable: true, axioms: [], recursive_argument: nodes
 }
 

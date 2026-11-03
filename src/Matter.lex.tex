@@ -222,11 +222,17 @@ structure{
 }
 
 definition{
+  name: replacementHead, parameters: [node : Node, updated : Node], result: Node,
+  body: (if ((project node id) =? (project updated id)) then updated else node),
+  executable: true
+}
+
+definition{
   name: replace, parameters: [nodes : (List Node), updated : Node], result: Nodes,
   body: (match nodes
     | List.nil => (record Nodes {nodes := (nil Node)})
-    | List.cons node rest => (let following : Nodes := (replace rest updated);
-      (record Nodes {nodes := (cons (if ((project node id) =? (project updated id)) then updated else node) (project following nodes))}))),
+    | List.cons node rest => (record Nodes {nodes :=
+      (cons (replacementHead node updated) (project (replace rest updated) nodes))})),
   executable: true,
   recursive_argument: nodes
 }

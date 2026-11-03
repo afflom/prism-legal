@@ -282,6 +282,13 @@ definition{
 }
 
 definition{
+ name: reviewDependenciesCurrent, parameters: [matter : Matter::State, dependencies : (List Matter::Reference)], result: Bool,
+ body: (match dependencies | List.nil => true | List.cons reference rest =>
+ (Matter::allReferencesIn dependencies (project (Matter::current (project matter nodes) (project matter sources)) references))),
+ executable: true, axioms: []
+}
+
+definition{
  name: review, parameters: [session : Session, expected : Nat, role : Role, actor : String, reference : Matter::Reference, facet : String, value : String, accepted : Bool], result: Outcome,
  body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
  (match (Matter::findNode (project (project session matter) nodes) (project reference id))
@@ -289,7 +296,7 @@ definition{
  | Option.some previous => (if ((prim equal facet "rule" : Bool) || (prim equal (project previous facet) "rule" : Bool)) then (refuse session "use-rule-review") else
  (if (((privileged facet) || ((privileged (project previous facet)) || (match (project previous dependencies) | List.nil => false | List.cons dependency remaining => (match (findRule (project session rules) (project dependency id)) | Option.none => false | Option.some linkedRule => true)))) && (not (isLawyer role))) then (refuse session "lawyer-review-required") else
  (if (not ((boundedText facet 128) && (boundedText value 8192))) then (refuse session "review-facet-or-value") else
- (if (accepted && (not ((conclusionMatches session previous facet value) && ((ruleReviewSupported session previous) && ((Matter::citationsCurrent (project (project session matter) sources) (project previous citations)) && (Matter::allReferencesIn (project previous dependencies) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references))))))) then (refuse session "support-is-stale") else
+ (if (accepted && (not ((conclusionMatches session previous facet value) && ((ruleReviewSupported session previous) && ((Matter::citationsCurrent (project (project session matter) sources) (project previous citations)) && (reviewDependenciesCurrent (project session matter) (project previous dependencies))))))) then (refuse session "support-is-stale") else
  (match (Matter::commitEdit (project session matter) expected reference facet value accepted)
  | Option.none => (refuse session "node-conflict")
  | Option.some matter => (record Outcome {code := "", session := (changed session matter actor "review" (project reference id))})))))))),
