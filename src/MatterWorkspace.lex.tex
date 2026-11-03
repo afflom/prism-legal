@@ -374,8 +374,33 @@ definition{
 }
 
 definition{
- name: replaceResource, parameters: [journal : String, session : MatterSession::Session, role : String, title : String, text : String], result: MatterJournal::JournalResult,
- body: (let selection : ResourceSelection := (matchingResources (project session labels) title);
+ name: citationLocationMatches, parameters: [citations : (List Matter::Citation), session : MatterSession::Session, source : Nat, location : String], result: Bool,
+ body: (match citations | List.nil => false | List.cons citation rest =>
+ ((((project citation source) =? source) && ((Matter::citationsCurrent (project (project session matter) sources) (cons citation (nil Matter::Citation))) &&
+ (prim equal (displayText (prim join (project (MatterJourney::sourceHeadings (cons citation (nil Matter::Citation)) session) values) "" : String)) location : Bool))) || (citationLocationMatches rest session source location))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
+}
+
+definition{
+ name: resourceLocationMatches, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, source : Nat, location : String], result: Bool,
+ body: (match nodes | List.nil => false | List.cons node rest =>
+ ((citationLocationMatches (project node citations) session source location) || (resourceLocationMatches rest session source location))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
+}
+
+definition{
+ name: matchingLocatedResources, parameters: [labels : (List MatterSession::ResourceLabel), session : MatterSession::Session, title : String, location : String], result: ResourceSelection,
+ body: (match labels | List.nil => (record ResourceSelection {source := 0, count := 0}) | List.cons label rest =>
+ (let following : ResourceSelection := (matchingLocatedResources rest session title location);
+ (if (((prim equal title "" : Bool) || (prim equal (project label title) title : Bool)) &&
+ (resourceLocationMatches (project (project session matter) nodes) session (project label source) location)) then
+ (record ResourceSelection {source := (project label source), count := ((project following count) + 1)}) else following))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: labels
+}
+
+definition{
+ name: replaceResource, parameters: [journal : String, session : MatterSession::Session, role : String, title : String, text : String, location : String], result: MatterJournal::JournalResult,
+ body: (let selection : ResourceSelection := (if (prim equal location "" : Bool) then (matchingResources (project session labels) title) else (matchingLocatedResources (project session labels) session title location));
  (if (not ((project selection count) =? 1)) then (failed journal session "select-resource") else
  (match (Matter::findSource (project (project session matter) sources) (project selection source))
  | Option.none => (failed journal session "select-resource") | Option.some source =>
@@ -395,7 +420,7 @@ definition{
  name: changeFields, parameters: [operation : String, fields : (List String), journal : String, session : MatterSession::Session, role : String], result: MatterJournal::JournalResult,
  body: (let count : Nat := (MatterText::wordCount fields);
  (if (((prim equal operation "annotate" : Bool) && ((count =? 6) || (count =? 7))) || ((prim equal operation "withdraw" : Bool) && ((count =? 4) || (count =? 5)))) then (alterInterpretation journal session operation role fields) else
- (if ((prim equal operation "revise-rule" : Bool) && (count =? 8)) then (reviseRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6) (MatterJournal::fieldAt fields 7)) else  (if ((prim equal operation "ingest" : Bool) && (count =? 4)) then (commit journal session "ingest" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "review" : Bool) && (count =? 4)) then (reviewNext journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (if ((prim equal operation "edit" : Bool) && ((count =? 5) || (count =? 6))) then (editLocatedValue journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5)) else (if ((prim equal operation "goal" : Bool) && (count =? 3)) then (setContext journal session role "goal" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "jurisdiction" : Bool) && (count =? 3)) then (setContext journal session role "jurisdiction" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "assertion" : Bool) && (count =? 4)) then (commit journal session "assert" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "rule" : Bool) && (count =? 7)) then (addRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6)) else (if ((prim equal operation "replace-source" : Bool) && (count =? 4)) then (replaceResource journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (if ((prim equal operation "propose" : Bool) && (count =? 3)) then (match (selectedRule (project session rules) (MatterJournal::fieldAt fields 2)) | Option.none => (failed journal session "select-rule") | Option.some rule => (commit journal session "propose" role (project (referenceFields (project rule definition)) values))) else (failed journal session "command-shape"))))))))))))),
+ (if ((prim equal operation "revise-rule" : Bool) && (count =? 8)) then (reviseRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6) (MatterJournal::fieldAt fields 7)) else  (if ((prim equal operation "ingest" : Bool) && (count =? 4)) then (commit journal session "ingest" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "review" : Bool) && (count =? 4)) then (reviewNext journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (if ((prim equal operation "edit" : Bool) && ((count =? 5) || (count =? 6))) then (editLocatedValue journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5)) else (if ((prim equal operation "goal" : Bool) && (count =? 3)) then (setContext journal session role "goal" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "jurisdiction" : Bool) && (count =? 3)) then (setContext journal session role "jurisdiction" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "assertion" : Bool) && (count =? 4)) then (commit journal session "assert" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "rule" : Bool) && (count =? 7)) then (addRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6)) else (if ((prim equal operation "replace-source" : Bool) && ((count =? 4) || (count =? 5))) then (replaceResource journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4)) else (if ((prim equal operation "propose" : Bool) && (count =? 3)) then (match (selectedRule (project session rules) (MatterJournal::fieldAt fields 2)) | Option.none => (failed journal session "select-rule") | Option.some rule => (commit journal session "propose" role (project (referenceFields (project rule definition)) values))) else (failed journal session "command-shape"))))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 

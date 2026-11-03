@@ -177,6 +177,22 @@ assert.match(result.details[0],/Current dates: 2; dates needing review: 1/);
 assert.match(result.details.join(' '),/2024-03-04 \(response.date\) — Recorded directly/);
 
 
+// A current source location distinguishes resources with the same name.
+let resources=invoke('create',['','Resource revisions']).response;
+for(const text of ['First resource','Second resource']){
+ result=invoke('ingest',[resources,'client','Records',text]);assert.equal(result.status,'ok');resources=result.response;
+ if(text==='First resource'){const bad=invoke('replace-source',[resources,'client','Records','Wrong','Missing · line 1']);assert.equal(bad.status,'error');assert.equal(bad.response,resources);}
+}
+result=invoke('replace-source',[resources,'client','Records','Replacement']);assert.equal(result.status,'error');assert.equal(result.response,resources);
+result=invoke('replace-source',[resources,'client','Records','Replacement','Records · resource 2 · line 1']);assert.equal(result.status,'ok');resources=result.response;
+result=invoke('inspect',[resources,'client','Unassigned','1']);
+assert.match(result.details.join(' '),/First resource — Source location: Records · resource 1 · line 1/);
+assert.match(result.details.join(' '),/Second resource — Source location: Records · resource 2 · earlier version 1 · line 1/);
+assert.match(result.details.join(' '),/Replacement — Source location: Records · resource 2 · line 1/);
+result=invoke('replace-source',[resources,'client','Records','Wrong','Records · resource 2 · earlier version 1 · line 1']);assert.equal(result.status,'error');assert.equal(result.response,resources);
+result=invoke('replace-source',[resources,'client','','Second replacement','Records · resource 2 · line 1']);assert.equal(result.status,'ok');resources=result.response;
+assert.equal(invoke('restore',[resources]).response,resources);
+
 // Exercise the admitted journal count in the actual Wasm guest, not a smaller proxy.
 const field=value=>Buffer.byteLength(value)+':'+value;
 const command=values=>values.map(field).join('');

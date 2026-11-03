@@ -654,3 +654,49 @@ fn chronology_combines_only_the_selected_date_aspects_without_duplicate_entries(
     assert_eq!(result.dated.iter().map(|e|e.node.facet.as_str()).collect::<Vec<_>>(),vec!["notice.date","response.date"]);
     assert!(result.unresolved.is_empty());
 }
+
+fn repeated_resource_journal() -> String {
+    let mut journal=initialJournal("Resource revisions".into());
+    for content in ["First resource\nSecond line", "Second resource"] {
+        let session=replay(journal.clone()).unwrap().session;
+        let result=commit(journal,&session,"ingest".into(),"client".into(),&["Records".into(),content.into()]).unwrap();
+        assert_eq!(result.code,"");journal=result.journal;
+    }
+    journal
+}
+
+#[test]
+fn resource_location_replaces_only_the_intended_equal_named_source() {
+    let journal=repeated_resource_journal();let s=replay(journal.clone()).unwrap().session;
+    let ambiguous=replaceResource(journal.clone(),&s,"client".into(),"Records".into(),"Replacement".into(),"".into()).unwrap();
+    assert!(!ambiguous.code.is_empty());assert_eq!(ambiguous.journal,journal);assert_eq!(ambiguous.session,s);
+    let replacement=replaceResource(journal,&s,"client".into(),"Records".into(),"Replacement".into(),"Records · resource 2 · line 1".into()).unwrap();
+    assert_eq!(replacement.code,"");
+    let first=s.matter.sources.iter().find(|r|r.id==1).unwrap();
+    assert_eq!(replacement.session.matter.sources.iter().find(|r|r.id==1).unwrap(),first);
+    let changed=replacement.session.matter.sources.iter().find(|r|r.id==2).unwrap();
+    assert_eq!(changed.revision,2);assert_eq!(changed.content,b"Replacement");
+    assert_eq!(replacement.session.sourceHistory,vec![s.matter.sources.iter().find(|r|r.id==2).unwrap().clone()]);
+    assert_eq!(replay(replacement.journal).unwrap().session,replacement.session);
+}
+
+#[test]
+fn invalid_historical_or_unauthorized_resource_selection_preserves_everything() {
+    let journal=repeated_resource_journal();let s=replay(journal.clone()).unwrap().session;
+    for (role,title,location) in [("client","Records","Records · resource 2 · line 9"),("client","Other","Records · resource 2 · line 1"),("reader","Records","Records · resource 2 · line 1")] {
+        let refused=replaceResource(journal.clone(),&s,role.into(),title.into(),"Replacement".into(),location.into()).unwrap();
+        assert!(!refused.code.is_empty());assert_eq!(refused.session,s);assert_eq!(refused.journal,journal);
+    }
+    let replaced=replaceResource(journal,&s,"client".into(),"".into(),"Replacement".into(),"Records · resource 2 · line 1".into()).unwrap();assert_eq!(replaced.code,"");
+    let refused=replaceResource(replaced.journal.clone(),&replaced.session,"client".into(),"Records".into(),"Another".into(),"Records · resource 2 · earlier version 1 · line 1".into()).unwrap();
+    assert!(!refused.code.is_empty());assert_eq!(refused.session,replaced.session);assert_eq!(refused.journal,replaced.journal);
+}
+
+#[test]
+fn resource_selection_remains_available_after_its_interpretations_are_withdrawn() {
+    let journal=repeated_resource_journal();let s=replay(journal.clone()).unwrap().session;
+    let reviewed=commit(journal,&s,"review".into(),"client".into(),&["3".into(),"1".into(),"fact".into(),"Reviewed resource".into(),"true".into()]).unwrap();assert_eq!(reviewed.code,"");
+    let withdrawn=commit(reviewed.journal,&reviewed.session,"withdraw".into(),"client".into(),&["3".into(),"2".into()]).unwrap();assert_eq!(withdrawn.code,"");
+    let replaced=replaceResource(withdrawn.journal,&withdrawn.session,"client".into(),"".into(),"Corrected resource".into(),"Records · resource 2 · line 1".into()).unwrap();
+    assert_eq!(replaced.code,"");assert_eq!(replaced.session.matter.sources.iter().find(|r|r.id==2).unwrap().content,b"Corrected resource");
+}

@@ -108,5 +108,19 @@ try{
 
  await page.setViewportSize({width:390,height:844});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));
  assert.deepEqual(errors,[]);
+ await page.reload();await ready();await run('create',{title:'Resource revisions'});
+ await run('ingest',{title:'Records',content:'First resource'});await run('ingest',{title:'Records',content:'Second resource'});
+ await run('inspect',{facet:'Unassigned'});assert.match(await page.locator('#result-details').textContent(),/Records · resource 2 · line 1/);
+ const beforeResource=await save();await run('replace-source',{title:'Records',content:'Replacement'});
+ assert.equal(await page.locator('#result-error').isVisible(),true);assert.deepEqual(await save(),beforeResource);
+ await run('replace-source',{title:'Records',content:'Replacement',location:'Records · resource 2 · line 1'});
+ assert.equal(await page.locator('#result-error').isVisible(),false);
+ await run('inspect',{facet:'Unassigned'});
+ assert.match(await page.locator('#result-details').textContent(),/First resource — Source location: Records · resource 1 · line 1/);
+ assert.match(await page.locator('#result-details').textContent(),/Second resource — Source location: Records · resource 2 · earlier version 1 · line 1/);
+ assert.match(await page.locator('#result-details').textContent(),/Replacement — Source location: Records · resource 2 · line 1/);
+ const replacedResource=await save();await run('replace-source',{title:'Records',content:'Wrong',location:'Records · resource 2 · earlier version 1 · line 1'});
+ assert.equal(await page.locator('#result-error').isVisible(),true);assert.deepEqual(await save(),replacedResource);
+ assert.deepEqual(errors,[]);
  console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet and joint-slot interpretation, withdrawal, next-form navigation, and mobile layout');
 }finally{await context.close();await browser.close();}

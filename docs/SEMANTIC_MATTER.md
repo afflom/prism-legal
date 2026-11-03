@@ -169,11 +169,16 @@ source location copied from facet inspection. The location narrows the current
 candidate set; a missing or still-ambiguous match leaves the entire matter
 unchanged. Original citations, other passages, role checks, and normal journal
 replay are preserved. Earlier requests without this qualifier remain supported.
+Resource replacement also accepts an optional current source location. This
+distinguishes duplicate resource titles without changing the journal format.
+A location must match the selected current resource even when its name is unique;
+historical locations and mismatched titles refuse. A resource can still be
+replaced after its interpretations are withdrawn.
 Historical interpretations show their source revision and original line, using
 the retained source bytes rather than the replacement resource's text.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 40 acceptance vectors. Unused help and
+controls, errors, empty states, and 42 acceptance vectors. Unused help and
 transport details are collapsed. Shorter field guidance and the neutral Continue
 action serve both review and read-only forms. Acceptance bytes are factored into
 closed byte aliases, preserving their exact values while reducing large inline
@@ -227,15 +232,15 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`e626dbe99cd1458669c31a094faf4dbbc267990f04bb5a21059c672834e1c4d4`
+`60c03faefe3ca99038d912de19d050cc339a55b037981326ec3ba992c0836a88`
 and semantic ID
-`7662d984f8c4d7075e2c625503941325745202e0b732e6f1e9c334f8be059077`
+`25d622de3ee4196b5f43ec1453b2eb9b5252f84359b629fea68d40bf0263a75e`
 was emitted as build
-`b0525b4eeed71581419d45b320d17d604581bcfd430f84bdb2c7f92b1d06aedd`
+`174f9b567a735f7ca96eb6fc6eda0a13de798d334fa26b24fac4abe25c0af38b`
 and passed LexLean verification with attestation
-`91dbb7ebdda01a0c90da59a9f80022913502adab2541da3095f97d82dbf0f762`.
+`0e184b38e631ad71317f8cb14458a1126e498e342d37ba27e91f556fe867d0d1`.
 
-The generated native library passes 44 tests across `behavior.rs` and
+The generated native library passes 47 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
@@ -250,7 +255,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 40 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 42 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -258,18 +263,21 @@ rule assessment/revision, proposal review, exception/correction propagation,
 inspection, save/reopen, failed restoration, learned multi-facet review, withdrawal,
 next-form navigation, source locations, additional-facet review, role consistency,
 source-qualified corrections, historical source locations, learned date chronology,
-combined date aspects, and mobile layout.
+combined date aspects, source-qualified resource replacement, and mobile layout.
 
 The source corpus includes a 70,831-byte restore request containing nine imported
 resources. It exceeds the old portable transport limit and returns the exact
-accepted journal. The current 40-vector artifact passes native, Wasm and
+accepted journal. The current 42-vector artifact passes native, Wasm and
 application-browser checks. Its portable gate has not been rerun. The prior
-34-vector artifact's development portable-browser run failed while
+40-vector and 34-vector artifacts' development portable-browser runs failed while
 reading a response through Playwright (`Network.getResponseBody: No data found
 for resource`). A diagnostic run of the prior 30-vector artifact also failed;
 a second diagnostic run passed direct/resident execution and all nine portable
 journeys. These observations establish intermittence, not a resolved gate.
-Earlier body capture did not resolve it. The required pinned-browser CI must
+The 40-vector diagnostic observed a successful HTTP response followed by
+`ERR_ABORTED` during blank-file restoration; the application had reached its
+ready state. The cause remains unestablished. Earlier body capture did not
+resolve it. The required pinned-browser CI must
 pass without replacing the response-body assertion or changing retention
 buffers to hide the failure.
 
