@@ -110,6 +110,42 @@ result=invoke('overview',[unanchored,'client']);assert.equal(result.response,una
 assert.doesNotMatch(result.details.join(' '),/(?:amount|claimed.amount): unrelated wording/,'unanchored aliases cannot teach a meaning transfer');
 
 
+// Equal interpretations are selected by their visible source location.
+let located=invoke('create',['','Separate receipt corrections']).response;
+for(const [operation, fields] of [
+ ['ingest',['client','Records','Zoë: 75\r\nZoë: 75']],
+ ['goal',['client','Review both receipts']],
+ ['review',['client','amount','75']],
+ ['review',['client','amount','75']]]){
+ result=invoke(operation,[located,...fields]);assert.equal(result.status,'ok');located=result.response;
+}
+result=invoke('inspect',[located,'client','amount','1']);
+assert.match(result.details.join(' '),/Source location: Records · line 1/);
+assert.match(result.details.join(' '),/Source location: Records · line 2/);
+for(const location of ['', 'Records · line 3']){
+ result=invoke('edit',[located,'client','amount','75','80',location]);
+ assert.equal(result.status,'error');assert.equal(result.response,located);
+}
+result=invoke('annotate',[located,'client','amount','75','disputed.amount','75','Records · line 2']);
+assert.equal(result.status,'ok');located=result.response;
+result=invoke('edit',[located,'client','amount','75','80','Records · line 2']);
+assert.equal(result.status,'ok');located=result.response;
+result=invoke('inspect',[located,'client','amount','1']);
+assert.match(result.details.join(' '),/Current interpretation: 75 — Source location: Records · line 1/);
+assert.match(result.details.join(' '),/Current interpretation: 80 — Source location: Records · line 2/);
+result=invoke('withdraw',[located,'client','amount','75','Records · line 1']);
+assert.equal(result.status,'ok');located=result.response;
+result=invoke('inspect',[located,'client','amount','1']);
+assert.match(result.details.join(' '),/Withdrawn: 75 — Source location: Records · line 1/);
+assert.match(result.details.join(' '),/Current interpretation: 80 — Source location: Records · line 2/);
+assert.equal(invoke('restore',[located]).response,located);
+result=invoke('replace-source',[located,'client','Records','Replacement heading\n75']);assert.equal(result.status,'ok');located=result.response;
+result=invoke('inspect',[located,'client','amount','1']);
+assert.match(result.details.join(' '),/Needs review: 80 — Source location: Records · earlier version 1 · line 2/);
+result=invoke('edit',[located,'client','amount','80','85','Records · earlier version 1 · line 2']);
+assert.equal(result.status,'error');assert.equal(result.response,located);
+
+
 // Exercise the admitted journal count in the actual Wasm guest, not a smaller proxy.
 const field=value=>Buffer.byteLength(value)+':'+value;
 const command=values=>values.map(field).join('');

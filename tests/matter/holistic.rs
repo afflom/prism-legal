@@ -513,3 +513,82 @@ fn additional_facet_attention_prioritizes_unresolved_rule_conditions() {
     let s = accepted(commitRule(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), &rule).unwrap());
     assert_eq!(nextAdditionalReview(&s).unwrap().meaning.facet, "day");
 }
+
+fn repeated_reviewed_journal() -> String {
+    let title = "Separate receipts".to_string();
+    let start = initialJournal(title);
+    let s = replay(start.clone()).unwrap().session;
+    let imported = commit(start, &s, "ingest".into(), "client".into(), &vec!["Records".into(), "Zoë: 75\r\nZoë: 75".into()]).unwrap();
+    assert_eq!(imported.code, "");
+    let first = reviewNext(imported.journal, &imported.session, "client".into(), "amount".into(), "75".into()).unwrap();
+    assert_eq!(first.code, "");
+    let second = reviewNext(first.journal, &first.session, "client".into(), "amount".into(), "75".into()).unwrap();
+    assert_eq!(second.code, "");
+    second.journal
+}
+
+#[test]
+fn located_changes_preserve_the_other_passage_and_replay_exactly() {
+    let journal = repeated_reviewed_journal();
+    let s = replay(journal.clone()).unwrap().session;
+    assert!(uniqueLocatedNode(&s, "amount".into(), "75".into(), "".into()).unwrap().is_none());
+    let refused = editLocatedValue(journal.clone(), &s, "client".into(), "amount".into(), "75".into(), "80".into(), "Records · line 3".into()).unwrap();
+    assert_eq!(refused.journal, journal); assert_eq!(refused.session, s); assert!(!refused.code.is_empty());
+    let corrected = editLocatedValue(journal, &s, "client".into(), "amount".into(), "75".into(), "80".into(), "Records · line 2".into()).unwrap();
+    assert_eq!(corrected.code, "");
+    assert_eq!(findNode(&corrected.session.matter.nodes, 1).unwrap().value, "75");
+    assert_eq!(findNode(&corrected.session.matter.nodes, 2).unwrap().value, "80");
+    assert_eq!(corrected.session.matter.sources, s.matter.sources);
+    assert_eq!(findNode(&corrected.session.matter.nodes, 2).unwrap().citations, findNode(&s.matter.nodes, 2).unwrap().citations);
+    let fields = vec![corrected.journal.clone(), "client".into(), "amount".into(), "80".into(), "disputed.amount".into(), "80".into(), "Records · line 2".into()];
+    let annotated = changeFields("annotate".into(), &fields, corrected.journal, &corrected.session, "client".into()).unwrap();
+    assert_eq!(annotated.code, "");
+    let fields = vec![annotated.journal.clone(), "client".into(), "amount".into(), "75".into(), "Records · line 1".into()];
+    let withdrawn = changeFields("withdraw".into(), &fields, annotated.journal, &annotated.session, "client".into()).unwrap();
+    assert_eq!(withdrawn.code, "");
+    assert!(!findNode(&withdrawn.session.matter.nodes, 1).unwrap().accepted);
+    assert!(findNode(&withdrawn.session.matter.nodes, 2).unwrap().accepted);
+    assert!(withdrawn.session.matter.nodes.iter().find(|n| n.facet == "disputed.amount").unwrap().accepted);
+    assert_eq!(replay(withdrawn.journal).unwrap().session, withdrawn.session);
+}
+
+#[test]
+fn source_qualifiers_handle_duplicate_names_and_never_bypass_permissions() {
+    let mut s = replay(repeated_reviewed_journal()).unwrap().session;
+    s = accepted(ingest(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), "Records".into(), b"Provision".to_vec()).unwrap());
+    let id = s.matter.nodes.iter().max_by_key(|n| n.id).unwrap().id;
+    s = accepted(review(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), Reference {id, revision:1}, "authority".into(), "Reviewed provision".into(), true).unwrap());
+    assert!(uniqueLocatedNode(&s, "amount".into(), "75".into(), "Records · line 1".into()).unwrap().is_none());
+    assert_eq!(uniqueLocatedNode(&s, "amount".into(), "75".into(), "Records · resource 1 · line 1".into()).unwrap().unwrap().id, 1);
+    let chosen = uniqueLocatedNode(&s, "authority".into(), "Reviewed provision".into(), "Records · resource 2 · line 1".into()).unwrap().unwrap();
+    let refused = review(&s, s.matter.revision, Role::Client, "client".into(), nodeReference(&chosen), "authority".into(), "Unreviewed replacement".into(), true).unwrap();
+    assert_eq!(refused.code, "lawyer-review-required"); assert_eq!(refused.session, s);
+}
+
+#[test]
+fn visually_equal_source_locations_remain_ambiguous_instead_of_choosing_a_passage() {
+    let mut s = initial("Visible ambiguity".into());
+    for title in ["Records\tfile", "Records file"] {
+        s = accepted(ingest(&s, s.matter.revision, Role::Client, "client".into(), title.into(), b"75".to_vec()).unwrap());
+        let node = nextReview(&s).unwrap().unwrap();
+        s = accepted(review(&s, s.matter.revision, Role::Client, "client".into(), nodeReference(&node), "amount".into(), "75".into(), true).unwrap());
+    }
+    assert!(uniqueLocatedNode(&s, "amount".into(), "75".into(), "Records file · line 1".into()).unwrap().is_none());
+    let previous = s.clone();
+    let stale = s.matter.sources[0].clone();
+    s = accepted(reviseSource(&s, s.matter.revision, Role::Client, "client".into(), Reference{id:stale.id, revision:stale.revision}, b"80".to_vec()).unwrap());
+    let selected = uniqueLocatedNode(&s, "amount".into(), "75".into(), "Records file · line 1".into()).unwrap().unwrap();
+    assert_ne!(selected.citations[0].source, stale.id);
+    assert_eq!(previous.matter.sources.len(), s.matter.sources.len());
+}
+
+#[test]
+fn inspection_locations_use_the_cited_historical_bytes_after_source_replacement() {
+    let mut s = replay(repeated_reviewed_journal()).unwrap().session;
+    let old = findNode(&s.matter.nodes, 2).unwrap();
+    s = accepted(reviseSource(&s, s.matter.revision, Role::Client, "client".into(), Reference{id:1, revision:1}, b"Completely changed first line\n75".to_vec()).unwrap());
+    assert_eq!(interpretationLocation(&s, &old).unwrap(), "Records · earlier version 1 · line 2");
+    assert!(uniqueLocatedNode(&s, "amount".into(), "75".into(), "Records · earlier version 1 · line 2".into()).unwrap().is_none());
+    let new = s.matter.nodes.iter().max_by_key(|n|n.id).unwrap();
+    assert_eq!(interpretationLocation(&s, new).unwrap(), "Records · line 2");
+}

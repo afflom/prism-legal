@@ -14,7 +14,9 @@ visible as focused review steps, with the original resource and line identified;
 withdrawal preserves their history. Changes invalidate dependent conclusions
 and expose related facts and strategies. A saved matter file replays the complete accepted command history.
 The view offers the next useful form, with focused facet inspection and
-supporting source context available when needed.
+supporting source context available when needed. Source locations distinguish
+equal interpretations during correction or withdrawal and retain the original
+line and version after a resource changes.
 
 **This is an implemented local workspace, not a completed production legal
 service.** Its associative classifier learns words and ordered word pairs from

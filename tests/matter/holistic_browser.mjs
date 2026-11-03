@@ -60,5 +60,31 @@ try{
  await run('withdraw',{facet:'day',value:'Tuesday'});assert.equal(await message(),'Confirm the governing jurisdiction');
  await run('inspect',{facet:'amount'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: 75/);
  assert.deepEqual(errors,[]);
+ await page.reload();await ready();await run('create',{title:'Separate receipts'});
+ await run('ingest',{title:'Records',content:'Zoë: 75\r\nZoë: 75'});await run('goal',{value:'Review both receipts'});
+ await run('review',{facet:'amount',interpretation:'75'});await run('review',{facet:'amount',interpretation:'75'});
+ await run('inspect',{facet:'amount'});assert.match(await page.locator('#result-details').textContent(),/Source location: Records · line 2/);
+ const beforeCorrection=await save();
+ await run('edit',{facet:'amount','old-value':'75','new-value':'80'});
+ assert.equal(await page.locator('#result-error').isVisible(),true);assert.deepEqual(await save(),beforeCorrection);
+ await run('annotate',{'from-facet':'amount','from-value':'75',facet:'disputed.amount',interpretation:'75',location:'Records · line 2'});
+ assert.equal(await page.locator('#result-error').isVisible(),false);
+ await run('edit',{facet:'amount','old-value':'75','new-value':'80',location:'Records · line 2'});
+ assert.equal(await page.locator('#result-error').isVisible(),false);
+ await run('inspect',{facet:'amount'});
+ assert.match(await page.locator('#result-details').textContent(),/Current interpretation: 75 — Source location: Records · line 1/);
+ assert.match(await page.locator('#result-details').textContent(),/Current interpretation: 80 — Source location: Records · line 2/);
+ await run('withdraw',{facet:'amount',value:'75',location:'Records · line 1'});
+ await run('inspect',{facet:'amount'});
+ assert.match(await page.locator('#result-details').textContent(),/Withdrawn: 75 — Source location: Records · line 1/);
+ assert.match(await page.locator('#result-details').textContent(),/Current interpretation: 80 — Source location: Records · line 2/);
+ const locatedSaved=await save();await page.reload();await ready();
+ await page.locator('#open-session').setInputFiles({name:'located.prismlegal',mimeType:'application/octet-stream',buffer:locatedSaved});
+ await page.waitForFunction(()=>document.querySelector('#save-session').disabled===false);await ready();assert.deepEqual(await save(),locatedSaved);
+ await run('replace-source',{title:'Records',content:'Replacement heading\n75'});
+ await run('inspect',{facet:'amount'});
+ assert.match(await page.locator('#result-details').textContent(),/Needs review: 80 — Source location: Records · earlier version 1 · line 2/);
+
+ assert.deepEqual(errors,[]);
  console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet and joint-slot interpretation, withdrawal, next-form navigation, and mobile layout');
 }finally{await context.close();await browser.close();}

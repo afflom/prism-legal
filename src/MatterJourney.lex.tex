@@ -113,8 +113,23 @@ definition{
 }
 
 definition{
+ name: citationSourceVersion, parameters: [sources : (List Matter::Source), citation : Matter::Citation], result: (Option Matter::Source),
+ body: (match sources | List.nil => (ctor Option.none [Matter::Source]) | List.cons source rest =>
+ (if (((project source id) =? (project citation source)) && ((project source revision) =? (project citation revision))) then (ctor Option.some [Matter::Source] source) else (citationSourceVersion rest citation))),
+ executable: true, axioms: [], recursive_argument: sources
+}
+
+definition{
+ name: citationVersionLabel, parameters: [session : MatterSession::Session, citation : Matter::Citation], result: String,
+ body: (match (Matter::findSource (project (project session matter) sources) (project citation source))
+ | Option.none => " · unavailable source"
+ | Option.some current => (if ((project current revision) =? (project citation revision)) then "" else (MatterText::concat " · earlier version " (MatterText::decimalLoop 20 (project citation revision))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
  name: passageLine, parameters: [sources : (List Matter::Source), citation : Matter::Citation], result: String,
- body: (match (Matter::findSource sources (project citation source)) | Option.none => "" | Option.some source =>
+ body: (match (citationSourceVersion sources citation) | Option.none => "" | Option.some source =>
  (match (Foundation.Bytes::sliceBytes (project source content) 0 (project citation start)) | Option.none => "" | Option.some prefix =>
  (match (Foundation.Utf8::decode prefix) | Option.none => "" | Option.some text =>
  (match (prim split_exact text "\n" (64 : UInt32) : (Option (List String))) | Option.none => "" | Option.some lines =>
@@ -128,7 +143,7 @@ definition{
  (let title : String := (resourceName (project session labels) (project citation source));
  (let label : String := (if (prim equal title "" : Bool) then (MatterText::concat "Resource " (MatterText::decimalLoop 20 (project citation source))) else
  (if (1 <? (resourceNameCount (project session labels) title)) then (MatterText::concat title (MatterText::concat " · resource " (MatterText::decimalLoop 20 (project citation source)))) else title));
- (record MatterText::TextItems {values := (cons (MatterText::concat label (passageLine (project (project session matter) sources) citation)) (project (sourceHeadings rest session) values))})))),
+ (record MatterText::TextItems {values := (cons (MatterText::concat label (MatterText::concat (citationVersionLabel session citation) (passageLine (prim append (project (project session matter) sources) (project session sourceHistory) : (List Matter::Source)) citation))) (project (sourceHeadings rest session) values))})))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
 }
 
