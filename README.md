@@ -13,7 +13,7 @@ facet and meaning suggestions. CSV headings suggest editable aspects; exact cell
 remain available through review and replacement. A passage can support several interpretations. Further learned aspects stay
 visible as focused review steps, with the original resource and line identified;
 withdrawal preserves their history. Reviewed rule requirements and vocabulary shared with the current goal guide attention across new passages and learned missing aspects. Attention uses the same learned facet and literal meaning offered for review; disputed meanings cannot create goal relevance. It compiles current extraction and conflict context once per pending scan, so a large partially reviewed intake can reopen and continue. Changes invalidate dependent conclusions
-and expose related facts and strategies. Strategy inspection leads to its own proposal review; repeated requests do not create duplicate proposals from the same current support. A saved matter file replays the complete accepted command history.
+and expose related facts and strategies. Strategy inspection leads to its own proposal review; repeated requests do not create duplicate proposals from the same current support. A saved matter file replays the complete accepted command history, including review of a full intake. Its 2,048-command budget preserves earlier corrections; reaching it leaves inspection and saving available.
 The view offers the next useful form, with focused facet inspection and
 supporting source context available when needed. Source locations distinguish
 equal interpretations during correction or withdrawal and retain the original

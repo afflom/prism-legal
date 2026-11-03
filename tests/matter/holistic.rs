@@ -1222,3 +1222,71 @@ fn correcting_a_full_intake_preserves_every_other_passage_and_its_order() {
         }
     }
 }
+
+fn journal_fields(values: &[String]) -> String {
+    values.iter().map(|value|format!("{}:{value}",value.len())).collect()
+}
+fn append_journal_command(journal: &mut String, values: Vec<String>) {
+    let command=journal_fields(&values);journal.push_str(&format!("{}:{command}",command.len()));
+}
+fn full_review_journal() -> String {
+    let mut journal=initialJournal("Complete archive".into());let mut revision: u64=0;
+    for index in 0..16 {
+        append_journal_command(&mut journal,vec!["ingest".into(),revision.to_string(),"client".into(),"client".into(),format!("Resource {}",index+1),vec!["entry";63].join("\n")]);revision+=1;
+    }
+    append_journal_command(&mut journal,vec!["assert".into(),revision.to_string(),"client".into(),"client".into(),"goal".into(),"Understand the archive".into()]);revision+=1;
+    for identifier in 1u64..=1008 {
+        append_journal_command(&mut journal,vec!["review".into(),revision.to_string(),"client".into(),"client".into(),identifier.to_string(),"1".into(),"entry".into(),"entry".into(),"true".into()]);revision+=1;
+    }
+    journal
+}
+fn correction_history(commands: usize) -> String {
+    let mut journal=initialJournal("Retained corrections".into());
+    append_journal_command(&mut journal,vec!["ingest".into(),"0".into(),"client".into(),"client".into(),"Record".into(),"original".into()]);
+    for revision in 1..commands {
+        append_journal_command(&mut journal,vec!["review".into(),revision.to_string(),"client".into(),"client".into(),"1".into(),revision.to_string(),"entry".into(),format!("value {revision}"),"true".into()]);
+    }
+    journal
+}
+
+#[test]
+fn bounded_field_iteration_keeps_utf8_order_and_refuses_the_first_extra_field() {
+    let fields=(0..2050).map(|index|format!("Zoë {index}:\n\0\u{1f}" )).collect::<Vec<_>>();let encoded=journal_fields(&fields);
+    for count in [0,1,2,3,31,32,33,511,512,513,1023,1024,1025,2047,2048,2049,2050] {
+        let subset=journal_fields(&fields[..count]);
+        assert_eq!(decodeJournalFields(subset.clone(),count as u64).unwrap().unwrap().values,&fields[..count]);
+        if count>0 {assert!(decodeJournalFields(subset,(count-1) as u64).unwrap().is_none());}
+    }
+    assert_eq!(decodeJournalFields(encoded.clone(),2050).unwrap().unwrap().values,fields);
+    assert!(decodeJournalFields(encoded.clone(),2049).unwrap().is_none());
+    assert!(decodeJournalFields(format!("{encoded}1:x"),2050).unwrap().is_none());
+    assert!(decodeJournalFields(format!("{encoded}2:x"),2051).unwrap().is_none());
+    assert_eq!(decodeJournalFields("".into(),0).unwrap().unwrap().values,Vec::<String>::new());
+    assert!(decodeJournalFields("0:".into(),0).unwrap().is_none());
+}
+
+#[test]
+fn a_full_intake_can_be_reviewed_saved_replayed_and_corrected() {
+    let journal=full_review_journal();let s=accepted(replay(journal.clone()).unwrap());
+    assert_eq!(s.matter.revision,1025);assert_eq!(s.matter.nodes.len(),1009);assert_eq!(s.matter.changes.len(),1008);assert_eq!(s.audit.len(),1025);
+    assert!(s.matter.nodes.iter().all(|node|node.accepted));assert!(nextAttention(&s).unwrap().node.is_none());
+    let command=journal_fields(&["review".into(),"1025".into(),"client".into(),"client".into(),"1008".into(),"2".into(),"entry".into(),"corrected last passage".into(),"true".into()]);
+    let corrected=transact(journal,command).unwrap();assert_eq!(corrected.code,"");assert_eq!(corrected.session.matter.revision,1026);
+    assert_eq!(replay(corrected.journal).unwrap().session,corrected.session);
+    assert_eq!(corrected.session.matter.nodes.iter().find(|node|node.id==1008).unwrap().value,"corrected last passage");
+}
+
+#[test]
+fn the_full_history_budget_preserves_every_correction_and_refuses_atomically() {
+    let journal=correction_history(2048);let s=accepted(replay(journal.clone()).unwrap());
+    assert_eq!(s.matter.revision,2048);assert_eq!(s.matter.nodes[0].revision,2048);assert_eq!(s.matter.nodes[0].value,"value 2047");assert_eq!(s.matter.changes.len(),2047);assert_eq!(s.audit.len(),2048);
+    let command=journal_fields(&["assert".into(),"2048".into(),"client".into(),"client".into(),"goal".into(),"Continue".into()]);
+    let refused=transact(journal.clone(),command.clone()).unwrap();assert_eq!(refused.code,"journal-count");assert_eq!(refused.journal,journal);assert_eq!(refused.session,s);
+    let extra=format!("{journal}{}:{command}",command.len());assert!(!replay(extra).unwrap().code.is_empty());
+    let mut corrupt=correction_history(2047);append_journal_command(&mut corrupt,vec!["assert".into(),"2047".into(),"reader".into(),"reader".into(),"goal".into(),"forged".into()]);
+    let failed=replay(corrupt).unwrap();assert!(!failed.code.is_empty());assert_eq!(failed.session,initial("".into()),"late corruption must not expose a partially accepted matter");
+    let empty=initial("First refusal".into());
+    let later=journal_fields(&["assert".into(),"0".into(),"client".into(),"client".into(),"goal".into(),"must not run".into()]);
+    let stopped=replayCommands(&["malformed".into(),later],&empty).unwrap();
+    assert_eq!(stopped.code,"command-encoding");assert_eq!(stopped.session,empty,"later valid commands cannot erase the first refusal");
+}

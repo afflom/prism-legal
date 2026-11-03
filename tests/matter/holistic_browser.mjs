@@ -1,4 +1,4 @@
-import {reviewedArchive} from './archive_fixture.mjs';
+import {reviewedArchive,correctionHistory} from './archive_fixture.mjs';
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -43,7 +43,7 @@ try{
  assert.match(await page.locator('#result-details').textContent(),/payment.amount: 75/);
  await run('annotate',{'from-facet':'payment.amount','from-value':'50',facet:'claimed.amount',interpretation:'50'});
  assert.match(await page.locator('#result-details').textContent(),/claimed.amount: 75/);
- if(process.env.BROWSER_SCREENSHOT){await page.setViewportSize({width:1280,height:1000});await page.screenshot({path:process.env.BROWSER_SCREENSHOT,fullPage:true});}
+ if(process.env.BROWSER_SCREENSHOT){await page.setViewportSize({width:1280,height:1000});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:process.env.BROWSER_SCREENSHOT,fullPage:true});}
  await run('review',{facet:'payment.amount'});await run('inspect',{facet:'payment.amount'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: 75/);
  await run('withdraw',{facet:'claimed.amount',value:'50'});await run('inspect',{facet:'claimed.amount'});assert.match(await page.locator('#result-details').textContent(),/Withdrawn: 50/);
  await page.reload();await ready();await run('create',{title:'Dated receipts'});
@@ -200,6 +200,16 @@ try{
  await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();assert.equal(await page.locator('#status').getAttribute('data-state'),'ready');assert.deepEqual(await save(),archive);
  assert.match(await page.locator('#result-details').textContent(),/entry: entry/);await page.locator('#next-form').click();assert.equal(await page.locator('#field-location').inputValue(),'Resource 2 · line 2');assert.deepEqual(await save(),archive);
  await page.locator('#guided-submit').click();await ready();assert.equal(await page.locator('#status').getAttribute('data-state'),'ready');assert.equal(await page.locator('#result-error').isVisible(),false);assert((await save()).toString().startsWith(archive.toString()));await page.locator('#next-form').click();assert.equal(await page.locator('#field-location').inputValue(),'Resource 2 · line 3');
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
+ await page.reload();await ready();const completeArchive=Buffer.from(reviewedArchive(1008));
+ await page.locator('#open-session').setInputFiles({name:'complete-archive.prismlegal',mimeType:'application/octet-stream',buffer:completeArchive});await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();assert.equal(await message(),'Confirm the governing jurisdiction');assert.deepEqual(await save(),completeArchive);
+ await run('edit',{facet:'entry','old-value':'entry','new-value':'Corrected last passage',location:'Resource 16 · line 63'});assert.equal(await page.locator('#result-error').isVisible(),false);const correctedArchive=await save();assert(correctedArchive.toString().startsWith(completeArchive.toString()));
+ await run('inspect',{facet:'entry',page:'126'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: Corrected last passage/);assert.deepEqual(await save(),correctedArchive);
+ await page.reload();await ready();const completeHistory=Buffer.from(correctionHistory());
+ await page.locator('#open-session').setInputFiles({name:'full-history.prismlegal',mimeType:'application/octet-stream',buffer:completeHistory});await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();assert.deepEqual(await save(),completeHistory);
+ await run('goal',{value:'Continue'});assert.equal(await page.locator('#result-error').isVisible(),true);assert.match(await page.locator('#result-error').textContent(),/Matter history is full/);assert.deepEqual(await save(),completeHistory);
+ await run('inspect',{facet:'entry',page:'1'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: value 2047/);assert.deepEqual(await save(),completeHistory);
+ await page.locator('#open-session').setInputFiles({name:'over-history.prismlegal',mimeType:'application/octet-stream',buffer:Buffer.from(correctionHistory(2049))});await page.waitForFunction(()=>document.querySelector('#result-error')?.hidden===false);assert.deepEqual(await save(),completeHistory);
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
  if(process.env.SCREENSHOT_PATH){await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:process.env.SCREENSHOT_PATH,fullPage:true});}
  console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet and joint-slot interpretation, withdrawal, next-form navigation, and mobile layout');

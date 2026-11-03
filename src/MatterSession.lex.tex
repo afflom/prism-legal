@@ -10,6 +10,12 @@
 \importmodule{Foundation.Utf8}
 \title{Text application model}
 \begin{semanticmodule}
+definition{
+ name: maximumNodeCount, parameters: [], result: Nat,
+ body: 1024,
+ executable: true, axioms: []
+}
+
 inductive{ name: Role, type_parameters: [], parameters: [], constructors: [{name: Client, fields: []}, {name: Lawyer, fields: []}, {name: Reader, fields: []}] }
 
 structure{
@@ -214,7 +220,7 @@ definition{
  | Result.error error => (refuse session "source-grounding")
  | Result.ok extracted => (match extracted
   | Option.none => (refuse session (if (prim equal format "csv" : Bool) then "csv-format-or-limit" else "source-format-or-limit"))
-  | Option.some collection => (if (((Matter::nodeCount (project collection nodes)) =? 0) || (1024 <? ((Matter::nodeCount (project collection nodes)) + (Matter::nodeCount (project (project session matter) nodes))))) then (refuse session "source-empty-or-node-limit") else
+  | Option.some collection => (if (((Matter::nodeCount (project collection nodes)) =? 0) || ((maximumNodeCount) <? ((Matter::nodeCount (project collection nodes)) + (Matter::nodeCount (project (project session matter) nodes))))) then (refuse session "source-empty-or-node-limit") else
    (let appended : Matter::Nodes := (appendNodes (project (project session matter) nodes) (project (reidentify (project collection nodes) (nextNode (project (project session matter) nodes))) nodes));
    (let matter : Matter::State := (record Matter::State {revision := (expected + 1), sources := (cons source (project (project session matter) sources)), nodes := (project appended nodes), changes := (project (project session matter) changes)});
    (let updated : Session := (changed session matter actor "ingest" (project source id));
@@ -243,7 +249,7 @@ definition{
  | Result.error error => (refuse session "source-grounding")
  | Result.ok extracted => (match extracted
   | Option.none => (refuse session (if (prim equal (resourceFormat (project session labels) (project source id)) "csv" : Bool) then "csv-format-or-limit" else "source-format-or-limit"))
-  | Option.some collection => (if (((Matter::nodeCount (project collection nodes)) =? 0) || (1024 <? ((Matter::nodeCount (project collection nodes)) + (Matter::nodeCount (project (project session matter) nodes))))) then (refuse session "source-empty-or-node-limit") else
+  | Option.some collection => (if (((Matter::nodeCount (project collection nodes)) =? 0) || ((maximumNodeCount) <? ((Matter::nodeCount (project collection nodes)) + (Matter::nodeCount (project (project session matter) nodes))))) then (refuse session "source-empty-or-node-limit") else
    (let appended : Matter::Nodes := (appendNodes (project (project session matter) nodes) (project (reidentify (project collection nodes) (nextNode (project (project session matter) nodes))) nodes));
    (let sources : Sources := (replaceSource (project (project session matter) sources) source);
    (let matter : Matter::State := (record Matter::State {revision := (expected + 1), sources := (project sources values), nodes := (project appended nodes), changes := (project (project session matter) changes)});
@@ -256,7 +262,7 @@ definition{
  name: recordAssertion, parameters: [session : Session, expected : Nat, role : Role, actor : String, facet : String, value : String], result: Outcome,
  body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
  (if ((privileged facet) || (not ((boundedText facet 128) && (boundedText value 8192)))) then (refuse session "assertion-facet-or-value") else
- (if (not ((Matter::nodeCount (project (project session matter) nodes)) <? 1024)) then (refuse session "node-limit") else
+ (if (not ((Matter::nodeCount (project (project session matter) nodes)) <? (maximumNodeCount))) then (refuse session "node-limit") else
  (let identifier : Nat := (nextNode (project (project session matter) nodes));
  (let node : Matter::Node := (record Matter::Node {id := identifier, revision := 1, facet := facet, value := value, origin := (ctor Matter::Origin.Reviewed), accepted := true, citations := (nil Matter::Citation), dependencies := (nil Matter::Reference)});
  (let matter : Matter::State := (record Matter::State {revision := (expected + 1), sources := (project (project session matter) sources), nodes := (cons node (project (project session matter) nodes)), changes := (project (project session matter) changes)});
@@ -308,7 +314,7 @@ definition{
  body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
  (if ((prim equal facet "rule" : Bool) || ((privileged facet) && (not (isLawyer role)))) then (refuse session "lawyer-review-required") else
  (if (not ((boundedText facet 128) && (boundedText value 8192))) then (refuse session "review-facet-or-value") else
- (if (not ((Matter::nodeCount (project (project session matter) nodes)) <? 1024)) then (refuse session "node-limit") else
+ (if (not ((Matter::nodeCount (project (project session matter) nodes)) <? (maximumNodeCount))) then (refuse session "node-limit") else
  (match (Matter::findNode (project (project session matter) nodes) (project reference id))
  | Option.none => (refuse session "node-missing")
  | Option.some previous => (if (not ((Matter::referenceEq reference (Matter::nodeReference previous)) && ((Matter::hasCitations (project previous citations)) && (Matter::containsReference (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references) reference)))) then (refuse session "support-is-stale") else
@@ -374,7 +380,7 @@ definition{
  name: commitRule, parameters: [session : Session, expected : Nat, role : Role, actor : String, rule : MatterInference::Rule], result: Outcome,
  body: (if (not ((writable session expected role actor) && (isLawyer role))) then (refuse session "rule-conflict-or-permission") else
  (if (not ((requirementsValid (project rule premises) 64) && ((requirementsValid (project rule exceptions) 64) && ((boundedText (project rule conclusionFacet) 128) && ((boundedText (project rule conclusionValue) 8192) && (boundedText (project rule action) 8192)))))) then (refuse session "rule-content") else
- (if (((project (project rule definition) id) =? 0) && ((not ((ruleCount (project session rules)) <? 128)) || (not ((Matter::nodeCount (project (project session matter) nodes)) <? 1024)))) then (refuse session "rule-limit") else
+ (if (((project (project rule definition) id) =? 0) && ((not ((ruleCount (project session rules)) <? 128)) || (not ((Matter::nodeCount (project (project session matter) nodes)) <? (maximumNodeCount))))) then (refuse session "rule-limit") else
  (match (ruleTarget session (project rule definition))
  | Option.none => (refuse session "rule-revision")
  | Option.some reference => (let updated : MatterInference::Rule := (bindRule rule reference);
@@ -393,7 +399,7 @@ definition{
 definition{
  name: propose, parameters: [session : Session, expected : Nat, role : Role, actor : String, ruleReference : Matter::Reference], result: Outcome,
  body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
- (if (not ((Matter::nodeCount (project (project session matter) nodes)) <? 1024)) then (refuse session "node-limit") else
+ (if (not ((Matter::nodeCount (project (project session matter) nodes)) <? (maximumNodeCount))) then (refuse session "node-limit") else
  (match (findRule (project session rules) (project ruleReference id))
  | Option.none => (refuse session "rule-missing")
  | Option.some rule => (if (not (Matter::referenceEq (project rule definition) ruleReference)) then (refuse session "rule-conflict") else

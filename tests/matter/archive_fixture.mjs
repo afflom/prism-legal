@@ -7,3 +7,11 @@ export function reviewedArchive(count=64){
  for(let identifier=1;identifier<=count;identifier++)journal+=fields([fields(['review',String(revision++),'client','client',String(identifier),'1','entry','entry','true'])]);
  return journal;
 }
+
+export function correctionHistory(commands=2048){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ let journal=fields(['prism-legal/journal/1','Retained corrections']);
+ journal+=fields([fields(['ingest','0','client','client','Record','original'])]);
+ for(let revision=1;revision<commands;revision++)journal+=fields([fields(['review',String(revision),'client','client','1',String(revision),'entry',`value ${revision}`,'true'])]);
+ return journal;
+}

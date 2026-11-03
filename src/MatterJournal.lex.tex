@@ -26,6 +26,12 @@ structure{
 }
 
 definition{
+ name: journalCommandLimit, parameters: [], result: Nat,
+ body: (prim multiply 2 (MatterSession::maximumNodeCount) : Nat),
+ executable: true, axioms: []
+}
+
+definition{
  name: digit, parameters: [byte : Bytes], result: (Option Nat),
  body: (if (prim equal byte 0x30 : Bool) then (ctor Option.some [Nat] 0) else (if (prim equal byte 0x31 : Bool) then (ctor Option.some [Nat] 1) else (if (prim equal byte 0x32 : Bool) then (ctor Option.some [Nat] 2) else (if (prim equal byte 0x33 : Bool) then (ctor Option.some [Nat] 3) else (if (prim equal byte 0x34 : Bool) then (ctor Option.some [Nat] 4) else (if (prim equal byte 0x35 : Bool) then (ctor Option.some [Nat] 5) else (if (prim equal byte 0x36 : Bool) then (ctor Option.some [Nat] 6) else (if (prim equal byte 0x37 : Bool) then (ctor Option.some [Nat] 7) else (if (prim equal byte 0x38 : Bool) then (ctor Option.some [Nat] 8) else (if (prim equal byte 0x39 : Bool) then (ctor Option.some [Nat] 9) else (ctor Option.none [Nat]))))))))))),
  executable: true, axioms: []
@@ -69,13 +75,45 @@ definition{
 }
 
 definition{
+ name: traversalDepth, parameters: [fuel : Nat, count : Nat], result: Nat,
+ body: (match fuel | Nat.zero => 0 | Nat.succ remaining =>
+ (if (count <? 2) then 0 else ((traversalDepth remaining (prim quotient count 2 0 : Nat)) + 1))),
+ executable: true, axioms: [], recursive_argument: fuel
+}
+
+structure{
+ name: JournalFieldState, type_parameters: [], parameters: [],
+ fields: [{name: offset, type: Nat}, {name: remaining, type: Nat}, {name: values, type: (List String)}, {name: valid, type: Bool}]
+}
+
+definition{
+ name: decodeField, parameters: [bytes : Bytes, offset : Nat, remaining : Nat], result: JournalFieldState,
+ body: (if ((remaining =? 0) || (offset =? (Foundation.Bytes::byteLength bytes))) then
+ (record JournalFieldState {offset := offset, remaining := remaining, values := (nil String), valid := true}) else
+ (match (readField bytes offset)
+ | Option.none => (record JournalFieldState {offset := offset, remaining := remaining, values := (nil String), valid := false})
+ | Option.some item => (record JournalFieldState {offset := (project item offset), remaining := (prim subtract remaining 1 : Nat), values := (cons (project item value) (nil String)), valid := true}))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: decodeTree, parameters: [depth : Nat, bytes : Bytes, offset : Nat, remaining : Nat], result: JournalFieldState,
+ body: (match depth | Nat.zero => (decodeField bytes offset remaining) | Nat.succ lower =>
+ (if ((remaining =? 0) || (offset =? (Foundation.Bytes::byteLength bytes))) then
+ (record JournalFieldState {offset := offset, remaining := remaining, values := (nil String), valid := true}) else
+ (let left : JournalFieldState := (decodeTree lower bytes offset remaining);
+ (if (not (project left valid)) then left else
+ (let right : JournalFieldState := (decodeTree lower bytes (project left offset) (project left remaining));
+ (record JournalFieldState {offset := (project right offset), remaining := (project right remaining), values := (prim append (project left values) (project right values) : (List String)), valid := (project right valid)})))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: depth
+}
+
+definition{
  name: decodeLoop, parameters: [fuel : Nat, bytes : Bytes, offset : Nat], result: (Option MatterText::TextItems),
- body: (match fuel
- | Nat.zero => (if (offset =? (Foundation.Bytes::byteLength bytes)) then (ctor Option.some [MatterText::TextItems] (record MatterText::TextItems {values := (nil String)})) else (ctor Option.none [MatterText::TextItems]))
- | Nat.succ remaining => (if (offset =? (Foundation.Bytes::byteLength bytes)) then (ctor Option.some [MatterText::TextItems] (record MatterText::TextItems {values := (nil String)})) else
- (match (readField bytes offset) | Option.none => (ctor Option.none [MatterText::TextItems]) | Option.some item =>
- (match (decodeLoop remaining bytes (project item offset)) | Option.none => (ctor Option.none [MatterText::TextItems]) | Option.some following => (ctor Option.some [MatterText::TextItems] (record MatterText::TextItems {values := (cons (project item value) (project following values))})))))),
- executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: fuel
+ body: (let state : JournalFieldState := (decodeTree ((traversalDepth fuel fuel) + 1) bytes offset fuel);
+ (if ((project state valid) && ((project state offset) =? (Foundation.Bytes::byteLength bytes))) then
+ (ctor Option.some [MatterText::TextItems] (record MatterText::TextItems {values := (project state values)})) else (ctor Option.none [MatterText::TextItems]))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
@@ -182,19 +220,38 @@ definition{
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
+structure{
+ name: ReplayCursor, type_parameters: [], parameters: [],
+ fields: [{name: offset, type: Nat}, {name: outcome, type: MatterSession::Outcome}]
+}
+
+definition{
+ name: replayStep, parameters: [commands : (List String), count : Nat, cursor : ReplayCursor], result: ReplayCursor,
+ body: (if (((project cursor offset) <? count) && (prim equal (project (project cursor outcome) code) "" : Bool)) then
+ (record ReplayCursor {offset := ((project cursor offset) + 1), outcome := (applyCommand (project (project cursor outcome) session) (fieldAt commands (project cursor offset)))}) else cursor),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: replayTree, parameters: [depth : Nat, commands : (List String), count : Nat, cursor : ReplayCursor], result: ReplayCursor,
+ body: (match depth | Nat.zero => (replayStep commands count cursor) | Nat.succ lower =>
+ (if (((project cursor offset) <? count) && (prim equal (project (project cursor outcome) code) "" : Bool)) then
+ (replayTree lower commands count (replayTree lower commands count cursor)) else cursor)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: depth
+}
+
 definition{
  name: replayCommands, parameters: [commands : (List String), session : MatterSession::Session], result: MatterSession::Outcome,
- body: (match commands | List.nil => (MatterSession::refuse session "") | List.cons command rest =>
- (let outcome : MatterSession::Outcome := (applyCommand session command);
- (if (prim equal (project outcome code) "" : Bool) then (replayCommands rest (project outcome session)) else outcome))),
- executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: commands
+ body: (let count : Nat := (MatterText::wordCount commands);
+ (project (replayTree ((traversalDepth count count) + 1) commands count (record ReplayCursor {offset := 0, outcome := (MatterSession::refuse session "")})) outcome)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
  name: replay, parameters: [journal : String], result: MatterSession::Outcome,
  body: (let empty : MatterSession::Session := (MatterSession::initial "");
  (if (8388608 <? (Foundation.Bytes::byteLength (Foundation.Utf8::encode journal))) then (MatterSession::refuse empty "journal-limit") else
- (match (decodeJournalFields journal 514) | Option.none => (MatterSession::refuse empty "journal-encoding") | Option.some fields =>
+ (match (decodeJournalFields journal ((journalCommandLimit) + 2)) | Option.none => (MatterSession::refuse empty "journal-encoding") | Option.some fields =>
  (match (project fields values) | List.nil => (MatterSession::refuse empty "journal-version") | List.cons version body =>
  (if (not (prim equal version "prism-legal/journal/1" : Bool)) then (MatterSession::refuse empty "journal-version") else
  (match body | List.nil => (MatterSession::refuse empty "journal-title") | List.cons title commands =>
@@ -208,7 +265,7 @@ definition{
  name: transact, parameters: [journal : String, command : String], result: JournalResult,
  body: (let original : MatterSession::Outcome := (replay journal);
  (if (not (prim equal (project original code) "" : Bool)) then (record JournalResult {code := (project original code), journal := journal, session := (project original session)}) else
- (if (not ((project (project (project original session) matter) revision) <? 512)) then (record JournalResult {code := "journal-count", journal := journal, session := (project original session)}) else
+ (if (not ((project (project (project original session) matter) revision) <? (journalCommandLimit))) then (record JournalResult {code := "journal-count", journal := journal, session := (project original session)}) else
  (let updated : MatterSession::Outcome := (applyCommand (project original session) command);
  (if (not (prim equal (project updated code) "" : Bool)) then (record JournalResult {code := (project updated code), journal := journal, session := (project original session)}) else
  (let next : String := (MatterText::concat journal (MatterInference::frame command));

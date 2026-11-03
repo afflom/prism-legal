@@ -1,4 +1,4 @@
-import {reviewedArchive} from './archive_fixture.mjs';
+import {reviewedArchive,correctionHistory} from './archive_fixture.mjs';
 // Native model corpus and unseen boundaries executed through the generated Wasm adapter.
 import assert from 'node:assert/strict';
 import {readFile,readdir} from 'node:fs/promises';
@@ -194,14 +194,14 @@ result=invoke('replace-source',[resources,'client','Records','Wrong','Records ·
 result=invoke('replace-source',[resources,'client','','Second replacement','Records · resource 2 · line 1']);assert.equal(result.status,'ok');resources=result.response;
 assert.equal(invoke('restore',[resources]).response,resources);
 
-// Exercise the admitted journal count in the actual Wasm guest, not a smaller proxy.
+// A matter at the former history limit now reopens and accepts its next command.
 const field=value=>Buffer.byteLength(value)+':'+value;
 const command=values=>values.map(field).join('');
 let full=command(['prism-legal/journal/1','Boundary matter']);
 for(let revision=0;revision<512;revision++)full+=field(command(['assert',String(revision),'client','client','context',String(revision)]));
 result=invoke('restore',[full]);assert.equal(result.status,'ok');assert.equal(result.response,full);
-result=invoke('assertion',[full,'client','context','another']);assert.equal(result.status,'error');assert.equal(result.response,full);
-assert.equal(invoke('restore',[full+field(command(['assert','512','client','client','context','extra']))]).status,'error');
+result=invoke('assertion',[full,'client','context','another']);assert.equal(result.status,'ok');assert(result.response.startsWith(full));assert.equal(invoke('restore',[result.response]).response,result.response);
+assert.equal(invoke('restore',[full+field(command(['assert','512','client','client','context','extra']))]).status,'ok');
 // The declared CSV limits must execute, not exhaust the guest stack.
 const emptyCsvMatter=invoke('create',['','CSV boundaries']).response;
 for(const content of ['a\n'+'x'.repeat(8190),Array.from({length:512},(_,i)=>'a'+i).join(',')+'\n'+Array(512).fill('x').join(','),Array.from({length:16},(_,i)=>'a'+i).join(',')+'\n'+Array(63).fill(Array(16).fill('x').join(',')).join('\n')]){
@@ -304,4 +304,12 @@ result=invoke('inspect',[semanticAttention,'client','amount','1']);assert.match(
 // Reopening a partially reviewed full intake must render real attention, not stall.
 const archive=reviewedArchive();result=invoke('restore',[archive]);assert.equal(result.status,'ok');assert.equal(result.response,archive);assert.match(result.request,/Resource 2 · line 2/);assert(result.details.includes('entry: entry'));
 result=invoke('review',[archive,'client','','']);assert.equal(result.status,'ok');assert(result.response.startsWith(archive));assert.match(result.request,/Resource 2 · line 3/);
+// Persist the complete review history of a full intake, beyond the former cap.
+const completeArchive=reviewedArchive(1008);result=invoke('restore',[completeArchive]);assert.equal(result.status,'ok');assert.equal(result.response,completeArchive);assert.equal(result.message,'Confirm the governing jurisdiction');
+result=invoke('edit',[completeArchive,'client','entry','entry','Corrected last passage','Resource 16 · line 63']);assert.equal(result.status,'ok');assert(result.response.startsWith(completeArchive));const correctedArchive=result.response;
+result=invoke('inspect',[correctedArchive,'client','entry','126']);assert.equal(result.status,'ok');assert.match(result.details.join(' '),/Current interpretation: Corrected last passage/);assert.equal(invoke('restore',[correctedArchive]).response,correctedArchive);
+const completeHistory=correctionHistory();result=invoke('restore',[completeHistory]);assert.equal(result.status,'ok');assert.equal(result.response,completeHistory);
+result=invoke('inspect',[completeHistory,'client','entry','1']);assert.equal(result.status,'ok');assert.match(result.details.join(' '),/Current interpretation: value 2047/);
+result=invoke('goal',[completeHistory,'client','Continue']);assert.equal(result.status,'error');assert.equal(result.error,'history');assert.equal(result.response,completeHistory);
+const malformedHistory=correctionHistory(2049);result=invoke('restore',[malformedHistory]);assert.equal(result.status,'error');
 console.log(`PASS: ${model.acceptance_vectors.length} source vectors plus unseen journal, Unicode, control-display, input-boundary, multiple-facet and joint-slot learning, withdrawal and refusal cases in generated Wasm`);

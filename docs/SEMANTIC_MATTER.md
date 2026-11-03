@@ -207,6 +207,17 @@ stale revisions, and over-bound input are refused. Corrupt replay does not
 return a partially accepted matter. A failed transaction preserves the complete
 previous session and journal.
 
+The history budget is twice the 1,024-node matter capacity. It admits intake and
+review of every node, while corrections consume the same finite command budget.
+Reaching it preserves the existing matter and leaves inspection and saving
+available; the view identifies the history limit separately from input size.
+Journal field decoding and replay use balanced first-order traversals. Their
+depth is derived from the actual field budget or command count. Decoding keeps
+UTF-8 byte offsets and original field order; replay stops at the first refused
+command. Neither traversal retains a recursive frame for every earlier session.
+These definitions compile through the pinned PrismPM exporter without requiring
+higher-order runtime closures or changing the saved-file format.
+
 `MatterJourney` selects useful next context: intake, goal, one review task,
 jurisdiction, authority, then strategy assessment. The pending review and additional learned facets participate in a shared
 attention selection. Connections to unresolved conditions of current reviewed rules take
@@ -286,11 +297,13 @@ Historical interpretations show their source revision and original line, using
 the retained source bytes rather than the replacement resource's text.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 113 acceptance vectors. The shorter opening and help sections leave more room for the active matter. Unused help and
+controls, errors, empty states, and 118 acceptance vectors. The shorter opening and help sections leave more room for the active matter. Unused help and
 transport details are collapsed. Shorter field guidance and the neutral Continue
 action serve both review and read-only forms. Acceptance bytes are factored into
-closed byte aliases, preserving their exact values while reducing large inline
-compiler expressions. Facet inspection shows eight items per page;
+closed byte aliases. Content-based boundaries let differently framed requests
+and responses share identical journal segments. The 118-case corpus retained
+every request and response byte while unique literal data fell from 1,116,424
+to 328,339 bytes. This reduces compiler work without weakening a capacity case. Facet inspection shows eight items per page;
 the lawyer view adds source locations. Control characters are rendered safely
 without altering retained source bytes. Long context is explicitly truncated
 for presentation while the journal preserves the original.
@@ -319,7 +332,7 @@ localStorage, IndexedDB, or a service. Refresh requires reopening the saved file
 | CSV table | 1024 cells including headings and empty cells |
 | Matter | 32 sources, 1024 nodes, 128 rules |
 | Network input | 256 split tokens |
-| Journal history | 512 commands |
+| Journal history | 2048 commands |
 | Native journal decoder | 8 MiB |
 | Browser journal | 1 MiB |
 | Workspace request / response | 2 MiB / 8 MiB |
@@ -341,15 +354,15 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`5a450a6379fd05208d5c6225199c04c93635b258bfd2cba4ec1e370ff5b4b153`
+`fcd2d63657c2d627a9264011fc850c5e2d684ca6faabba5e4acf7a395121c4f7`
 and semantic ID
-`d027540ef1ab9cb8495470af087d836292b869f0da7248a92b67184b69882efb`
+`8bd70d2d610a59a6322d0cc664dad05bddc30e4351aa5f5fe10d64c7568aa68e`
 was emitted as build
-`363048e93dbf29ce6e7d51ba26bfa004b99f59513491527b524c6a05e947ed84`
+`82422b46ad58905c37db778478b312fc81dd262bb1bb92ac2989e5db2b3487ff`
 and passed LexLean verification with attestation
-`086d5151285dc65f06fc386ac5bb3f68d64c07d9886c956ec3d4514917fb8449`.
+`0dc0e747bbcb0950b0217ca33fedcc2bf35b1cc8b1154a43259ca4016c350594`.
 
-The generated native library passes 84 tests across `behavior.rs` and
+The generated native library passes 87 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
@@ -360,9 +373,12 @@ CSV boundaries exercise 8192 bytes and 1024 cells, including 1008 populated
 cells in both an empty matter and a matter with an existing legal rule. The
 boundary checks also select the last cell through a changed goal and render the
 review overview. A separate native core-session test selects attention in an untrained 1,008-passage matter, then reviews all its text passages before
-checking that no pending interpretation remains. This does not establish saved-file
-capacity: the current journal still admits at most 512 operations. Native
-tests retain their ordinary stack configuration; the recursive byte scan, node
+checking that no pending interpretation remains. A saved-file test separately replays all 1,008 reviews, accepts a correction
+to the last passage, and replays the corrected matter exactly. A second test
+retains 2,047 successive corrections, admits the 2,048th command, and refuses
+the next command without losing the session or journal. Late corruption returns
+an empty refused session. UTF-8 field tests cover both sides of traversal
+boundaries through 2,050 fields. Native tests retain their ordinary stack configuration; the recursive byte scan, node
 construction and matter reconciliation were refined in the model. No test stack
 limit was increased to conceal a failure. The compiled and direct meaning paths
 are compared with exact training-reference order across joint extraction,
@@ -380,7 +396,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 113 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 118 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -397,8 +413,7 @@ The source corpus also exercises a complete strategy lifecycle: reviewed authori
 
 The source corpus includes a 70,831-byte restore request containing nine imported
 resources. It exceeds the old portable transport limit and returns the exact
-accepted journal. The current 113-vector artifact passes native, Wasm and
-application-browser checks. Its corpus also restores an actual 81-command
+accepted journal. The current corpus also restores an actual 81-command
 journal with 1,008 source passages and 64 reviews, then continues at the exact
 next passage. The browser imports that saved file and submits the prepared
 review under its existing command deadline. A local Wasm probe of this journal
@@ -429,6 +444,17 @@ ready state. The cause remains unestablished. Earlier body capture did not
 resolve it. The required pinned-browser CI must
 pass without replacing the response-body assertion or changing retention
 buffers to hide the failure.
+
+The 118-vector source corpus also restores a fully reviewed 1,008-passage
+intake and a 2,048-command correction history, inspects the final correction,
+and refuses both another edit and a 2,049-command restore. The generated-browser
+journey opens both files, saves their exact bytes, corrects the last passage
+by source location, and keeps the accepted file after each refusal. A local probe of the initial capacity build
+`980b07ad1b371c36f9d4c936f799040a2fc760433a7e5aea52764a541ef2e52c`
+measured 10,991 ms for the 67,239-byte fully reviewed intake and 1,934 ms for
+the 134,971-byte correction history. Neither test nor browser command deadline
+was increased. These timings are observations on this machine, not latency
+guarantees. Full portable verification of the expanded corpus remains unestablished.
 
 The source-pinned SDK carries explicit transport bounds from
 [PrismPM #496](https://github.com/UOR-Foundation/PrismPM/issues/496).
