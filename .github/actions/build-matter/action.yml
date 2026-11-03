@@ -34,6 +34,12 @@ runs:
         PRISM_SDK_IMAGE: ${{ steps.inputs.outputs.image }}
       run: |
         docker pull "$PRISM_SDK_IMAGE"
+        # The SDK entrypoint runs commands as its fixed vscode UID (1000).
+        # Restore hosted-runner ownership even when verification fails.
+        runner_uid=$(id -u)
+        runner_gid=$(id -g)
+        trap 'sudo chown -R "$runner_uid:$runner_gid" "$GITHUB_WORKSPACE"' EXIT
+        sudo chown -R 1000:1000 "$GITHUB_WORKSPACE"
         docker run --rm --user 0 \
           --volume "$GITHUB_WORKSPACE:/workspace" --workdir /workspace \
           --env CARGO_TARGET_DIR=/workspace/.toolchain/target \
