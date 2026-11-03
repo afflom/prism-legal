@@ -13,7 +13,7 @@ facet and meaning suggestions. CSV headings suggest editable aspects; exact cell
 remain available through review and replacement. A passage can support several interpretations. Further learned aspects stay
 visible as focused review steps, with the original resource and line identified;
 withdrawal preserves their history. Changes invalidate dependent conclusions
-and expose related facts and strategies. A saved matter file replays the complete accepted command history.
+and expose related facts and strategies. Strategy inspection leads to its own proposal review; repeated requests do not create duplicate proposals from the same current support. A saved matter file replays the complete accepted command history.
 The view offers the next useful form, with focused facet inspection and
 supporting source context available when needed. Source locations distinguish
 equal interpretations during correction or withdrawal and retain the original

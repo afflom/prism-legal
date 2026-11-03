@@ -254,4 +254,21 @@ result=invoke('overview',[selected,'client']);assert.match(result.details.join('
 for(const location of ['Text · line 2','Text · line 8','Missing · line 1']) {result=invoke('review',[selected,'client','event','overwritten',location]);assert.equal(result.status,'error');assert.equal(result.error,'passage-selection');assert.equal(result.response,selected);}
 result=invoke('resource',[selected,'client','','Text · line 2','']);assert.equal(result.request,'');assert.equal(result.response,selected);
 assert.equal(invoke('restore',[selected]).response,selected);
+// A strategy's review remains attached to that strategy even with another pending proposal.
+let proposals=invoke('create',['','Strategy selection']).response;
+for(const [op,fields]of [
+ ['ingest',['client','Notice','notice received']],['goal',['client','Respond']],['review',['client','notice.receipt','received']],['jurisdiction',['client','Reviewed jurisdiction']],
+ ['ingest',['lawyer','Authority','A received notice permits a response unless withdrawn.']],['review',['lawyer','authority','Reviewed source']],
+ ...['Prepare a response.','Seek clarification.'].map(action=>['rule',['lawyer','Reviewed source','Respond','notice.receipt = received','notice.withdrawal = withdrawn',action]]),
+ ...['Prepare a response.','Seek clarification.'].map(action=>['propose',['lawyer',action]])]) {result=invoke(op,[proposals,...fields]);assert.equal(result.status,'ok');proposals=result.response;}
+result=invoke('strategy',[proposals,'lawyer','Prepare a response.']);assert.match(result.request,/^review-proposal\u001f/);assert.match(result.request,/Prepare a response/);assert.equal(result.response,proposals);
+result=invoke('review-proposal',[proposals,'client','Prepare a response.']);assert.equal(result.status,'error');assert.equal(result.response,proposals);
+result=invoke('review-proposal',[proposals,'lawyer','Prepare a response.']);assert.equal(result.status,'ok');proposals=result.response;
+result=invoke('inspect',[proposals,'lawyer','legal-conclusion','1']);assert.match(result.details.join(' '),/Current interpretation: Prepare a response/);assert.match(result.details.join(' '),/Needs review: Seek clarification/);
+result=invoke('propose',[proposals,'lawyer','Prepare a response.']);assert.equal(result.status,'error');assert.equal(result.error,'proposal');assert.equal(result.response,proposals);
+result=invoke('strategy',[proposals,'lawyer','Prepare a response.']);assert.match(result.request,/^inspect\u001f/);assert.equal(result.response,proposals);
+result=invoke('edit',[proposals,'client','notice.receipt','received','not received','Notice · line 1']);assert.equal(result.status,'ok');proposals=result.response;
+result=invoke('review-proposal',[proposals,'lawyer','Seek clarification.']);assert.equal(result.status,'error');assert.equal(result.response,proposals);
+result=invoke('strategy',[proposals,'lawyer','Seek clarification.']);assert.match(result.request,/^assertion\u001f/);assert(result.request.endsWith('14:notice.receipt0:'));assert.equal(result.response,proposals);
+assert.equal(invoke('restore',[proposals]).response,proposals);
 console.log(`PASS: ${model.acceptance_vectors.length} source vectors plus unseen journal, Unicode, control-display, input-boundary, multiple-facet and joint-slot learning, withdrawal and refusal cases in generated Wasm`);

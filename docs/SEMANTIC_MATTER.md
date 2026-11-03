@@ -176,6 +176,28 @@ not identity verification. A local actor can choose a role and author a new
 journal. Shared editing, signed history, access control, and encryption are not
 implemented by these checks.
 
+## Strategy proposal continuation
+
+A strategy view prepares the operation appropriate to its current assessment:
+create a proposal from supported evidence, review that strategy's pending
+proposal, inspect its current reviewed conclusion, or resolve missing context.
+The dedicated proposal-review form selects the named strategy, independently
+of the automatic attention queue. Clients cannot accept a legal conclusion;
+changing support before review refuses the transaction. Missing-fact forms
+leave the answer blank rather than inserting the value a rule requires.
+
+`MatterSession.currentProposal` compares the rule, conclusion, and complete
+support-reference set. Repeated creation with the same current support leaves
+the session and journal unchanged. Retraction or withdrawal permits a fresh
+unaccepted proposal when support becomes available again. Existing reviewed
+conclusions take precedence over pending duplicates retained from older journals;
+equivalent legacy candidates use their earliest identity consistently.
+
+The new `propose-current` journal command enforces this behavior for new requests.
+The earlier `propose` command keeps its original replay semantics, so a saved
+history containing duplicate proposals remains readable. Proposal matching
+executes across large matters without increasing native test stack limits.
+
 ## Persistence and journeys
 
 `MatterJournal` stores a versioned journal with canonical UTF-8 byte-length
@@ -213,7 +235,7 @@ Review context names the resource and its original text line. Duplicate resource
 titles include their resource number. UTF-8 and CRLF do not shift those locations.
 Detailed byte citations remain available in the lawyer view. Attention checks
 reuse the current-reference closure across their facet scan.
-`MatterWorkspace` exposes 22 operations for
+`MatterWorkspace` exposes 23 operations for
 creation, intake, review, assertions, chronology, source and rule revisions, strategy,
 proposals, restoration, additional interpretations, withdrawal, change impact,
 and paginated facet and strategy inspection. It selects objects by
@@ -233,7 +255,7 @@ Historical interpretations show their source revision and original line, using
 the retained source bytes rather than the replacement resource's text.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 82 acceptance vectors. Unused help and
+controls, errors, empty states, and 97 acceptance vectors. Unused help and
 transport details are collapsed. Shorter field guidance and the neutral Continue
 action serve both review and read-only forms. Acceptance bytes are factored into
 closed byte aliases, preserving their exact values while reducing large inline
@@ -288,15 +310,15 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`1ab5e60d3b814867c4b50de90f5f6ad67094b43791cd385394cf1ea0742b8441`
+`2879d5a753f91d6986c7583fe09446f1f822b454b25a99802deea30012bc0193`
 and semantic ID
-`3352ec2fc2b33d1a4ba331eb8613a6074214c164643dd54064b00ab4d52c8c48`
+`ae95ac6943642eea130eff4302b7ebc3fdeef3da9960575c651450ccb2484816`
 was emitted as build
-`459ee5a8d897b3054e462949dcff5a8f1534dfafd3805a747dad0a424526daed`
+`f38a193460f906bb6db5e96bece6a4636a0adfb31747304eb5a62adcc8857c06`
 and passed LexLean verification with attestation
-`7918203695c34db42bdc935374626a5685114487c61bdc0b471b27ac0c31e6ae`.
+`2e225e3b07694ae396e5e44b08d621a4759bd841b4fd3a41953c5d4e4f7e8de6`.
 
-The generated native library passes 66 tests across `behavior.rs` and
+The generated native library passes 71 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
@@ -317,7 +339,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 82 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 97 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -326,14 +348,14 @@ inspection, save/reopen, failed restoration, learned multi-facet review, withdra
 next-form navigation, source locations, additional-facet review, role consistency,
 source-qualified corrections, historical source locations, learned date chronology,
 combined date aspects, source-qualified resource replacement, CSV file import
-and refusal, table revision and replay, source-context browsing, source-selected review, and mobile layout.
+and refusal, table revision and replay, source-context browsing, source-selected review, selected-strategy proposal continuation, and mobile layout.
 
 The source corpus also exercises a complete strategy lifecycle: reviewed authority and conditions, proposal creation, refused client acceptance, lawyer acceptance, a newly observed exception, fresh proposal and review after withdrawal, correction, source replacement, and replay.
 
 The source corpus includes a 70,831-byte restore request containing nine imported
 resources. It exceeds the old portable transport limit and returns the exact
-accepted journal. The current 82-vector artifact passes native, Wasm and
-application-browser checks. Its portable gate has not been rerun. The prior
+accepted journal. The current 97-vector artifact passes native, Wasm and
+application-browser checks. Its portable gate has not been rerun. The preceding 82-vector artifact failed a local Chromium 154 diagnostic during file-session vectors at index 24 with `Network.getResponseBody: No data found for resource`; this is relevant to [PrismPM #67](https://github.com/UOR-Foundation/PrismPM/issues/67) and is not a pinned-browser result. The prior
 40-vector and 34-vector artifacts' development portable-browser runs failed while
 reading a response through Playwright (`Network.getResponseBody: No data found
 for resource`). A diagnostic run of the prior 30-vector artifact also failed;

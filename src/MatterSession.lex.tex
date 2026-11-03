@@ -397,6 +397,56 @@ definition{
  executable: true, axioms: [propext]
 }
 
+definition{
+ name: preferredProposal, parameters: [node : Matter::Node, following : (Option Matter::Node)], result: (Option Matter::Node),
+ body: (match following | Option.none => (ctor Option.some [Matter::Node] node) | Option.some previous =>
+ (if (project node accepted) then
+ (if (project previous accepted) then (if ((project node id) <? (project previous id)) then (ctor Option.some [Matter::Node] node) else following) else (ctor Option.some [Matter::Node] node)) else
+ (if (project previous accepted) then following else (if ((project node id) <? (project previous id)) then (ctor Option.some [Matter::Node] node) else following)))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: considerCurrentProposal, parameters: [node : Matter::Node, admitted : (List Matter::Reference), audit : (List AuditEntry), assessment : MatterInference::Assessment, following : (Option Matter::Node)], result: (Option Matter::Node),
+ body: (if ((prim equal (project node facet) (project assessment conclusionFacet) : Bool) &&
+ ((prim equal (project node value) (project assessment conclusionValue) : Bool) &&
+ ((Matter::allReferencesIn (project node dependencies) (project assessment dependencies)) &&
+ ((Matter::allReferencesIn (project assessment dependencies) (project node dependencies)) &&
+ ((Matter::containsReference admitted (Matter::nodeReference node)) ||
+ ((not (project node accepted)) && ((not (isWithdrawn audit node)) &&
+ ((match (project node origin) | Matter::Origin.Inferred => true | Matter::Origin.Extracted => false | Matter::Origin.Reviewed => false) &&
+ (Matter::allReferencesIn (project node dependencies) admitted))))))))) then (preferredProposal node following) else following),
+ executable: true, axioms: []
+}
+
+definition{
+ name: matchingCurrentProposal, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), audit : (List AuditEntry), assessment : MatterInference::Assessment], result: (Option Matter::Node),
+ body: (match nodes | List.nil => (ctor Option.none [Matter::Node]) | List.cons node rest =>
+ (considerCurrentProposal node admitted audit assessment (matchingCurrentProposal rest admitted audit assessment))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: currentProposal, parameters: [session : Session, assessment : MatterInference::Assessment], result: (Option Matter::Node),
+ body: (match (project assessment status)
+ | MatterInference::ReasoningStatus.Inactive => (ctor Option.none [Matter::Node])
+ | MatterInference::ReasoningStatus.Missing => (ctor Option.none [Matter::Node])
+ | MatterInference::ReasoningStatus.Excepted => (ctor Option.none [Matter::Node])
+ | MatterInference::ReasoningStatus.Supported => (matchingCurrentProposal (project (project session matter) nodes) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references) (project session audit) assessment)),
+ executable: true, axioms: []
+}
+
+definition{
+ name: proposeCurrent, parameters: [session : Session, expected : Nat, role : Role, actor : String, ruleReference : Matter::Reference], result: Outcome,
+ body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
+ (match (findRule (project session rules) (project ruleReference id)) | Option.none => (refuse session "rule-missing") | Option.some rule =>
+ (if (not (Matter::referenceEq (project rule definition) ruleReference)) then (refuse session "rule-conflict") else
+ (match (currentProposal session (MatterInference::assess rule (project (project session matter) nodes) (project (project session matter) sources)))
+ | Option.some existing => (refuse session "proposal-already-current")
+ | Option.none => (propose session expected role actor ruleReference))))),
+ executable: true, axioms: [propext]
+}
+
 theorem{
  name: refusalPreservesCompleteSession, parameters: [session : Session, code : String],
  statement: ((project (refuse session code) session) = session),

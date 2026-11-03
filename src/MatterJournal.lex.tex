@@ -169,8 +169,9 @@ definition{
  (MatterSession::reviseSource session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (reference fields 4) (Foundation.Utf8::encode (fieldAt fields 6))) else
  (if ((prim equal operation "review" : Bool) && ((count =? 9) && ((prim equal (fieldAt fields 8) "true" : Bool) || (prim equal (fieldAt fields 8) "false" : Bool)))) then
  (MatterSession::review session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (reference fields 4) (fieldAt fields 6) (fieldAt fields 7) (prim equal (fieldAt fields 8) "true" : Bool)) else
- (if ((prim equal operation "propose" : Bool) && (count =? 6)) then
- (MatterSession::propose session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (reference fields 4)) else
+ (if (((prim equal operation "propose" : Bool) || (prim equal operation "propose-current" : Bool)) && (count =? 6)) then
+ (if (prim equal operation "propose-current" : Bool) then (MatterSession::proposeCurrent session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (reference fields 4)) else
+ (MatterSession::propose session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (reference fields 4))) else
  (if (prim equal operation "rule" : Bool) then (ruleCommand session fields) else (MatterSession::refuse session "command-shape")))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }

@@ -165,6 +165,21 @@ try{
  assert.equal(await page.locator('#result-error').isVisible(),true);assert.deepEqual(await save(),afterSelectedReview);
  await run('resource',{title:'Text',location:'Text · line 20',page:''});assert.equal(await page.locator('#next-form').isVisible(),false);
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
+ await page.reload();await ready();await run('create',{title:'Strategy selection'});
+ await run('ingest',{title:'Notice',content:'notice received'});await run('goal',{value:'Respond'});await run('review',{facet:'notice.receipt',interpretation:'received'});await run('jurisdiction',{value:'Reviewed jurisdiction'});
+ await run('ingest',{role:'lawyer',title:'Authority',content:'A received notice permits a response unless withdrawn.'});await run('review',{role:'lawyer',facet:'authority',interpretation:'Reviewed source'});
+ for(const action of ['Prepare a response.','Seek clarification.'])await run('rule',{role:'lawyer',premises:'notice.receipt = received',exceptions:'notice.withdrawal = withdrawn',action});
+ for(const action of ['Prepare a response.','Seek clarification.']) {
+  await run('strategy',{role:'lawyer',action});const beforeProposal=await save();await page.locator('#next-form').click();assert.equal(await page.locator('#operation').inputValue(),'propose');assert.equal(await page.locator('#field-action').inputValue(),action);assert.deepEqual(await save(),beforeProposal);await page.locator('#guided-submit').click();await ready();assert.equal(await page.locator('#result-error').isVisible(),false);
+ }
+ await run('strategy',{role:'lawyer',action:'Prepare a response.'});const beforeSpecificProposal=await save();await page.locator('#next-form').click();assert.equal(await page.locator('#operation').inputValue(),'review-proposal');assert.equal(await page.locator('#field-action').inputValue(),'Prepare a response.');assert.deepEqual(await save(),beforeSpecificProposal);
+ await page.locator('#guided-submit').click();await ready();assert.equal(await page.locator('#result-error').isVisible(),false);
+ await run('inspect',{role:'lawyer',facet:'legal-conclusion',page:'1'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: Prepare a response/);assert.match(await page.locator('#result-details').textContent(),/Needs review: Seek clarification/);
+ const acceptedSpecificProposal=await save();await run('propose',{role:'lawyer',action:'Prepare a response.'});assert.equal(await page.locator('#result-error').isVisible(),true);assert.deepEqual(await save(),acceptedSpecificProposal);
+ await run('review-proposal',{role:'client',action:'Seek clarification.'});assert.equal(await page.locator('#result-error').isVisible(),true);assert.deepEqual(await save(),acceptedSpecificProposal);
+ await run('edit',{facet:'notice.receipt','old-value':'received','new-value':'not received',location:'Notice · line 1'});
+ await run('strategy',{role:'lawyer',action:'Seek clarification.'});await page.locator('#next-form').click();assert.equal(await page.locator('#operation').inputValue(),'assertion');assert.equal(await page.locator('#field-facet').inputValue(),'notice.receipt');assert.equal(await page.locator('#field-value').inputValue(),'');
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
  if(process.env.SCREENSHOT_PATH)await page.screenshot({path:process.env.SCREENSHOT_PATH,fullPage:true});
  console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet and joint-slot interpretation, withdrawal, next-form navigation, and mobile layout');
 }finally{await context.close();await browser.close();}

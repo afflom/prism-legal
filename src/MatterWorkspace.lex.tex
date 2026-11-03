@@ -178,6 +178,15 @@ definition{
 }
 
 definition{
+ name: reviewStrategyProposal, parameters: [journal : String, session : MatterSession::Session, role : String, action : String], result: MatterJournal::JournalResult,
+ body: (match (selectedRule (project session rules) action) | Option.none => (failed journal session "select-rule") | Option.some rule =>
+ (match (MatterSession::currentProposal session (MatterInference::assess rule (project (project session matter) nodes) (project (project session matter) sources)))
+ | Option.none => (failed journal session "no-pending-proposal")
+ | Option.some node => (if (project node accepted) then (failed journal session "proposal-already-current") else (reviewNode journal session role (project node facet) (project node value) node)))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
  name: reviseRule, parameters: [journal : String, session : MatterSession::Session, role : String, authorityValue : String, goalValue : String, premisesText : String, exceptionsText : String, action : String, previousAction : String], result: MatterJournal::JournalResult,
  body: (match (selectedRule (project session rules) previousAction) | Option.none => (failed journal session "select-rule") | Option.some rule =>
  (writeRule journal session role (project rule definition) authorityValue goalValue premisesText exceptionsText action)),
@@ -300,6 +309,7 @@ definition{
 definition{
  name: workspaceError, parameters: [operation : String, code : String, journal : String], result: Bytes,
  body: (MatterWire::reportState "error" operation
+ (if (prim equal code "proposal" : Bool) then "This strategy already has a pending or current proposal. Inspect the strategy to continue its review." else
  (if (prim equal code "passage-selection" : Bool) then "Choose a current pending passage. Use correction or withdrawal for an interpretation already reviewed." else
  (if (prim equal code "source-selection" : Bool) then "Choose a resource name or copy one source location. Leave both blank to browse resources." else
  (if (prim equal code "csv" : Bool) then "Check the CSV headings, quoting and row lengths. Use up to 8192 UTF-8 bytes, 64 text lines and 1024 cells including the header." else
@@ -308,7 +318,7 @@ definition{
  (if (prim equal code "role" : Bool) then "Choose the client or lawyer workflow." else
  (if (prim equal code "selection" : Bool) then "Inspect the aspect, then use its exact wording and source location to identify one current item." else
  (if (prim equal code "conditions" : Bool) then "Write one condition per line as facet = value." else
- (if (prim equal code "limit" : Bool) then "This change exceeds the supported matter size. Your matter is unchanged." else "This change could not be accepted. Check the input and its current matter context.")))))))))
+ (if (prim equal code "limit" : Bool) then "This change exceeds the supported matter size. Your matter is unchanged." else "This change could not be accepted. Check the input and its current matter context."))))))))))
  0 0 (nil String) (nil String) code journal),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
@@ -377,7 +387,7 @@ definition{
 
 definition{
  name: errorClass, parameters: [code : String], result: String,
- body: (if (prim equal code "select-passage" : Bool) then "passage-selection" else (if (prim equal code "csv-format-or-limit" : Bool) then "csv" else (if (prim equal code "condition-format" : Bool) then "conditions" else (if ((prim equal code "ambiguous-selection" : Bool) || ((prim equal code "select-authority" : Bool) || ((prim equal code "select-goal" : Bool) || ((prim equal code "select-jurisdiction" : Bool) || ((prim equal code "select-rule" : Bool) || (prim equal code "select-resource" : Bool)))))) then "selection" else "change")))),
+ body: (if (prim equal code "proposal-already-current" : Bool) then "proposal" else (if (prim equal code "select-passage" : Bool) then "passage-selection" else (if (prim equal code "csv-format-or-limit" : Bool) then "csv" else (if (prim equal code "condition-format" : Bool) then "conditions" else (if ((prim equal code "ambiguous-selection" : Bool) || ((prim equal code "select-authority" : Bool) || ((prim equal code "select-goal" : Bool) || ((prim equal code "select-jurisdiction" : Bool) || ((prim equal code "select-rule" : Bool) || (prim equal code "select-resource" : Bool)))))) then "selection" else "change"))))),
  executable: true, axioms: []
 }
 
@@ -448,16 +458,31 @@ definition{
 definition{
  name: changeFields, parameters: [operation : String, fields : (List String), journal : String, session : MatterSession::Session, role : String], result: MatterJournal::JournalResult,
  body: (let count : Nat := (MatterText::wordCount fields);
+ (if ((prim equal operation "review-proposal" : Bool) && (count =? 3)) then (reviewStrategyProposal journal session role (MatterJournal::fieldAt fields 2)) else
  (if (((prim equal operation "annotate" : Bool) && ((count =? 6) || (count =? 7))) || ((prim equal operation "withdraw" : Bool) && ((count =? 4) || (count =? 5)))) then (alterInterpretation journal session operation role fields) else
- (if ((prim equal operation "revise-rule" : Bool) && (count =? 8)) then (reviseRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6) (MatterJournal::fieldAt fields 7)) else  (if (((prim equal operation "ingest" : Bool) || (prim equal operation "ingest-csv" : Bool)) && (count =? 4)) then (commit journal session operation role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "review" : Bool) && ((count =? 4) || (count =? 5))) then (reviewLocated journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4)) else (if ((prim equal operation "edit" : Bool) && ((count =? 5) || (count =? 6))) then (editLocatedValue journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5)) else (if ((prim equal operation "goal" : Bool) && (count =? 3)) then (setContext journal session role "goal" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "jurisdiction" : Bool) && (count =? 3)) then (setContext journal session role "jurisdiction" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "assertion" : Bool) && (count =? 4)) then (commit journal session "assert" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "rule" : Bool) && (count =? 7)) then (addRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6)) else (if ((prim equal operation "replace-source" : Bool) && ((count =? 4) || (count =? 5))) then (replaceResource journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4)) else (if ((prim equal operation "propose" : Bool) && (count =? 3)) then (match (selectedRule (project session rules) (MatterJournal::fieldAt fields 2)) | Option.none => (failed journal session "select-rule") | Option.some rule => (commit journal session "propose" role (project (referenceFields (project rule definition)) values))) else (failed journal session "command-shape"))))))))))))),
+ (if ((prim equal operation "revise-rule" : Bool) && (count =? 8)) then (reviseRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6) (MatterJournal::fieldAt fields 7)) else  (if (((prim equal operation "ingest" : Bool) || (prim equal operation "ingest-csv" : Bool)) && (count =? 4)) then (commit journal session operation role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "review" : Bool) && ((count =? 4) || (count =? 5))) then (reviewLocated journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4)) else (if ((prim equal operation "edit" : Bool) && ((count =? 5) || (count =? 6))) then (editLocatedValue journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5)) else (if ((prim equal operation "goal" : Bool) && (count =? 3)) then (setContext journal session role "goal" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "jurisdiction" : Bool) && (count =? 3)) then (setContext journal session role "jurisdiction" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "assertion" : Bool) && (count =? 4)) then (commit journal session "assert" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "rule" : Bool) && (count =? 7)) then (addRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6)) else (if ((prim equal operation "replace-source" : Bool) && ((count =? 4) || (count =? 5))) then (replaceResource journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4)) else (if ((prim equal operation "propose" : Bool) && (count =? 3)) then (match (selectedRule (project session rules) (MatterJournal::fieldAt fields 2)) | Option.none => (failed journal session "select-rule") | Option.some rule => (commit journal session "propose-current" role (project (referenceFields (project rule definition)) values))) else (failed journal session "command-shape")))))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
- name: strategyView, parameters: [operation : String, journal : String, session : MatterSession::Session, action : String], result: Bytes,
+ name: strategyNext, parameters: [session : MatterSession::Session, role : MatterSession::Role, rule : MatterInference::Rule], result: String,
+ body: (let assessment : MatterInference::Assessment := (MatterInference::assess rule (project (project session matter) nodes) (project (project session matter) sources));
+ (match (project assessment status)
+ | MatterInference::ReasoningStatus.Supported =>
+ (match (MatterSession::currentProposal session assessment)
+ | Option.none => (if (MatterSession::canWrite role) then (prepareForm "propose" role (cons (project rule action) (nil String))) else "")
+ | Option.some node => (if (project node accepted) then (prepareForm "inspect" role (cons (project node facet) (cons "1" (nil String)))) else (if (MatterSession::isLawyer role) then (prepareForm "review-proposal" role (cons (project rule action) (nil String))) else "")))
+ | MatterInference::ReasoningStatus.Inactive => (nextStep session role (MatterJourney::assessmentView session assessment))
+ | MatterInference::ReasoningStatus.Missing => (nextStep session role (MatterJourney::assessmentView session assessment))
+ | MatterInference::ReasoningStatus.Excepted => (nextStep session role (MatterJourney::assessmentView session assessment)))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: strategyView, parameters: [operation : String, journal : String, session : MatterSession::Session, role : MatterSession::Role, action : String], result: Bytes,
  body: (match (selectedRule (project session rules) action) | Option.none => (workspaceError operation "selection" journal) | Option.some rule =>
  (match (MatterJourney::goalDraft session (project (project rule definition) id)) | Option.none => (workspaceError operation "change" journal) | Option.some draft =>
- (MatterWire::reportState "ok" operation "Working strategy for review" 0 0 (nil String) (cons (displayText (project draft body)) (nil String)) "" journal))),
+ (MatterWire::reportNext "ok" operation "Working strategy for review" 0 0 (nil String) (cons (displayText (project draft body)) (nil String)) "" journal (strategyNext session role rule)))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -687,7 +712,7 @@ definition{
  (if ((prim equal operation "timeline" : Bool) && ((MatterText::wordCount fields) =? 4)) then (chronologyView operation journal session (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else
  (if (((prim equal operation "overview" : Bool) || (prim equal operation "raw" : Bool)) && ((MatterText::wordCount fields) =? 2)) then (workspaceView operation journal (MatterJourney::overview session audience) session audience) else
  (if (((prim equal operation "impact" : Bool) || (prim equal operation "strategies" : Bool)) && ((MatterText::wordCount fields) =? 3)) then (relatedContext operation journal session (MatterJournal::fieldAt fields 2)) else
- (if ((prim equal operation "strategy" : Bool) && ((MatterText::wordCount fields) =? 3)) then (strategyView operation journal session (MatterJournal::fieldAt fields 2)) else
+ (if ((prim equal operation "strategy" : Bool) && ((MatterText::wordCount fields) =? 3)) then (strategyView operation journal session audience (MatterJournal::fieldAt fields 2)) else
  (if ((prim equal operation "inspect" : Bool) && ((MatterText::wordCount fields) =? 4)) then (inspectFacet operation journal session audience (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (finishChange operation journal (changeFields operation fields journal session role) audience)))))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }

@@ -954,3 +954,75 @@ fn selected_csv_review_uses_the_selected_decoded_cell_and_preserves_raw_citation
     assert!(citationsCurrent(&reviewed.session.matter.sources,&cell.citations));
     assert_eq!(replay(reviewed.journal).unwrap().session,reviewed.session);
 }
+
+fn strategy_journal() -> JournalResult {
+    let journal=initialJournal("Proposal review".into());let s=replay(journal.clone()).unwrap().session;
+    let r=commit(journal,&s,"ingest".into(),"client".into(),&["Notice".into(),"notice received".into()]).unwrap();assert_eq!(r.code,"");
+    let r=reviewNext(r.journal,&r.session,"client".into(),"notice.receipt".into(),"received".into()).unwrap();assert_eq!(r.code,"");
+    let r=setContext(r.journal,&r.session,"client".into(),"goal".into(),"Respond".into()).unwrap();assert_eq!(r.code,"");
+    let r=setContext(r.journal,&r.session,"client".into(),"jurisdiction".into(),"Reviewed jurisdiction".into()).unwrap();assert_eq!(r.code,"");
+    let r=commit(r.journal,&r.session,"ingest".into(),"lawyer".into(),&["Authority".into(),"A received notice permits a response unless withdrawn.".into()]).unwrap();assert_eq!(r.code,"");
+    let r=reviewNext(r.journal,&r.session,"lawyer".into(),"authority".into(),"Reviewed source".into()).unwrap();assert_eq!(r.code,"");
+    let r=addRule(r.journal,&r.session,"lawyer".into(),"Reviewed source".into(),"Respond".into(),"notice.receipt = received".into(),"notice.withdrawal = withdrawn".into(),"Prepare a response.".into()).unwrap();assert_eq!(r.code,"");r
+}
+
+#[test]
+fn proposal_creation_refuses_repeated_support_and_allows_a_fresh_review_after_retraction() {
+    let s=reviewed_matter();let rule=s.rules[0].clone();
+    assert!(strategyNext(&s,Role::Lawyer,&rule).unwrap().starts_with("propose\u{1f}"));
+    let s=accepted(proposeCurrent(&s,s.matter.revision,Role::Lawyer,"lawyer".into(),rule.definition).unwrap());
+    let assessment=assess(&rule,&s.matter.nodes,&s.matter.sources).unwrap();let node=currentProposal(&s,&assessment).unwrap().unwrap();assert!(!node.accepted);
+    let refused=proposeCurrent(&s,s.matter.revision,Role::Lawyer,"lawyer".into(),rule.definition).unwrap();assert_eq!(refused.code,"proposal-already-current");assert_eq!(refused.session,s);
+    let s=accepted(review(&s,s.matter.revision,Role::Lawyer,"lawyer".into(),nodeReference(&node),node.facet.clone(),node.value.clone(),true).unwrap());
+    assert!(strategyNext(&s,Role::Lawyer,&rule).unwrap().starts_with("inspect\u{1f}"));
+    assert_eq!(proposeCurrent(&s,s.matter.revision,Role::Lawyer,"lawyer".into(),rule.definition).unwrap().session,s);
+    let s=assert_fact(&s,"notice.withdrawal","withdrawn");assert!(currentProposal(&s,&assess(&rule,&s.matter.nodes,&s.matter.sources).unwrap()).unwrap().is_none());
+    let exception=s.matter.nodes.iter().find(|n|n.facet=="notice.withdrawal").unwrap().clone();
+    let s=accepted(withdraw(&s,s.matter.revision,Role::Client,"client".into(),nodeReference(&exception)).unwrap());
+    assert!(currentProposal(&s,&assess(&rule,&s.matter.nodes,&s.matter.sources).unwrap()).unwrap().is_none());
+    let s=accepted(proposeCurrent(&s,s.matter.revision,Role::Lawyer,"lawyer".into(),rule.definition).unwrap());
+    let fresh=currentProposal(&s,&assess(&rule,&s.matter.nodes,&s.matter.sources).unwrap()).unwrap().unwrap();assert_ne!(fresh.id,node.id);assert!(!fresh.accepted);
+}
+
+#[test]
+fn legacy_duplicate_proposals_replay_but_new_commands_preserve_the_journal_on_repetition() {
+    let mut r=strategy_journal();let fields=referenceFields(r.session.rules[0].definition).values;
+    for _ in 0..2 {r=commit(r.journal,&r.session,"propose".into(),"lawyer".into(),&fields).unwrap();assert_eq!(r.code,"");}
+    assert_eq!(replay(r.journal.clone()).unwrap().session,r.session);
+    let rule=r.session.rules[0].clone();let first=currentProposal(&r.session,&assess(&rule,&r.session.matter.nodes,&r.session.matter.sources).unwrap()).unwrap().unwrap();
+    assert_eq!(first.id,r.session.matter.nodes.iter().filter(|n|n.origin==Origin::Inferred).map(|n|n.id).min().unwrap());
+    let denied=commit(r.journal.clone(),&r.session,"propose-current".into(),"lawyer".into(),&fields).unwrap();assert_eq!(denied.code,"proposal-already-current");assert_eq!(denied.journal,r.journal);assert_eq!(denied.session,r.session);
+    let reviewed=reviewStrategyProposal(r.journal,&r.session,"lawyer".into(),"Prepare a response.".into()).unwrap();assert_eq!(reviewed.code,"");
+    let selected=currentProposal(&reviewed.session,&assess(&rule,&reviewed.session.matter.nodes,&reviewed.session.matter.sources).unwrap()).unwrap().unwrap();assert!(selected.accepted);assert_eq!(selected.id,first.id);
+    assert_eq!(replay(reviewed.journal).unwrap().session,reviewed.session);
+}
+
+#[test]
+fn strategy_review_selects_its_own_proposal_instead_of_another_pending_rule() {
+    let mut r=strategy_journal();
+    r=addRule(r.journal,&r.session,"lawyer".into(),"Reviewed source".into(),"Respond".into(),"notice.receipt = received".into(),"notice.withdrawal = withdrawn".into(),"Seek clarification.".into()).unwrap();assert_eq!(r.code,"");
+    let first=r.session.rules.iter().find(|x|x.action=="Prepare a response.").unwrap().clone();let second=r.session.rules.iter().find(|x|x.action=="Seek clarification.").unwrap().clone();
+    for rule in [&first,&second] {r=commit(r.journal,&r.session,"propose-current".into(),"lawyer".into(),&referenceFields(rule.definition).values).unwrap();assert_eq!(r.code,"");}
+    let a=currentProposal(&r.session,&assess(&first,&r.session.matter.nodes,&r.session.matter.sources).unwrap()).unwrap().unwrap();let b=currentProposal(&r.session,&assess(&second,&r.session.matter.nodes,&r.session.matter.sources).unwrap()).unwrap().unwrap();assert_ne!(a.id,b.id);assert_eq!(nextReview(&r.session).unwrap().unwrap().id,b.id);
+    assert!(strategyNext(&r.session,Role::Lawyer,&first).unwrap().starts_with("review-proposal\u{1f}"));assert!(strategyNext(&r.session,Role::Lawyer,&first).unwrap().contains("Prepare a response."));assert_eq!(strategyNext(&r.session,Role::Client,&first).unwrap(),"");
+    let denied=reviewStrategyProposal(r.journal.clone(),&r.session,"client".into(),first.action.clone()).unwrap();assert_eq!(denied.code,"lawyer-review-required");assert_eq!(denied.journal,r.journal);
+    let reviewed=reviewStrategyProposal(r.journal,&r.session,"lawyer".into(),first.action).unwrap();assert_eq!(reviewed.code,"");assert!(reviewed.session.matter.nodes.iter().find(|n|n.id==a.id).unwrap().accepted);assert!(!reviewed.session.matter.nodes.iter().find(|n|n.id==b.id).unwrap().accepted);
+    assert_eq!(replay(reviewed.journal).unwrap().session,reviewed.session);
+}
+
+#[test]
+fn strategy_review_refuses_changed_support_and_never_fills_a_required_fact_value() {
+    let r=strategy_journal();let rule=r.session.rules[0].clone();let r=commit(r.journal,&r.session,"propose-current".into(),"lawyer".into(),&referenceFields(rule.definition).values).unwrap();assert_eq!(r.code,"");
+    let changed=editLocatedValue(r.journal,&r.session,"client".into(),"notice.receipt".into(),"received".into(),"not received".into(),"Notice · line 1".into()).unwrap();assert_eq!(changed.code,"");
+    let denied=reviewStrategyProposal(changed.journal.clone(),&changed.session,"lawyer".into(),rule.action.clone()).unwrap();assert_eq!(denied.code,"no-pending-proposal");assert_eq!(denied.journal,changed.journal);assert_eq!(denied.session,changed.session);
+    let next=strategyNext(&changed.session,Role::Lawyer,&rule).unwrap();assert!(next.starts_with("assertion\u{1f}"));assert!(next.ends_with("14:notice.receipt0:"));assert!(!next.contains("received"));
+}
+
+#[test]
+fn proposal_matching_handles_large_matters_without_duplicate_nodes_or_larger_test_stacks() {
+    let s=reviewed_matter();let rule=s.rules[0].clone();
+    let table=(0..16).map(|i|format!("column{i}")).collect::<Vec<_>>().join(",")+"\n"+&(0..63).map(|_|vec!["1";16].join(",")).collect::<Vec<_>>().join("\n");
+    let s=accepted(ingestCsv(&s,s.matter.revision,Role::Client,"client".into(),"Large table".into(),table.into_bytes()).unwrap());
+    let s=accepted(proposeCurrent(&s,s.matter.revision,Role::Lawyer,"lawyer".into(),rule.definition).unwrap());assert!(s.matter.nodes.len()>1008);
+    let repeated=proposeCurrent(&s,s.matter.revision,Role::Lawyer,"lawyer".into(),rule.definition).unwrap();assert_eq!(repeated.code,"proposal-already-current");assert_eq!(repeated.session,s);
+}
