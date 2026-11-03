@@ -9,6 +9,7 @@
 \importmodule{MatterLanguage}
 \importmodule{MatterReview}
 \importmodule{MatterText}
+\importmodule{MatterCsv}
 \importmodule{Foundation.Bytes}
 \importmodule{Foundation.Utf8}
 \title{Text application model}
@@ -69,7 +70,7 @@ definition{
  body: (match nodes | List.nil => focus | List.cons node rest =>
  (focusPending rest session network admitted
  (if ((not (MatterSession::isWithdrawn (project session audit) node)) && ((not (project node accepted)) && ((Matter::hasCitations (project node citations)) && (Matter::citationsCurrent (project (project session matter) sources) (project node citations))))) then
- (let facet : String := (MatterNetwork::suggestedFacet (MatterNetwork::infer network (project node value)));
+ (let facet : String := (if (MatterSession::csvNode session node) then (project node facet) else (MatterNetwork::suggestedFacet (MatterNetwork::infer network (project node value))));
  (let relevance : Nat := (questionRelevance (project session rules) facet (project (project session matter) nodes) admitted);
  (if (match (project focus node) | Option.none => true | Option.some selected => (((project focus relevance) <? relevance) || ((relevance =? (project focus relevance)) && ((project node id) <? (project selected id))))) then
  (record ReviewFocus {node := (ctor Option.some [Matter::Node] node), relevance := relevance}) else focus))) else focus))),
@@ -138,12 +139,21 @@ definition{
 }
 
 definition{
+ name: resourcePassageLocation, parameters: [session : MatterSession::Session, citation : Matter::Citation], result: String,
+ body: (let sources : (List Matter::Source) := (prim append (project (project session matter) sources) (project session sourceHistory) : (List Matter::Source));
+ (if (prim equal (MatterSession::resourceFormat (project session labels) (project citation source)) "csv" : Bool) then
+ (match (citationSourceVersion sources citation) | Option.none => "" | Option.some source =>
+ (match (MatterCsv::parseCsv (project source content)) | Option.none => "" | Option.some table => (MatterCsv::csvCellLocation (project table values) (project citation start)))) else (passageLine sources citation))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
  name: sourceHeadings, parameters: [citations : (List Matter::Citation), session : MatterSession::Session], result: MatterText::TextItems,
  body: (match citations | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons citation rest =>
  (let title : String := (resourceName (project session labels) (project citation source));
  (let label : String := (if (prim equal title "" : Bool) then (MatterText::concat "Resource " (MatterText::decimalLoop 20 (project citation source))) else
  (if (1 <? (resourceNameCount (project session labels) title)) then (MatterText::concat title (MatterText::concat " · resource " (MatterText::decimalLoop 20 (project citation source)))) else title));
- (record MatterText::TextItems {values := (cons (MatterText::concat label (MatterText::concat (citationVersionLabel session citation) (passageLine (prim append (project (project session matter) sources) (project session sourceHistory) : (List Matter::Source)) citation))) (project (sourceHeadings rest session) values))})))),
+ (record MatterText::TextItems {values := (cons (MatterText::concat label (MatterText::concat (citationVersionLabel session citation) (resourcePassageLocation session citation))) (project (sourceHeadings rest session) values))})))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
 }
 
@@ -154,8 +164,8 @@ definition{
  (let meaning : MatterLanguage::MeaningSuggestion := (MatterLanguage::inferMeaning (project (project session matter) nodes) (project (project session matter) sources) (project node value));
  (let context : MatterText::TextItems := (record MatterText::TextItems {values := (prim append (project (sourceHeadings (project node citations) session) values) (if (MatterSession::isLawyer role) then (project (sourceContext (project node citations)) values) else (nil String)) : (List String))});
  (view session "review" (match (project node origin) | Matter::Origin.Inferred => "Lawyer review: proposed conclusion" | Matter::Origin.Extracted => "Review this passage" | Matter::Origin.Reviewed => "Review this interpretation") (project node value) (project node id) 0
- (match (project node origin) | Matter::Origin.Inferred => (project node facet) | Matter::Origin.Reviewed => (project node facet) | Matter::Origin.Extracted => (if (MatterLanguage::usableMeaning meaning) then (project meaning facet) else (MatterNetwork::suggestedFacet activation)))
- (prim append (project (MatterLanguage::meaningContext (project (project session matter) nodes) (project (project session matter) nodes) (project (project session matter) sources) (project node value) (nil String) 8) values) (project context values) : (List String))))))),
+ (match (project node origin) | Matter::Origin.Inferred => (project node facet) | Matter::Origin.Reviewed => (project node facet) | Matter::Origin.Extracted => (if (MatterSession::csvNode session node) then (project node facet) else (if (MatterLanguage::usableMeaning meaning) then (project meaning facet) else (MatterNetwork::suggestedFacet activation))))
+ (prim append (if (MatterSession::csvNode session node) then (cons "The column heading suggests this aspect; review it with the cell value." (nil String)) else (project (MatterLanguage::meaningContext (project (project session matter) nodes) (project (project session matter) nodes) (project (project session matter) sources) (project node value) (nil String) 8) values)) (project context values) : (List String))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -192,16 +202,48 @@ definition{
 }
 
 definition{
- name: additionalMeaningLoop, parameters: [remaining : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), citation : Matter::Citation, quotation : String, seen : (List String), selected : MatterLanguage::MeaningSuggestion, relevance : Nat], result: MatterLanguage::MeaningSuggestion,
+ name: csvColumnAt, parameters: [cells : (List MatterCsv::CsvCell), start : Nat], result: Nat,
+ body: (match cells | List.nil => 0 | List.cons cell rest => (if ((project cell start) =? start) then (project cell column) else (csvColumnAt rest start))),
+ executable: true, axioms: [], recursive_argument: cells
+}
+
+definition{
+ name: citationInCsvColumn, parameters: [citations : (List Matter::Citation), target : Matter::Citation, cells : (List MatterCsv::CsvCell), column : Nat], result: Bool,
+ body: (match citations | List.nil => false | List.cons citation rest =>
+ ((((project citation source) =? (project target source)) && (((project citation revision) =? (project target revision)) && ((csvColumnAt cells (project citation start)) =? column))) || (citationInCsvColumn rest target cells column))),
+ executable: true, axioms: [], recursive_argument: citations
+}
+
+definition{
+ name: csvColumnExamples, parameters: [nodes : (List Matter::Node), target : Matter::Citation, cells : (List MatterCsv::CsvCell), column : Nat], result: Matter::Nodes,
+ body: (match nodes | List.nil => (record Matter::Nodes {nodes := (nil Matter::Node)}) | List.cons node rest =>
+ (let following : Matter::Nodes := (csvColumnExamples rest target cells column);
+ (if ((0 <? column) && (citationInCsvColumn (project node citations) target cells column)) then
+ (record Matter::Nodes {nodes := (cons node (project following nodes))}) else following))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: contextualExamples, parameters: [session : MatterSession::Session, citation : Matter::Citation], result: Matter::Nodes,
+ body: (if (prim equal (MatterSession::resourceFormat (project session labels) (project citation source)) "csv" : Bool) then
+ (match (citationSourceVersion (project (project session matter) sources) citation) | Option.none => (record Matter::Nodes {nodes := (nil Matter::Node)}) | Option.some source =>
+ (match (MatterCsv::parseCsv (project source content)) | Option.none => (record Matter::Nodes {nodes := (nil Matter::Node)}) | Option.some table =>
+ (csvColumnExamples (project (project session matter) nodes) citation (project table values) (csvColumnAt (project table values) (project citation start))))) else
+ (record Matter::Nodes {nodes := (project (project session matter) nodes)})),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: additionalMeaningLoop, parameters: [remaining : (List Matter::Node), training : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), citation : Matter::Citation, quotation : String, seen : (List String), selected : MatterLanguage::MeaningSuggestion, relevance : Nat], result: MatterLanguage::MeaningSuggestion,
  body: (match remaining | List.nil => selected | List.cons node rest =>
  (let facet : String := (project node facet);
  (if ((MatterLanguage::hasFacet seen facet) || ((prim equal facet "rule" : Bool) ||
  (representedInterpretation (project (project session matter) nodes) citation facet))) then
- (additionalMeaningLoop rest session admitted citation quotation seen selected relevance) else
- (let candidate : MatterLanguage::MeaningSuggestion := (MatterLanguage::facetMeaningLoop (project (project session matter) nodes) (project (project session matter) nodes) admitted quotation facet (MatterLanguage::noMeaning));
+ (additionalMeaningLoop rest training session admitted citation quotation seen selected relevance) else
+ (let candidate : MatterLanguage::MeaningSuggestion := (MatterLanguage::facetMeaningLoop training (project (project session matter) nodes) admitted quotation facet (MatterLanguage::noMeaning));
  (let score : Nat := (questionRelevance (project session rules) facet (project (project session matter) nodes) admitted);
  (let choose : Bool := ((project candidate matched) && ((not (project selected matched)) || (relevance <? score)));
- (additionalMeaningLoop rest session admitted citation quotation (cons facet seen) (if choose then candidate else selected) (if choose then score else relevance)))))))),
+ (additionalMeaningLoop rest training session admitted citation quotation (cons facet seen) (if choose then candidate else selected) (if choose then score else relevance)))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: remaining
 }
 
@@ -209,7 +251,7 @@ definition{
  name: additionalCitationMeaningWith, parameters: [citations : (List Matter::Citation), session : MatterSession::Session, admitted : (List Matter::Reference)], result: MatterLanguage::MeaningSuggestion,
  body: (match citations | List.nil => (MatterLanguage::noMeaning) | List.cons citation rest =>
  (match (Foundation.Utf8::decode (project citation quote)) | Option.none => (additionalCitationMeaningWith rest session admitted) | Option.some quotation =>
- (let meaning : MatterLanguage::MeaningSuggestion := (additionalMeaningLoop (project (project session matter) nodes) session admitted citation quotation (nil String) (MatterLanguage::noMeaning) 0);
+ (let meaning : MatterLanguage::MeaningSuggestion := (let training : Matter::Nodes := (contextualExamples session citation); (additionalMeaningLoop (project training nodes) (project training nodes) session admitted citation quotation (nil String) (MatterLanguage::noMeaning) 0));
  (if (project meaning matched) then meaning else (additionalCitationMeaningWith rest session admitted))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
 }

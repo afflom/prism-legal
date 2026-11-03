@@ -90,6 +90,43 @@ labeled accordingly. Corrections reorder the chronology, withdrawal removes
 support, and source replacement excludes obsolete interpretations. The view is
 read-only and paginated; it computes neither legal deadlines nor missing dates.
 
+## Structured CSV intake
+
+`MatterCsv` parses actual comma-separated UTF-8 resource bytes. The first record
+contains distinct, nonempty headings of at most 128 bytes. Every later record
+must have the same column count. LF and CRLF record separators, an optional
+initial UTF-8 BOM, quoted commas and newlines, and doubled quotes are supported.
+Malformed quoting, ragged rows, empty or duplicate headings and over-bound input
+refuse the whole transaction. Empty cells create no assertions.
+
+Each populated data cell becomes an unaccepted interpretation with its heading
+as an editable aspect and its decoded content as the value. The original source
+is retained byte-for-byte. A citation identifies the complete raw cell, including
+its quoting; the existing checked intake contract verifies that quotation against
+the source. Shared header citations do not manufacture conflicts between rows.
+Locations use record and column numbers, counting the header as row 1; embedded
+newlines do not turn one record into several table rows.
+
+Blank review retains the decoded cell rather than transferring a different
+column's meaning. Additional learned interpretations use examples from the same
+column of that source version. Equal bare values in unrelated columns therefore
+do not create extra review tasks. A reviewed additional interpretation can still
+teach another cell in the same column. This is contextual literal learning;
+column names do not establish legal truth or imply relations between entities.
+Rules continue to use their explicit reviewed facet/value conditions.
+
+The source format is retained in modeled session metadata and reconstructed by
+the `ingest-csv` journal command. Replacement uses the original format, retains
+the old bytes, and invalidates interpretations, chronology entries and strategy
+support that depended on the old revision. Readers cannot import data; authority
+and legal-conclusion review retain lawyer workflow checks. Older text-resource
+journals retain their existing encoding and behavior.
+
+The CSV byte scan divides its bounded steps into balanced groups rather than
+recursing once per byte. Fifteen levels cover the declared 8192-byte input plus
+its end-of-input step. The table is also bounded to 64 physical text lines and
+1024 cells, including headings and empty cells. These are execution limits.
+
 ## Relative changes and history
 
 `Matter.current` computes a least grounded closure starting from no admitted
@@ -158,7 +195,7 @@ Review context names the resource and its original text line. Duplicate resource
 titles include their resource number. UTF-8 and CRLF do not shift those locations.
 Detailed byte citations remain available in the lawyer view. Attention checks
 reuse the current-reference closure across their facet scan.
-`MatterWorkspace` exposes 20 operations for
+`MatterWorkspace` exposes 21 operations for
 creation, intake, review, assertions, chronology, source and rule revisions, strategy,
 proposals, restoration, additional interpretations, withdrawal, change impact,
 and paginated facet and strategy inspection. It selects objects by
@@ -178,7 +215,7 @@ Historical interpretations show their source revision and original line, using
 the retained source bytes rather than the replacement resource's text.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 42 acceptance vectors. Unused help and
+controls, errors, empty states, and 51 acceptance vectors. Unused help and
 transport details are collapsed. Shorter field guidance and the neutral Continue
 action serve both review and read-only forms. Acceptance bytes are factored into
 closed byte aliases, preserving their exact values while reducing large inline
@@ -207,7 +244,8 @@ localStorage, IndexedDB, or a service. Refresh requires reopening the saved file
 
 | Boundary | Limit |
 | --- | --- |
-| Source text | 8192 UTF-8 bytes, 64 lines |
+| Source text or CSV | 8192 UTF-8 bytes, 64 physical text lines |
+| CSV table | 1024 cells including headings and empty cells |
 | Matter | 32 sources, 1024 nodes, 128 rules |
 | Network input | 256 split tokens |
 | Journal history | 512 commands |
@@ -232,20 +270,26 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`60c03faefe3ca99038d912de19d050cc339a55b037981326ec3ba992c0836a88`
+`31929412f6437d2bcfba88960cf5bd173d882459a46ddf9a8b5dc4566ea40bac`
 and semantic ID
-`25d622de3ee4196b5f43ec1453b2eb9b5252f84359b629fea68d40bf0263a75e`
+`c2abff7e86751d6c560116cfcbef1b8d07f6d24f40a2d29dc6e478f7f5e4d0b2`
 was emitted as build
-`174f9b567a735f7ca96eb6fc6eda0a13de798d334fa26b24fac4abe25c0af38b`
+`769f8ef1dc7a97f67c23ec932da547347afdd28500a7072911ad80e0c6218224`
 and passed LexLean verification with attestation
-`0e184b38e631ad71317f8cb14458a1126e498e342d37ba27e91f556fe867d0d1`.
+`04a35e0ed3b1c6ffe4546cfc3af508bf2f7f6be71e08bb67274a94e3f59e848c`.
 
-The generated native library passes 47 tests across `behavior.rs` and
+The generated native library passes 57 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
 learned literal and joint-slot extraction, overlapping and ambiguous training,
-multiple facets, withdrawal and facet-rename impact.
+multiple facets, withdrawal, facet-rename impact, CSV quoting and byte provenance,
+column-aware learning, source replacement, and large-table reconciliation.
+CSV boundaries exercise 8192 bytes and 1024 cells, including 1008 populated
+cells in both an empty matter and a matter with an existing legal rule. Native
+tests retain their ordinary stack configuration; the recursive byte scan, node
+construction and matter reconciliation were refined in the model. No test stack
+limit was increased to conceal a failure.
 Patch test dependencies to actual emitted packages rather than editing generated
 code:
 
@@ -255,7 +299,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 42 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 51 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -263,11 +307,12 @@ rule assessment/revision, proposal review, exception/correction propagation,
 inspection, save/reopen, failed restoration, learned multi-facet review, withdrawal,
 next-form navigation, source locations, additional-facet review, role consistency,
 source-qualified corrections, historical source locations, learned date chronology,
-combined date aspects, source-qualified resource replacement, and mobile layout.
+combined date aspects, source-qualified resource replacement, CSV file import
+and refusal, table revision and replay, and mobile layout.
 
 The source corpus includes a 70,831-byte restore request containing nine imported
 resources. It exceeds the old portable transport limit and returns the exact
-accepted journal. The current 42-vector artifact passes native, Wasm and
+accepted journal. The current 51-vector artifact passes native, Wasm and
 application-browser checks. Its portable gate has not been rerun. The prior
 40-vector and 34-vector artifacts' development portable-browser runs failed while
 reading a response through Playwright (`Network.getResponseBody: No data found
@@ -295,8 +340,19 @@ has not completed locally: its oracle environment is unavailable, and the networ
 policy denies the exact browser archive. CI constructs the complete SDK image from the pinned source with its official
 image-input recipe, including the browser and sealed inventory. An older
 candidate image passed the application browser journey but failed full
-verification because its inventory named a different browser. The replacement
-pipeline must pass full verification before publication. The upstream SDK PR also needs its
+verification because its inventory named a different browser. The rebuilt-source pipeline passed both jobs in
+[CI run 41606014103](https://github.com/afflom/prism-legal/actions/runs/41606014103)
+for commit `9a9d140720061049bd397f85859930e82c858296` (28 acceptance vectors).
+The downloaded verification artifact reports verified native CLI, Core-Wasm,
+browser projection, Hologram oracle, artifact closure, and byte-identical
+regeneration. Its full PrismPM attestation is
+`ea12cdd98b9022e94feb9ec95a6370d7b5d5ffad096a5a4c6d04d6a72d047563`,
+for build `98cb44be28db930e74f5885b27397de84d94f38ee86d77a016abd20c9b690628`
+and source `3688c15bdc0fcaf3f5ad46166016f29aed79f9abf4393dbae2ec8bcf20e1b060`.
+The artifact ZIP SHA-256 is
+`29b4e58916be64b861432a6296f667cf7e80ad3ae13a010b4b8517ab34dd16a6`.
+This evidence applies to that revision; later changes still require their own
+full verification before publication. The upstream SDK PR also needs its
 reviewed native golden records regenerated in the required environment; existing
 records must not be relabeled as current evidence.
 

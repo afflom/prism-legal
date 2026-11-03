@@ -700,3 +700,145 @@ fn resource_selection_remains_available_after_its_interpretations_are_withdrawn(
     let replaced=replaceResource(withdrawn.journal,&withdrawn.session,"client".into(),"".into(),"Corrected resource".into(),"Records · resource 2 · line 1".into()).unwrap();
     assert_eq!(replaced.code,"");assert_eq!(replaced.session.matter.sources.iter().find(|r|r.id==2).unwrap().content,b"Corrected resource");
 }
+
+#[test]
+fn csv_cells_decode_quoting_without_losing_original_evidence_or_accepting_facts() {
+    let bytes = "\u{feff}person,notes,amount\r\nZoë,\"said \"\"yes\"\", then\r\nleft\",50\r\n李,,75\r\n".as_bytes().to_vec();
+    let s = accepted(ingestCsv(&initial("Table".into()),0,Role::Client,"client".into(),"Records".into(),bytes.clone()).unwrap());
+    assert_eq!(s.labels[0].format,"csv");assert_eq!(s.matter.sources[0].content,bytes);
+    let values:Vec<_>=s.matter.nodes.iter().map(|n|(n.facet.as_str(),n.value.as_str())).collect();
+    assert_eq!(values,vec![("person","Zoë"),("notes","said \"yes\", then\r\nleft"),("amount","50"),("person","李"),("amount","75")]);
+    for n in &s.matter.nodes {
+        assert!(!n.accepted);assert!(n.dependencies.is_empty());assert_eq!(n.citations.len(),1);
+        let c=&n.citations[0];assert_eq!(c.quote,bytes[c.start as usize..(c.start+c.size)as usize]);
+        assert!(citationsCurrent(&s.matter.sources,&n.citations));
+    }
+    assert_eq!(String::from_utf8(s.matter.nodes[1].citations[0].quote.clone()).unwrap(),"\"said \"\"yes\"\", then\r\nleft\"");
+    assert_eq!(interpretationLocation(&s,&s.matter.nodes[1]).unwrap(),"Records · row 2 · column 2");
+    assert_eq!(interpretationLocation(&s,&s.matter.nodes[4]).unwrap(),"Records · row 3 · column 3");
+    assert!(current(&s.matter.nodes,&s.matter.sources).unwrap().references.is_empty());
+}
+
+#[test]
+fn csv_malformed_or_over_bound_input_refuses_the_entire_transaction() {
+    let s=assert_fact(&initial("Table".into()),"goal","Understand the records");
+    for text in ["", "a,a\n1,2", ",a\n1,2", "a,b\n1", "a,b\n1,2,3", "a\n\"unclosed", "a\n\"closed\"junk", "a\nba\"re", "a\r1", "a,b\n1,2\n\n", "a,b\n1,2\rX", "a\n\"\"\""] {
+        let outcome=ingestCsv(&s,s.matter.revision,Role::Client,"client".into(),"Table".into(),text.as_bytes().to_vec()).unwrap();
+        assert!(!outcome.code.is_empty(),"must reject {text:?}");assert_eq!(outcome.session,s);
+    }
+    for bytes in [vec![255],vec![b'x';8193],format!("{}\n1","x".repeat(129)).into_bytes(),format!("a\n{}","1\n".repeat(64)).into_bytes(),format!("a\n{}","x,".repeat(1024)).into_bytes()] {
+        let outcome=ingestCsv(&s,s.matter.revision,Role::Client,"client".into(),"Table".into(),bytes).unwrap();
+        assert!(!outcome.code.is_empty());assert_eq!(outcome.session,s);
+    }
+}
+
+#[test]
+fn csv_empty_cells_are_not_assertions_and_final_newlines_do_not_create_rows() {
+    for text in ["a,b\n,yes", "a,b\n\"\",yes\n", "a,b\r\n,\"yes\"\r\n"] {
+        let s=accepted(ingestCsv(&initial("Table".into()),0,Role::Client,"client".into(),"Records".into(),text.as_bytes().to_vec()).unwrap());
+        assert_eq!(s.matter.nodes.len(),1);assert_eq!(s.matter.nodes[0].facet,"b");assert_eq!(s.matter.nodes[0].value,"yes");
+    }
+    for text in ["a,b", "a,b\n", "a,b\n,", "a,b\n\"\",\"\""] {
+        let s=initial("Table".into());let refused=ingestCsv(&s,0,Role::Client,"client".into(),"Records".into(),text.as_bytes().to_vec()).unwrap();
+        assert_eq!(refused.code,"source-empty-or-node-limit");assert_eq!(refused.session,s);
+    }
+}
+
+fn csv_journal(text:&str)->JournalResult {
+    let journal=initialJournal("Table".into());let s=replay(journal.clone()).unwrap().session;
+    let imported=commit(journal,&s,"ingest-csv".into(),"client".into(),&vec!["Records".into(),text.into()]).unwrap();
+    assert_eq!(imported.code,"");imported
+}
+
+#[test]
+fn csv_review_uses_the_cell_and_heading_instead_of_transferring_another_cells_meaning() {
+    let imported=csv_journal("amount,person\n50,50\n75,50");
+    let a=reviewNext(imported.journal,&imported.session,"client".into(),"".into(),"fifty".into()).unwrap();assert_eq!(a.code,"");
+    let view=reviewView(&a.session,&nextReview(&a.session).unwrap().unwrap(),Role::Client).unwrap();
+    assert_eq!(view.suggestion,"person");assert_eq!(view.explanation,"50");
+    let b=reviewNext(a.journal,&a.session,"client".into(),"".into(),"".into()).unwrap();assert_eq!(b.code,"");
+    assert!(b.session.matter.nodes.iter().any(|n|n.accepted&&n.facet=="person"&&n.value=="50"));
+    assert_eq!(replay(b.journal.clone()).unwrap().session,b.session);
+    let c=reviewNext(b.journal,&b.session,"client".into(),"payment.amount".into(),"".into()).unwrap();assert_eq!(c.code,"");
+    assert!(c.session.matter.nodes.iter().any(|n|n.accepted&&n.facet=="payment.amount"&&n.value=="75"));
+}
+
+#[test]
+fn csv_replacement_retains_format_and_history_and_invalidates_reviewed_dates() {
+    let imported=csv_journal("date\n2024-03-01\n2024-02-29");
+    let first=reviewNext(imported.journal,&imported.session,"client".into(),"".into(),"".into()).unwrap();
+    let second=reviewNext(first.journal,&first.session,"client".into(),"".into(),"".into()).unwrap();assert_eq!(second.code,"");
+    assert_eq!(reviewed_chronology(&second.session,&["date"]).dated.len(),2);
+    let original=second.session.matter.sources[0].clone();
+    let changed=replaceResource(second.journal.clone(),&second.session,"client".into(),"Records".into(),"date\n2024-03-02".into(),"Records · row 2 · column 1".into()).unwrap();assert_eq!(changed.code,"");
+    assert_eq!(changed.session.sourceHistory,vec![original]);assert!(reviewed_chronology(&changed.session,&["date"]).dated.is_empty());
+    assert_eq!(interpretationLocation(&changed.session,&changed.session.matter.nodes[0]).unwrap(),"Records · earlier version 1 · row 2 · column 1");
+    assert_eq!(nextReview(&changed.session).unwrap().unwrap().value,"2024-03-02");
+    assert_eq!(replay(changed.journal.clone()).unwrap().session,changed.session);
+    let failed=replaceResource(changed.journal.clone(),&changed.session,"client".into(),"Records".into(),"date,other\n1".into(),"".into()).unwrap();assert_eq!(failed.code,"csv-format-or-limit");assert_eq!(failed.session,changed.session);assert_eq!(failed.journal,changed.journal);
+}
+
+#[test]
+fn csv_import_and_privileged_review_follow_existing_permissions() {
+    let s=initial("Table".into());let refused=ingestCsv(&s,0,Role::Reader,"reader".into(),"Records".into(),b"a\n1".to_vec()).unwrap();assert_eq!(refused.session,s);assert!(!refused.code.is_empty());
+    let imported=csv_journal("authority\nA source provision.");
+    let view=reviewView(&imported.session,&nextReview(&imported.session).unwrap().unwrap(),Role::Client).unwrap();
+    assert_eq!(nextStep(&imported.session,Role::Client,&view).unwrap(),"");
+    assert_eq!(nextStep(&imported.session,Role::Reader,&view).unwrap(),"");
+    let refused=reviewNext(imported.journal.clone(),&imported.session,"client".into(),"".into(),"".into()).unwrap();assert_eq!(refused.code,"lawyer-review-required");assert_eq!(refused.session,imported.session);assert_eq!(refused.journal,imported.journal);
+    let accepted=reviewNext(imported.journal,&imported.session,"lawyer".into(),"".into(),"".into()).unwrap();assert_eq!(accepted.code,"");assert!(accepted.session.matter.nodes[0].accepted);
+}
+
+#[test]
+fn csv_reviewed_exception_retracts_a_previously_accepted_strategy() {
+    let s=reviewed_matter();let rule=s.rules[0].clone();
+    let s=accepted(propose(&s,s.matter.revision,Role::Lawyer,"lawyer".into(),rule.definition).unwrap());
+    let conclusion=s.matter.nodes.iter().max_by_key(|n|n.id).unwrap().clone();
+    let s=accepted(review(&s,s.matter.revision,Role::Lawyer,"lawyer".into(),nodeReference(&conclusion),conclusion.facet,conclusion.value,true).unwrap());
+    let s=accepted(ingestCsv(&s,s.matter.revision,Role::Client,"client".into(),"Withdrawal register".into(),b"notice.withdrawal\nwithdrawn".to_vec()).unwrap());
+    assert_eq!(assess(&s.rules[0],&s.matter.nodes,&s.matter.sources).unwrap().status,ReasoningStatus::Supported);
+    let cell=s.matter.nodes.iter().max_by_key(|n|n.id).unwrap().clone();
+    let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),nodeReference(&cell),cell.facet,cell.value,true).unwrap());
+    assert_eq!(assess(&s.rules[0],&s.matter.nodes,&s.matter.sources).unwrap().status,ReasoningStatus::Excepted);
+    assert!(!s.matter.nodes.iter().find(|n|n.id==conclusion.id).unwrap().accepted);
+}
+
+#[test]
+fn csv_rows_do_not_share_header_citations_that_invent_conflicts_between_records() {
+    let imported=csv_journal("amount\n50\n75");
+    let first=reviewNext(imported.journal,&imported.session,"client".into(),"".into(),"".into()).unwrap();
+    let second=reviewNext(first.journal,&first.session,"client".into(),"".into(),"".into()).unwrap();assert_eq!(second.code,"");
+    let nodes=&second.session.matter.nodes;let admitted=current(nodes,&second.session.matter.sources).unwrap();
+    for node in nodes {assert!(!competingMeaning(nodes,&admitted.references,node));}
+    assert_ne!(nodes[0].citations,nodes[1].citations);
+}
+
+#[test]
+fn csv_resource_and_cell_limits_accept_the_boundary_and_refuse_the_next_cell() {
+    let s=initial("Bounded table".into());
+    let at_bytes=format!("a\n{}","x".repeat(8190));assert_eq!(at_bytes.len(),8192);
+    let imported=accepted(ingestCsv(&s,0,Role::Client,"client".into(),"Bytes".into(),at_bytes.into_bytes()).unwrap());assert_eq!(imported.matter.nodes[0].value.len(),8190);
+    let headers=(0..512).map(|i|format!("a{i}")).collect::<Vec<_>>().join(",");
+    let values=vec!["x";512].join(",");let table=format!("{headers}\n{values}");
+    let imported=accepted(ingestCsv(&s,0,Role::Client,"client".into(),"Cells".into(),table.into_bytes()).unwrap());assert_eq!(imported.matter.nodes.len(),512);
+    let refused=ingestCsv(&s,0,Role::Client,"client".into(),"Cells".into(),format!("{headers},extra\n{values},x").into_bytes()).unwrap();assert_eq!(refused.code,"csv-format-or-limit");assert_eq!(refused.session,s);
+    let headers=(0..16).map(|i|format!("a{i}")).collect::<Vec<_>>().join(",");
+    let rows=vec![vec!["x";16].join(",");63].join("\n");
+    let dense=accepted(ingestCsv(&s,0,Role::Client,"client".into(),"Rows".into(),format!("{headers}\n{rows}").into_bytes()).unwrap());assert_eq!(dense.matter.nodes.len(),1008);
+    let with_rule=reviewed_matter();
+    let combined=accepted(ingestCsv(&with_rule,with_rule.matter.revision,Role::Client,"client".into(),"Rows".into(),format!("{headers}\n{rows}").into_bytes()).unwrap());
+    assert!(combined.matter.nodes.len()>1008);assert_eq!(assess(&combined.rules[0],&combined.matter.nodes,&combined.matter.sources).unwrap().status,ReasoningStatus::Supported);
+}
+
+#[test]
+fn csv_additional_learning_preserves_column_context_for_equal_cell_values() {
+    let imported=csv_journal("amount,person\n50,50\n50,50");
+    let mut result=imported;
+    for _ in 0..4 {result=reviewNext(result.journal,&result.session,"client".into(),"".into(),"".into()).unwrap();assert_eq!(result.code,"");}
+    assert!(nextAdditionalReview(&result.session).unwrap().node.is_none(),"equal bare values in another column must not invent an additional aspect");
+    let fields=vec![result.journal.clone(),"client".into(),"amount".into(),"50".into(),"claimed.amount".into(),"50".into(),"Records · row 2 · column 1".into()];
+    let result=changeFields("annotate".into(),&fields,result.journal.clone(),&result.session,"client".into()).unwrap();
+    assert_eq!(result.code,"");let additional=nextAdditionalReview(&result.session).unwrap();
+    assert_eq!(additional.meaning.facet,"claimed.amount");
+    assert_eq!(interpretationLocation(&result.session,&additional.node.unwrap()).unwrap(),"Records · row 3 · column 1");
+}

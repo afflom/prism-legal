@@ -4,6 +4,7 @@
 \useglossary{prism.arch@1.0.0}
 \importmodule{Matter}
 \importmodule{MatterText}
+\importmodule{MatterCsv}
 \importmodule{MatterInference}
 \importmodule{Foundation.Bytes}
 \importmodule{Foundation.Utf8}
@@ -13,7 +14,7 @@ inductive{ name: Role, type_parameters: [], parameters: [], constructors: [{name
 
 structure{
  name: ResourceLabel, type_parameters: [], parameters: [],
- fields: [{name: source, type: Nat}, {name: title, type: String}]
+ fields: [{name: source, type: Nat}, {name: title, type: String}, {name: format, type: String}]
 }
 
 structure{
@@ -154,14 +155,19 @@ definition{
 }
 
 definition{
+ name: reconcileNode, parameters: [node : Matter::Node, rules : (List MatterInference::Rule), matter : Matter::State, following : Reconciliation], result: Reconciliation,
+ body: (if ((project node accepted) && (not (proposalSupported node rules matter))) then
+ (let updated : Matter::Node := (Matter::revise node (project node facet) (project node value) false);
+ (record Reconciliation {nodes := (cons updated (project following nodes)), changes := (cons (record Matter::Change {before := node, after := updated}) (project following changes)), changed := true}))
+ else (record Reconciliation {nodes := (cons node (project following nodes)), changes := (project following changes), changed := (project following changed)})),
+ executable: true, axioms: [propext]
+}
+
+definition{
  name: reconcileNodes, parameters: [nodes : (List Matter::Node), rules : (List MatterInference::Rule), matter : Matter::State], result: Reconciliation,
  body: (match nodes
  | List.nil => (record Reconciliation {nodes := (nil Matter::Node), changes := (project matter changes), changed := false})
- | List.cons node rest => (let following : Reconciliation := (reconcileNodes rest rules matter);
- (if ((project node accepted) && (not (proposalSupported node rules matter))) then
- (let updated : Matter::Node := (Matter::revise node (project node facet) (project node value) false);
- (record Reconciliation {nodes := (cons updated (project following nodes)), changes := (cons (record Matter::Change {before := node, after := updated}) (project following changes)), changed := true}))
- else (record Reconciliation {nodes := (cons node (project following nodes)), changes := (project following changes), changed := (project following changed)})))),
+ | List.cons node rest => (reconcileNode node rules matter (reconcileNodes rest rules matter))),
  executable: true, axioms: [propext], recursive_argument: nodes
 }
 
@@ -175,7 +181,7 @@ definition{
 
 definition{
  name: reconcile, parameters: [rules : (List MatterInference::Rule), matter : Matter::State], result: Matter::State,
- body: (reconcileRounds (Matter::nodeCount (project matter nodes)) rules matter),
+ body: (match rules | List.nil => matter | List.cons rule rest => (reconcileRounds (Matter::nodeCount (project matter nodes)) rules matter)),
  executable: true, axioms: [propext]
 }
 
@@ -186,21 +192,44 @@ definition{
 }
 
 definition{
- name: ingest, parameters: [session : Session, expected : Nat, role : Role, actor : String, title : String, content : Bytes], result: Outcome,
+ name: resourceFormat, parameters: [labels : (List ResourceLabel), source : Nat], result: String,
+ body: (match labels | List.nil => "text" | List.cons label rest => (if ((project label source) =? source) then (project label format) else (resourceFormat rest source))),
+ executable: true, axioms: [], recursive_argument: labels
+}
+
+definition{
+ name: csvNode, parameters: [session : Session, node : Matter::Node], result: Bool,
+ body: (match (project node citations) | List.nil => false | List.cons citation rest => (prim equal (resourceFormat (project session labels) (project citation source)) "csv" : Bool)),
+ executable: true, axioms: []
+}
+
+definition{
+ name: ingestFormat, parameters: [session : Session, expected : Nat, role : Role, actor : String, title : String, content : Bytes, format : String], result: Outcome,
  body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
+ (if (not ((prim equal format "text" : Bool) || (prim equal format "csv" : Bool))) then (refuse session "source-format") else
  (if (not (boundedText title 256)) then (refuse session "source-title") else
  (if (not ((sourceCount (project (project session matter) sources)) <? 32)) then (refuse session "source-limit") else
  (let source : Matter::Source := (record Matter::Source {id := (nextSource (project (project session matter) sources)), revision := 1, content := content});
- (match (checked MatterText::IntakeModel source with [postcondition])
+ (match (if (prim equal format "csv" : Bool) then (checked MatterCsv::CsvIntakeModel source with [postcondition]) else (checked MatterText::IntakeModel source with [postcondition]))
  | Result.error error => (refuse session "source-grounding")
  | Result.ok extracted => (match extracted
-  | Option.none => (refuse session "source-format-or-limit")
+  | Option.none => (refuse session (if (prim equal format "csv" : Bool) then "csv-format-or-limit" else "source-format-or-limit"))
   | Option.some collection => (if (((Matter::nodeCount (project collection nodes)) =? 0) || (1024 <? ((Matter::nodeCount (project collection nodes)) + (Matter::nodeCount (project (project session matter) nodes))))) then (refuse session "source-empty-or-node-limit") else
    (let appended : Matter::Nodes := (appendNodes (project (project session matter) nodes) (project (reidentify (project collection nodes) (nextNode (project (project session matter) nodes))) nodes));
    (let matter : Matter::State := (record Matter::State {revision := (expected + 1), sources := (cons source (project (project session matter) sources)), nodes := (project appended nodes), changes := (project (project session matter) changes)});
    (let updated : Session := (changed session matter actor "ingest" (project source id));
-   (record Outcome {code := "", session := (record Session {matter := (project updated matter), title := (project updated title), labels := (cons (record ResourceLabel {source := (project source id), title := title}) (project updated labels)), sourceHistory := (project updated sourceHistory), rules := (project updated rules), audit := (project updated audit)})}))))))))))),
+   (record Outcome {code := "", session := (record Session {matter := (project updated matter), title := (project updated title), labels := (cons (record ResourceLabel {source := (project source id), title := title, format := format}) (project updated labels)), sourceHistory := (project updated sourceHistory), rules := (project updated rules), audit := (project updated audit)})})))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: ingest, parameters: [session : Session, expected : Nat, role : Role, actor : String, title : String, content : Bytes], result: Outcome,
+ body: (ingestFormat session expected role actor title content "text"), executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: ingestCsv, parameters: [session : Session, expected : Nat, role : Role, actor : String, title : String, content : Bytes], result: Outcome,
+ body: (ingestFormat session expected role actor title content "csv"), executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
@@ -210,10 +239,10 @@ definition{
  | Option.none => (refuse session "source-missing")
  | Option.some previous => (if (not ((project previous revision) =? (project reference revision))) then (refuse session "source-conflict") else
  (let source : Matter::Source := (record Matter::Source {id := (project previous id), revision := ((project previous revision) + 1), content := content});
- (match (checked MatterText::IntakeModel source with [postcondition])
+ (match (if (prim equal (resourceFormat (project session labels) (project source id)) "csv" : Bool) then (checked MatterCsv::CsvIntakeModel source with [postcondition]) else (checked MatterText::IntakeModel source with [postcondition]))
  | Result.error error => (refuse session "source-grounding")
  | Result.ok extracted => (match extracted
-  | Option.none => (refuse session "source-format-or-limit")
+  | Option.none => (refuse session (if (prim equal (resourceFormat (project session labels) (project source id)) "csv" : Bool) then "csv-format-or-limit" else "source-format-or-limit"))
   | Option.some collection => (if (((Matter::nodeCount (project collection nodes)) =? 0) || (1024 <? ((Matter::nodeCount (project collection nodes)) + (Matter::nodeCount (project (project session matter) nodes))))) then (refuse session "source-empty-or-node-limit") else
    (let appended : Matter::Nodes := (appendNodes (project (project session matter) nodes) (project (reidentify (project collection nodes) (nextNode (project (project session matter) nodes))) nodes));
    (let sources : Sources := (replaceSource (project (project session matter) sources) source);

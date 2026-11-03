@@ -201,4 +201,32 @@ for(let revision=0;revision<512;revision++)full+=field(command(['assert',String(
 result=invoke('restore',[full]);assert.equal(result.status,'ok');assert.equal(result.response,full);
 result=invoke('assertion',[full,'client','context','another']);assert.equal(result.status,'error');assert.equal(result.response,full);
 assert.equal(invoke('restore',[full+field(command(['assert','512','client','client','context','extra']))]).status,'error');
+// The declared CSV limits must execute, not exhaust the guest stack.
+const emptyCsvMatter=invoke('create',['','CSV boundaries']).response;
+for(const content of ['a\n'+'x'.repeat(8190),Array.from({length:512},(_,i)=>'a'+i).join(',')+'\n'+Array(512).fill('x').join(','),Array.from({length:16},(_,i)=>'a'+i).join(',')+'\n'+Array(63).fill(Array(16).fill('x').join(',')).join('\n')]){
+ result=invoke('ingest-csv',[emptyCsvMatter,'client','Boundary',content]);assert.equal(result.status,'ok');assert.equal(invoke('restore',[result.response]).response,result.response);result=invoke('goal',[result.response,'client','Review the boundary table']);assert.equal(result.status,'ok');assert.match(result.details.join(' '),/row 2 · column 1/);
+}
+for(const content of ['a\n'+'x'.repeat(8191),'a\n'+'x,'.repeat(1024)]){result=invoke('ingest-csv',[emptyCsvMatter,'client','Boundary',content]);assert.equal(result.status,'error');assert.equal(result.response,emptyCsvMatter);}
+let columnMatter=invoke('create',['','Column context']).response;
+for(const [op,args]of [['ingest-csv',['client','Records','amount,person\n50,50\n50,50']],['goal',['client','Review the table']],...Array(4).fill(['review',['client','','']])]){result=invoke(op,[columnMatter,...args]);assert.equal(result.status,'ok');columnMatter=result.response;}
+assert.equal(invoke('overview',[columnMatter,'client']).message,'Confirm the governing jurisdiction');
+result=invoke('annotate',[columnMatter,'client','amount','50','claimed.amount','50','Records · row 2 · column 1']);assert.equal(result.status,'ok');
+assert.match(result.details.join(' '),/Records · row 3 · column 1/);
+// Structured CSV intake is decoded by the model, with exact raw source evidence.
+let csv=invoke('create',['','Table review']).response;
+const csvSource='\ufeffperson,notes,date\r\nZoë,"said ""yes"", then\r\nleft",2024-02-29\r\n';
+result=invoke('ingest-csv',[csv,'client','Records',csvSource]);assert.equal(result.status,'ok');csv=result.response;
+assert(csv.includes(csvSource));
+csv=invoke('goal',[csv,'client','Understand the table']).response;
+result=invoke('overview',[csv,'client']);assert.match(result.details.join(' '),/Suggested facet: person/);assert.match(result.details.join(' '),/Records · row 2 · column 1/);
+for(const facet of ['person','notes','date']){result=invoke('review',[csv,'client','','']);assert.equal(result.status,'ok');csv=result.response;}
+result=invoke('inspect',[csv,'lawyer','notes','1']);assert.match(result.details.join(' '),/said "yes", then +left/);assert.match(result.details.join(' '),/Records · row 2 · column 2/);
+result=invoke('timeline',[csv,'client','date','1']);assert.match(result.details.join(' '),/2024-02-29 — Records · row 2 · column 3/);
+const csvBefore=csv;
+for(const content of ['a,a\n1,2','a,b\n1','a\n"unfinished','a\n"closed"junk']){result=invoke('ingest-csv',[csv,'client','Invalid',content]);assert.equal(result.status,'error');assert.equal(result.error,'csv');assert.equal(result.response,csv);}
+result=invoke('replace-source',[csv,'client','Records','person,notes,date\n李,,2024-03-01','Records · row 2 · column 3']);assert.equal(result.status,'ok');csv=result.response;assert.notEqual(csv,csvBefore);
+assert.equal(invoke('restore',[csv]).response,csv);
+result=invoke('timeline',[csv,'client','date','1']);assert.match(result.details.join(' '),/Current dates: 0/);
+result=invoke('inspect',[csv,'client','date','1']);assert.match(result.details.join(' '),/Records · earlier version 1 · row 2 · column 3/);
+
 console.log(`PASS: ${model.acceptance_vectors.length} source vectors plus unseen journal, Unicode, control-display, input-boundary, multiple-facet and joint-slot learning, withdrawal and refusal cases in generated Wasm`);

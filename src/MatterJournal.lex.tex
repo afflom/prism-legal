@@ -161,8 +161,8 @@ definition{
  (MatterSession::annotate session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (reference fields 4) (fieldAt fields 6) (fieldAt fields 7)) else
  (if ((prim equal operation "withdraw" : Bool) && (count =? 6)) then
  (MatterSession::withdraw session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (reference fields 4)) else
- (if ((prim equal operation "ingest" : Bool) && (count =? 6)) then
- (MatterSession::ingest session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (fieldAt fields 4) (Foundation.Utf8::encode (fieldAt fields 5))) else
+ (if (((prim equal operation "ingest" : Bool) || (prim equal operation "ingest-csv" : Bool)) && (count =? 6)) then
+ (if (prim equal operation "ingest-csv" : Bool) then (MatterSession::ingestCsv session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (fieldAt fields 4) (Foundation.Utf8::encode (fieldAt fields 5))) else (MatterSession::ingest session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (fieldAt fields 4) (Foundation.Utf8::encode (fieldAt fields 5)))) else
  (if ((prim equal operation "assert" : Bool) && (count =? 6)) then
  (MatterSession::recordAssertion session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (fieldAt fields 4) (fieldAt fields 5)) else
  (if ((prim equal operation "source" : Bool) && (count =? 7)) then

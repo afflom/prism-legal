@@ -82,11 +82,11 @@ definition{
  | Option.some node => (let meaning : MatterLanguage::MeaningSuggestion := (MatterLanguage::inferMeaning (project (project session matter) nodes) (project (project session matter) sources) (project node value));
  (let selectedFacet : String := (if (not (prim equal facet "" : Bool)) then facet else
  (match (project node origin) | Matter::Origin.Inferred => (project node facet) | Matter::Origin.Reviewed => (project node facet) | Matter::Origin.Extracted =>
- (if (MatterLanguage::usableMeaning meaning) then (project meaning facet) else (MatterNetwork::suggestedFacet (MatterNetwork::infer (MatterNetwork::train (project (project session matter) nodes) (project (project session matter) sources)) (project node value))))));
+ (if (MatterSession::csvNode session node) then (project node facet) else (if (MatterLanguage::usableMeaning meaning) then (project meaning facet) else (MatterNetwork::suggestedFacet (MatterNetwork::infer (MatterNetwork::train (project (project session matter) nodes) (project (project session matter) sources)) (project node value)))))));
  (let specificMeaning : MatterLanguage::MeaningSuggestion := (MatterLanguage::inferFacetMeaning (project (project session matter) nodes) (project (project session matter) sources) (project node value) selectedFacet);
  (let selectedValue : String := (if (not (prim equal interpretation "" : Bool)) then interpretation else
- (if (MatterLanguage::usableMeaning specificMeaning) then (project specificMeaning value) else (project node value)));
- (if ((prim equal interpretation "" : Bool) && (project specificMeaning ambiguous)) then (failed journal session "ambiguous-meaning") else
+ (if (MatterSession::csvNode session node) then (project node value) else (if (MatterLanguage::usableMeaning specificMeaning) then (project specificMeaning value) else (project node value))));
+ (if ((not (MatterSession::csvNode session node)) && ((prim equal interpretation "" : Bool) && (project specificMeaning ambiguous))) then (failed journal session "ambiguous-meaning") else
  (commit journal session "review" role
  (cons (MatterText::decimalLoop 20 (project node id)) (cons (MatterText::decimalLoop 20 (project node revision))
  (cons selectedFacet (cons selectedValue (cons "true" (nil String))))))))))))),
@@ -274,12 +274,13 @@ definition{
 definition{
  name: workspaceError, parameters: [operation : String, code : String, journal : String], result: Bytes,
  body: (MatterWire::reportState "error" operation
+ (if (prim equal code "csv" : Bool) then "Check the CSV headings, quoting and row lengths. Use up to 8192 UTF-8 bytes, 64 text lines and 1024 cells including the header." else
  (if (prim equal code "no-matter" : Bool) then "Create or open a matter to continue." else
  (if (prim equal code "existing-matter" : Bool) then "Save this matter and open a new window to start another." else
  (if (prim equal code "role" : Bool) then "Choose the client or lawyer workflow." else
  (if (prim equal code "selection" : Bool) then "Inspect the aspect, then use its exact wording and source location to identify one current item." else
  (if (prim equal code "conditions" : Bool) then "Write one condition per line as facet = value." else
- (if (prim equal code "limit" : Bool) then "This change exceeds the supported matter size. Your matter is unchanged." else "This change could not be accepted. Check the input and its current matter context."))))))
+ (if (prim equal code "limit" : Bool) then "This change exceeds the supported matter size. Your matter is unchanged." else "This change could not be accepted. Check the input and its current matter context.")))))))
  0 0 (nil String) (nil String) code journal),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
@@ -307,7 +308,7 @@ definition{
  (if (prim equal stage "jurisdiction" : Bool) then (prepareForm "jurisdiction" role (cons "" (nil String))) else
  (if (prim equal stage "review" : Bool) then
  (match (Matter::findNode (project (project session matter) nodes) (project view node)) | Option.none => "" | Option.some node =>
- (if ((match (project node origin) | Matter::Origin.Inferred => true | Matter::Origin.Reviewed => false | Matter::Origin.Extracted => false) && (not (MatterSession::isLawyer role))) then "" else
+ (if ((not (MatterSession::canWrite role)) || (((match (project node origin) | Matter::Origin.Inferred => true | Matter::Origin.Reviewed => false | Matter::Origin.Extracted => false) || (MatterSession::privileged (project view suggestion))) && (not (MatterSession::isLawyer role)))) then "" else
  (prepareForm "review" role (cons (project view suggestion) (cons "" (nil String)))))) else
  (if (prim equal stage "additional-interpretation" : Bool) then
  (match (Matter::findNode (project (project session matter) nodes) (project view node)) | Option.none => "" | Option.some node =>
@@ -348,7 +349,7 @@ definition{
 
 definition{
  name: errorClass, parameters: [code : String], result: String,
- body: (if (prim equal code "condition-format" : Bool) then "conditions" else (if ((prim equal code "ambiguous-selection" : Bool) || ((prim equal code "select-authority" : Bool) || ((prim equal code "select-goal" : Bool) || ((prim equal code "select-jurisdiction" : Bool) || ((prim equal code "select-rule" : Bool) || (prim equal code "select-resource" : Bool)))))) then "selection" else "change")),
+ body: (if (prim equal code "csv-format-or-limit" : Bool) then "csv" else (if (prim equal code "condition-format" : Bool) then "conditions" else (if ((prim equal code "ambiguous-selection" : Bool) || ((prim equal code "select-authority" : Bool) || ((prim equal code "select-goal" : Bool) || ((prim equal code "select-jurisdiction" : Bool) || ((prim equal code "select-rule" : Bool) || (prim equal code "select-resource" : Bool)))))) then "selection" else "change"))),
  executable: true, axioms: []
 }
 
@@ -420,7 +421,7 @@ definition{
  name: changeFields, parameters: [operation : String, fields : (List String), journal : String, session : MatterSession::Session, role : String], result: MatterJournal::JournalResult,
  body: (let count : Nat := (MatterText::wordCount fields);
  (if (((prim equal operation "annotate" : Bool) && ((count =? 6) || (count =? 7))) || ((prim equal operation "withdraw" : Bool) && ((count =? 4) || (count =? 5)))) then (alterInterpretation journal session operation role fields) else
- (if ((prim equal operation "revise-rule" : Bool) && (count =? 8)) then (reviseRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6) (MatterJournal::fieldAt fields 7)) else  (if ((prim equal operation "ingest" : Bool) && (count =? 4)) then (commit journal session "ingest" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "review" : Bool) && (count =? 4)) then (reviewNext journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (if ((prim equal operation "edit" : Bool) && ((count =? 5) || (count =? 6))) then (editLocatedValue journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5)) else (if ((prim equal operation "goal" : Bool) && (count =? 3)) then (setContext journal session role "goal" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "jurisdiction" : Bool) && (count =? 3)) then (setContext journal session role "jurisdiction" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "assertion" : Bool) && (count =? 4)) then (commit journal session "assert" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "rule" : Bool) && (count =? 7)) then (addRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6)) else (if ((prim equal operation "replace-source" : Bool) && ((count =? 4) || (count =? 5))) then (replaceResource journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4)) else (if ((prim equal operation "propose" : Bool) && (count =? 3)) then (match (selectedRule (project session rules) (MatterJournal::fieldAt fields 2)) | Option.none => (failed journal session "select-rule") | Option.some rule => (commit journal session "propose" role (project (referenceFields (project rule definition)) values))) else (failed journal session "command-shape"))))))))))))),
+ (if ((prim equal operation "revise-rule" : Bool) && (count =? 8)) then (reviseRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6) (MatterJournal::fieldAt fields 7)) else  (if (((prim equal operation "ingest" : Bool) || (prim equal operation "ingest-csv" : Bool)) && (count =? 4)) then (commit journal session operation role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "review" : Bool) && (count =? 4)) then (reviewNext journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (if ((prim equal operation "edit" : Bool) && ((count =? 5) || (count =? 6))) then (editLocatedValue journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5)) else (if ((prim equal operation "goal" : Bool) && (count =? 3)) then (setContext journal session role "goal" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "jurisdiction" : Bool) && (count =? 3)) then (setContext journal session role "jurisdiction" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "assertion" : Bool) && (count =? 4)) then (commit journal session "assert" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "rule" : Bool) && (count =? 7)) then (addRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6)) else (if ((prim equal operation "replace-source" : Bool) && ((count =? 4) || (count =? 5))) then (replaceResource journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4)) else (if ((prim equal operation "propose" : Bool) && (count =? 3)) then (match (selectedRule (project session rules) (MatterJournal::fieldAt fields 2)) | Option.none => (failed journal session "select-rule") | Option.some rule => (commit journal session "propose" role (project (referenceFields (project rule definition)) values))) else (failed journal session "command-shape"))))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 

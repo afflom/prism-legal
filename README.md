@@ -7,9 +7,10 @@ interpretations, rules, and conclusions remain distinguishable and connected.
 No remote model, inference service, or model credentials are used.
 
 The compiled application lets a client or lawyer create a matter, import actual
-UTF-8 resources, review passages, record goals and jurisdiction, and connect
+UTF-8 text and CSV resources, review passages and cells, record goals and jurisdiction, and connect
 reviewed authority to conditional strategies. Reviewed source wording teaches
-facet and meaning suggestions. A passage can support several interpretations. Further learned aspects stay
+facet and meaning suggestions. CSV headings suggest editable aspects; exact cell quotations and table locations
+remain available through review and replacement. A passage can support several interpretations. Further learned aspects stay
 visible as focused review steps, with the original resource and line identified;
 withdrawal preserves their history. Changes invalidate dependent conclusions
 and expose related facts and strategies. A saved matter file replays the complete accepted command history.

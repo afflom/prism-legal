@@ -122,5 +122,26 @@ try{
  const replacedResource=await save();await run('replace-source',{title:'Records',content:'Wrong',location:'Records · resource 2 · earlier version 1 · line 1'});
  assert.equal(await page.locator('#result-error').isVisible(),true);assert.deepEqual(await save(),replacedResource);
  assert.deepEqual(errors,[]);
+ await page.reload();await ready();await run('create',{title:'Table review'});
+ await page.locator('#operation').selectOption('ingest-csv');await page.locator('#field-title').fill('Records');
+ const csvBytes=Buffer.from('\ufeffperson,notes,date\r\nZoë,"said ""yes"", then\r\nleft",2024-02-29\r\n');
+ await page.locator('#file-content').setInputFiles({name:'records.csv',mimeType:'text/csv',buffer:csvBytes});
+ await page.waitForFunction(()=>document.querySelector('#field-content').value.includes('Zoë'));await page.locator('#guided-submit').click();await ready();
+ assert.equal(await page.locator('#result-error').isVisible(),false);assert((await save()).includes(csvBytes));
+ await run('goal',{value:'Understand the table'});assert.match(await page.locator('#result-details').textContent(),/Records · row 2 · column 1/);
+ await page.locator('#next-form').click();assert.equal(await page.locator('#field-facet').inputValue(),'person');
+ await page.locator('#guided-submit').click();await ready();
+ await run('review',{facet:'notes'});await run('review',{facet:'date'});
+ await run('timeline',{facet:'date',page:'1'});assert.match(await page.locator('#result-details').textContent(),/2024-02-29 — Records · row 2 · column 3/);
+ const csvSaved=await save();await run('replace-source',{title:'Records',content:'a,b\n1'});
+ assert.equal(await page.locator('#result-error').isVisible(),true);assert.deepEqual(await save(),csvSaved);
+ await run('replace-source',{title:'Records',content:'person,notes,date\n李,,2024-03-01',location:'Records · row 2 · column 3'});
+ assert.equal(await page.locator('#result-error').isVisible(),false);
+ await run('timeline',{facet:'date',page:'1'});assert.match(await page.locator('#result-details').textContent(),/Current dates: 0/);
+ await run('inspect',{facet:'date'});assert.match(await page.locator('#result-details').textContent(),/Records · earlier version 1 · row 2 · column 3/);
+ const csvReplaced=await save();await page.reload();await ready();
+ await page.locator('#open-session').setInputFiles({name:'table.prismlegal',mimeType:'application/octet-stream',buffer:csvReplaced});
+ await page.waitForFunction(()=>document.querySelector('#save-session').disabled===false);await ready();assert.deepEqual(await save(),csvReplaced);
+ await page.setViewportSize({width:390,height:844});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
  console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet and joint-slot interpretation, withdrawal, next-form navigation, and mobile layout');
 }finally{await context.close();await browser.close();}
