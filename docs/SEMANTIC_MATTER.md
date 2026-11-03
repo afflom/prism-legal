@@ -117,7 +117,7 @@ unique visible wording rather than asking users to find internal IDs. Ambiguous
 selection refuses rather than choosing arbitrarily.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 24 acceptance examples. Unused help and
+controls, errors, empty states, and 25 acceptance vectors. Unused help and
 transport details are collapsed. Facet inspection shows eight items per page;
 the lawyer view adds source locations. Control characters are rendered safely
 without altering retained source bytes. Long context is explicitly truncated
@@ -168,13 +168,13 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The final application source with source ID
-`47d9bc6ad5fdc4946c120be42a644700150688f246fa7a2be341f8a97f180747`
+`b570d4bf06cb24f155c9b872f1fde77cd04edca228fb4f204b15a119ca30a601`
 and semantic ID
-`c01bee00279c87bb5e6c7f6da5aa2b541377e79c9e59fb05c2d8b5fd488b44cc`
+`1215fde249903552deb005c91a7854095e66afc748a3172fcbd1f48b9c7a0625`
 was emitted as build
-`6a3a3b7fdc3b95cf3ee005cbcea0af2fdad4d58b96a475dfec4a778cce235926`
+`54318ca59e291f8954c940a2344aa92d8f9975cfba2549ea4a1a67823772afbf`
 and passed LexLean verification with attestation
-`b061471c9b32542d7627e6dff3907ba6901d507bfd770db50c50da43f4cf33eb`.
+`4585763c3e7e48a53d107a342e10ae5a8eb776823f2a7b18f8b10db5d456b65a`.
 
 The generated native library passes 25 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
@@ -190,13 +190,28 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 24 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 25 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
 rule assessment/revision, proposal review, exception/correction propagation,
 inspection, save/reopen, failed restoration, learned multi-facet review, withdrawal,
 next-form navigation, and mobile layout.
+
+The source corpus includes a 70,831-byte restore request containing nine imported
+resources. It exceeds the old portable transport limit and returns the exact
+accepted journal. The patched Hologram runtime executes all 25 vectors directly
+and through resident execution. Its portable browser runs all nine file-session
+journeys with 24 accepted intents and one verified oversized-request refusal,
+including actual file reopening of the larger matter.
+
+The source-pinned SDK carries explicit transport bounds from
+[PrismPM #496](https://github.com/UOR-Foundation/PrismPM/issues/496).
+The host selects the application's declared 2 MiB request / 8 MiB response limits
+before starting the session. Decoded-byte and HTTP-envelope checks retain those
+limits. The SDK records the upstream base, exact dependency patch, and patched
+archive digests in its execution report; the patch is not described as an
+unmodified upstream runtime.
 
 Those checks pass in development Chromium 154.0.8037.57 with Playwright 1.62.1.
 They are distinct from PrismPM's pinned Chromium 157 oracle. Full SDK verification

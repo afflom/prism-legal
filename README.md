@@ -35,7 +35,10 @@ application runtime. Rust and JavaScript under `tests/matter/` are test harnesse
 verification image. The generic file-session capability is proposed upstream in
 [PrismPM #495](https://github.com/UOR-Foundation/PrismPM/pull/495), following
 [issue #491](https://github.com/UOR-Foundation/PrismPM/issues/491). The app uses
-that fix directly while it awaits upstream review. Legal behavior stays here.
+that fix directly while it awaits upstream review. Its bounded portable session
+transport fix is tracked in [#496](https://github.com/UOR-Foundation/PrismPM/issues/496),
+with the carried dependency patch identified in verification evidence. Legal
+behavior stays here.
 LexLean is 0.4.0 (`e0b74b81e6f49c83596a957d232c8383a5db1a25`), with Lean 4.32.1.
 
 With that SDK's pinned toolchain installed:
