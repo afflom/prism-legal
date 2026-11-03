@@ -92,9 +92,21 @@ definition{
  executable: true, axioms: []
 }
 
+structure{
+ name: PendingInterpretation, type_parameters: [], parameters: [],
+ fields: [{name: facet, type: String}, {name: value, type: String}]
+}
+
 definition{
- name: pendingFacet, parameters: [session : MatterSession::Session, network : MatterNetwork::NeuralModel, node : Matter::Node], result: String,
- body: (if (MatterSession::csvNode session node) then (project node facet) else (MatterNetwork::suggestedFacet (MatterNetwork::infer network (project node value)))),
+ name: pendingInterpretation, parameters: [session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : (List Matter::Node), node : Matter::Node], result: PendingInterpretation,
+ body: (match (project node origin)
+ | Matter::Origin.Reviewed => (record PendingInterpretation {facet := (project node facet), value := (project node value)})
+ | Matter::Origin.Inferred => (record PendingInterpretation {facet := (project node facet), value := (project node value)})
+ | Matter::Origin.Extracted => (if (MatterSession::csvNode session node) then (record PendingInterpretation {facet := (project node facet), value := (project node value)}) else
+ (let meaning : MatterLanguage::MeaningSuggestion := (MatterLanguage::meaningLoop training (project (project session matter) nodes) admitted (project node value) (MatterLanguage::noMeaning));
+ (let facet : String := (if (MatterLanguage::usableMeaning meaning) then (project meaning facet) else (MatterNetwork::suggestedFacet (MatterNetwork::infer network (project node value))));
+ (let specific : MatterLanguage::MeaningSuggestion := (MatterLanguage::facetMeaningLoop training (project (project session matter) nodes) admitted (project node value) facet (MatterLanguage::noMeaning));
+ (record PendingInterpretation {facet := facet, value := (if (MatterLanguage::usableMeaning specific) then (project specific value) else (project node value))})))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -104,41 +116,45 @@ structure{
 }
 
 definition{
- name: considerPending, parameters: [node : Matter::Node, session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
+ name: considerPending, parameters: [node : Matter::Node, session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : (List Matter::Node), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
  body: (if ((not (MatterSession::isWithdrawn (project session audit) node)) && ((not (project node accepted)) && ((Matter::hasCitations (project node citations)) && (Matter::citationsCurrent (project (project session matter) sources) (project node citations))))) then
- (let facet : String := (pendingFacet session network node);
+ (let interpretation : PendingInterpretation := (pendingInterpretation session network admitted training node);
+ (let facet : String := (project interpretation facet);
  (let relevance : Nat := (questionRelevance (project session rules) facet (project (project session matter) nodes) admitted);
- (let goalRelevance : Nat := (goalOverlap goal node facet (project node value));
+ (let goalRelevance : Nat := (goalOverlap goal node facet (project interpretation value));
  (if (match (project focus node) | Option.none => true | Option.some selected => ((higherAttention relevance goalRelevance (project focus relevance) (project focus goalRelevance)) || (((relevance =? (project focus relevance)) && (goalRelevance =? (project focus goalRelevance))) && ((project node id) <? (project selected id))))) then
- (record ReviewFocus {node := (ctor Option.some [Matter::Node] node), relevance := relevance, goalRelevance := goalRelevance}) else focus)))) else focus),
+ (record ReviewFocus {node := (ctor Option.some [Matter::Node] node), relevance := relevance, goalRelevance := goalRelevance}) else focus))))) else focus),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
- name: focusPendingRows, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
+ name: focusPendingRows, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : (List Matter::Node), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
  body: (match nodes | List.nil => focus | List.cons node rest =>
- (focusPendingRows rest session network admitted goal (considerPending node session network admitted goal focus))),
+ (focusPendingRows rest session network admitted training goal (considerPending node session network admitted training goal focus))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
 }
 
 definition{
- name: focusPendingChunks, parameters: [chunks : (List MatterBatch::NodeChunk), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
+ name: focusPendingChunks, parameters: [chunks : (List MatterBatch::NodeChunk), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : (List Matter::Node), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
  body: (match chunks | List.nil => focus | List.cons chunk rest =>
- (focusPendingChunks rest session network admitted goal (focusPendingRows (project chunk values) session network admitted goal focus))),
+ (focusPendingChunks rest session network admitted training goal (focusPendingRows (project chunk values) session network admitted training goal focus))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: chunks
 }
 
 definition{
- name: focusPending, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
- body: (focusPendingChunks (project (MatterBatch::nodeChunks nodes) values) session network admitted goal focus),
+ name: focusPending, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), training : (List Matter::Node), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
+ body: (focusPendingChunks (project (MatterBatch::nodeChunks nodes) values) session network admitted training goal focus),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
  name: nextReview, parameters: [session : MatterSession::Session], result: (Option Matter::Node),
  body: (let matter : Matter::State := (project session matter);
- (let focused : ReviewFocus := (focusPending (project matter nodes) session (MatterNetwork::train (project matter nodes) (project matter sources)) (project (Matter::current (project matter nodes) (project matter sources)) references) (project (goalFeatures session (project (Matter::current (project matter nodes) (project matter sources)) references)) values) (record ReviewFocus {node := (ctor Option.none [Matter::Node]), relevance := 0, goalRelevance := 0}));
- (match (project focused node) | Option.some node => (ctor Option.some [Matter::Node] node) | Option.none => (pendingProposal (project matter nodes) session)))),
+ (let admitted : (List Matter::Reference) := (project (Matter::current (project matter nodes) (project matter sources)) references);
+ (let network : MatterNetwork::NeuralModel := (MatterNetwork::trainLoop (project matter nodes) admitted (record MatterNetwork::NeuralModel {neurons := (nil MatterNetwork::Neuron)}));
+ (let training : Matter::Nodes := (MatterLanguage::trainMeaningExamples (project matter nodes) admitted);
+ (let focused : ReviewFocus := (focusPending (project matter nodes) session network admitted (project training nodes) (project (goalFeatures session admitted) values) (record ReviewFocus {node := (ctor Option.none [Matter::Node]), relevance := 0, goalRelevance := 0}));
+ (match (project focused node) | Option.some node => (ctor Option.some [Matter::Node] node) | Option.none => (pendingProposal (project matter nodes) session))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -402,10 +418,10 @@ definition{
  (let admitted : (List Matter::Reference) := (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references);
  (let chooseAdditional : Bool := (match (project additional node) | Option.none => false | Option.some extra =>
  (match pendingCandidate | Option.none => true | Option.some node =>
- (let facet : String := (match (project node origin) | Matter::Origin.Inferred => (project node facet) | Matter::Origin.Reviewed => (project node facet) | Matter::Origin.Extracted => (pendingFacet session (MatterNetwork::train (project (project session matter) nodes) (project (project session matter) sources)) node));
+ (let interpretation : PendingInterpretation := (pendingInterpretation session (MatterNetwork::train (project (project session matter) nodes) (project (project session matter) sources)) admitted (project (MatterLanguage::trainMeaningExamples (project (project session matter) nodes) admitted) nodes) node);
  (higherAttention (project additional relevance) (project additional goalRelevance)
- (questionRelevance (project session rules) facet (project (project session matter) nodes) admitted)
- (goalOverlap (project (goalFeatures session admitted) values) node facet (project node value))))));
+ (questionRelevance (project session rules) (project interpretation facet) (project (project session matter) nodes) admitted)
+ (goalOverlap (project (goalFeatures session admitted) values) node (project interpretation facet) (project interpretation value))))));
  (record ReviewAttention {node := (if chooseAdditional then (project additional node) else pendingCandidate), additional := chooseAdditional, meaning := (if chooseAdditional then (project additional meaning) else (MatterLanguage::noMeaning))}))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }

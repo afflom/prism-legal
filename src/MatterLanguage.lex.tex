@@ -17,6 +17,34 @@ structure{
 }
 
 definition{
+ name: includeMeaningExample, parameters: [node : Matter::Node, admitted : (List Matter::Reference), following : Matter::Nodes], result: Matter::Nodes,
+ body: (if ((Matter::containsReference admitted (Matter::nodeReference node)) && ((Matter::hasCitations (project node citations)) &&
+ (match (project node origin) | Matter::Origin.Reviewed => true | Matter::Origin.Extracted => false | Matter::Origin.Inferred => false))) then
+ (record Matter::Nodes {nodes := (cons node (project following nodes))}) else following),
+ executable: true, axioms: []
+}
+
+definition{
+ name: meaningExamplesRows, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), following : Matter::Nodes], result: Matter::Nodes,
+ body: (match nodes | List.nil => following | List.cons node rest =>
+ (includeMeaningExample node admitted (meaningExamplesRows rest admitted following))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: meaningExamplesChunks, parameters: [chunks : (List MatterBatch::NodeChunk), admitted : (List Matter::Reference)], result: Matter::Nodes,
+ body: (match chunks | List.nil => (record Matter::Nodes {nodes := (nil Matter::Node)}) | List.cons chunk rest =>
+ (meaningExamplesRows (project chunk values) admitted (meaningExamplesChunks rest admitted))),
+ executable: true, axioms: [], recursive_argument: chunks
+}
+
+definition{
+ name: trainMeaningExamples, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference)], result: Matter::Nodes,
+ body: (meaningExamplesChunks (project (MatterBatch::nodeChunks nodes) values) admitted),
+ executable: true, axioms: []
+}
+
+definition{
  name: noMeaning, parameters: [], result: MeaningSuggestion,
  body: (record MeaningSuggestion {facet := "", value := "", examples := (nil Matter::Reference), matched := false, ambiguous := false}),
  executable: true, axioms: []

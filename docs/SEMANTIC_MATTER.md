@@ -216,6 +216,14 @@ precedence. No numeric tuning weights or remote inference service are used.
 Goal matching is bounded literal vocabulary attention, not evidence that a
 legal condition is satisfied. Editing or withdrawing the goal recomputes focus;
 only current admitted context contributes. Selection never accepts a fact.
+For pending text, selection uses the same learned facet and literal meaning
+that the review view offers and automatic review accepts. For example, a
+reviewed `Amount: 50.` → `amount: 50` interpretation lets `Amount: 75.`
+receive attention for the goal `75`, even though the raw token includes a
+period. A usable learned meaning takes precedence over a conflicting neural
+facet suggestion. Ambiguous literal meanings cannot manufacture goal overlap.
+Current cited training examples are collected once for the pending scan;
+uncited assertions remain classifier context, not literal extraction examples.
 A supported strategy cannot hide an unresolved assessment from another rule.
 
 The journey checks reviewed passages' original quotations for additional learned
@@ -272,7 +280,7 @@ Historical interpretations show their source revision and original line, using
 the retained source bytes rather than the replacement resource's text.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 107 acceptance vectors. The shorter opening and help sections leave more room for the active matter. Unused help and
+controls, errors, empty states, and 111 acceptance vectors. The shorter opening and help sections leave more room for the active matter. Unused help and
 transport details are collapsed. Shorter field guidance and the neutral Continue
 action serve both review and read-only forms. Acceptance bytes are factored into
 closed byte aliases, preserving their exact values while reducing large inline
@@ -327,25 +335,25 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`11f8c8ebf4097fde4f679ce3ff22d9a4acbebd9ed267f6d276234f4a1e332617`
+`c2898abff40457f8434c873df616790232d8f9368adabb727abb1594221ecb89`
 and semantic ID
-`ac97fecc5340e7bf0b2f09f2fa0ead90e37240b49523172b20b5225c515ca71e`
+`fe60ab945da764137e1caf330d92c298dff028865c0b0b76054a1dd1bc5b963b`
 was emitted as build
-`8536c08bb1e1bf210082a7b82abcce35ce24f9564efeefbb0b264f291a7cb231`
+`81f3e4172c57868c6e745480ad3ca2ea995699bc9063c36126001bd73c7d436d`
 and passed LexLean verification with attestation
-`d45ec36bf07320c4bd7b3c8a48431050cd143d351296c3756c6e4d77d5334dd9`.
+`cda6c05de4de5cefc56feb7c0f8dcc546e523b5eb1d5ae24f09f90c32b0e99e7`.
 
-The generated native library passes 79 tests across `behavior.rs` and
+The generated native library passes 82 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
 learned literal and joint-slot extraction, overlapping and ambiguous training,
 multiple facets, withdrawal, facet-rename impact, CSV quoting and byte provenance,
-column-aware learning, source replacement, large-table reconciliation, retained-version source inspection, automatic passage pagination, goal-relative attention, and unified additional-facet review.
+column-aware learning, source replacement, large-table reconciliation, retained-version source inspection, automatic passage pagination, goal-relative attention, learned-value attention, classifier/meaning disagreement, disputed-value abstention, and unified additional-facet review.
 CSV boundaries exercise 8192 bytes and 1024 cells, including 1008 populated
 cells in both an empty matter and a matter with an existing legal rule. The
 boundary checks also select the last cell through a changed goal and render the
-review overview. A separate native core-session test reviews all 1,008 text passages before
+review overview. A separate native core-session test selects attention in an untrained 1,008-passage matter, then reviews all its text passages before
 checking that no pending interpretation remains. This does not establish saved-file
 capacity: the current journal still admits at most 512 operations. Native
 tests retain their ordinary stack configuration; the recursive byte scan, node
@@ -360,7 +368,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 107 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 111 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -371,11 +379,24 @@ source-qualified corrections, historical source locations, learned date chronolo
 combined date aspects, source-qualified resource replacement, CSV file import
 and refusal, table revision and replay, source-context browsing, source-selected review, selected-strategy proposal continuation, and mobile layout.
 
+Named acceptance definitions and ordered list segments preserve every vector while avoiding a deeply nested inline snapshot. An unfactored 111-vector corpus exposed [LexLean #430](https://github.com/UOR-Foundation/LexLean/issues/430); the repair is proposed in [LexLean PR #431](https://github.com/UOR-Foundation/LexLean/pull/431). The application uses the pinned SDK with factored constants, so it does not depend on that repair.
+
 The source corpus also exercises a complete strategy lifecycle: reviewed authority and conditions, proposal creation, refused client acceptance, lawyer acceptance, a newly observed exception, fresh proposal and review after withdrawal, correction, source replacement, and replay.
 
 The source corpus includes a 70,831-byte restore request containing nine imported
 resources. It exceeds the old portable transport limit and returns the exact
-accepted journal. The current 107-vector artifact passes native, Wasm and
+accepted journal. The current 111-vector artifact passes native, Wasm and
+application-browser checks. Two development Chromium 154 portable diagnostics
+still failed at response-body retrieval: the first at file-session vector 20
+(withdrawal without a matter), the second during saved-file roundtrip restoration.
+The second recorded the exact expected message and nonempty journal in the page,
+ready controls, and `ERR_ABORTED`; Playwright still could not retrieve the response
+body. These passive client observations are diagnostic evidence only and do not
+replace the required response assertion. No timeout, retry, assertion or retention
+buffer was changed. The failure remains relevant to
+[PrismPM #67](https://github.com/UOR-Foundation/PrismPM/issues/67).
+
+The preceding 107-vector artifact passed native, Wasm and
 application-browser checks. Its development Chromium 154 portable diagnostic failed during file-session vectors at index 18 (empty-file restoration), with the response-body-unavailable condition (`Network.getResponseBody: No data found for resource`). The response assertion was retained and this is not a pinned-browser attestation. The preceding 82-vector artifact failed a local Chromium 154 diagnostic during file-session vectors at index 24 with `Network.getResponseBody: No data found for resource`; this is relevant to [PrismPM #67](https://github.com/UOR-Foundation/PrismPM/issues/67) and is not a pinned-browser result. The prior
 40-vector and 34-vector artifacts' development portable-browser runs failed while
 reading a response through Playwright (`Network.getResponseBody: No data found

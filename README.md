@@ -12,7 +12,7 @@ reviewed authority to conditional strategies. Reviewed source wording teaches
 facet and meaning suggestions. CSV headings suggest editable aspects; exact cell quotations and table locations
 remain available through review and replacement. A passage can support several interpretations. Further learned aspects stay
 visible as focused review steps, with the original resource and line identified;
-withdrawal preserves their history. Reviewed rule requirements and vocabulary shared with the current goal guide attention across new passages and learned missing aspects. Changes invalidate dependent conclusions
+withdrawal preserves their history. Reviewed rule requirements and vocabulary shared with the current goal guide attention across new passages and learned missing aspects. Attention uses the same learned facet and literal meaning offered for review; disputed meanings cannot create goal relevance. Changes invalidate dependent conclusions
 and expose related facts and strategies. Strategy inspection leads to its own proposal review; repeated requests do not create duplicate proposals from the same current support. A saved matter file replays the complete accepted command history.
 The view offers the next useful form, with focused facet inspection and
 supporting source context available when needed. Source locations distinguish

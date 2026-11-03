@@ -294,4 +294,10 @@ const attentionTable=Array.from({length:16},(_,i)=>`column${i}`).join(',')+'\n'+
 result=invoke('ingest-csv',[proposals,'client','Large table',attentionTable]);assert.equal(result.status,'ok');assert.match(result.request,/Large table · row 2 · column 1/);
 assert.equal(invoke('restore',[result.response]).response,result.response);
 result=invoke('goal',[result.response,'client','finale']);assert.equal(result.status,'ok');assert.match(result.request,/Large table · row 64 · column 16/);
+// Learned literal values guide attention even when raw punctuation differs from the goal.
+let semanticAttention=invoke('create',['','Learned amount']).response;
+for(const [op,fields] of [['ingest',['client','Training','Amount: 50.']],['review',['client','amount','50']],['goal',['client','75']],['ingest',['client','Update','Unrelated context\nAmount: 75.']]]) {result=invoke(op,[semanticAttention,...fields]);assert.equal(result.status,'ok');semanticAttention=result.response;}
+result=invoke('overview',[semanticAttention,'client']);assert.match(result.request,/Update · line 2/);assert(result.details.includes('amount: 75'));assert.equal(result.response,semanticAttention);
+result=invoke('review',[semanticAttention,'client','','']);assert.equal(result.status,'ok');semanticAttention=result.response;
+result=invoke('inspect',[semanticAttention,'client','amount','1']);assert.match(result.details.join(' '),/Current interpretation: 75/);assert.equal(invoke('restore',[semanticAttention]).response,semanticAttention);
 console.log(`PASS: ${model.acceptance_vectors.length} source vectors plus unseen journal, Unicode, control-display, input-boundary, multiple-facet and joint-slot learning, withdrawal and refusal cases in generated Wasm`);

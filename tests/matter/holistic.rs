@@ -1103,6 +1103,7 @@ fn attention_finishes_for_a_full_matter_of_reviewed_text_passages() {
         s=accepted(ingest(&s,s.matter.revision,Role::Client,"client".into(),format!("Record {index}"),vec!["entry";63].join("\n").into_bytes()).unwrap());
     }
     s=assert_fact(&s,"goal","Understand the archive");
+    assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,1,"untrained passages retain source order at the matter boundary");
     let references=s.matter.nodes.iter().filter(|n|!n.citations.is_empty()).map(nodeReference).collect::<Vec<_>>();
     for reference in references {s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),reference,"entry".into(),"entry".into(),true).unwrap());}
     assert_eq!(s.matter.nodes.len(),1009);
@@ -1132,4 +1133,45 @@ fn batched_meaning_context_preserves_the_visible_eight_aspect_limit() {
     let context=meaningContext(&s.matter.nodes,&s.matter.nodes,&s.matter.sources,"Amount: 50".into(),&[],8).unwrap();
     assert_eq!(context.values.len(),9);assert!(context.values[..8].iter().all(|v|v.ends_with(": 50")));assert_eq!(context.values[8],"Additional facets can be checked by selecting a facet during review.");
     assert!(meaningContext(&[],&s.matter.nodes,&s.matter.sources,"Amount: 50".into(),&[],0).unwrap().values.is_empty());
+}
+
+#[test]
+fn attention_uses_the_learned_value_that_automatic_review_will_accept() {
+    let journal=initialJournal("Amount attention".into());let s=replay(journal.clone()).unwrap().session;
+    let r=commit(journal,&s,"ingest".into(),"client".into(),&["Training".into(),"Amount: 50.".into()]).unwrap();assert_eq!(r.code,"");
+    let r=reviewNext(r.journal,&r.session,"client".into(),"amount".into(),"50".into()).unwrap();assert_eq!(r.code,"");
+    let r=setContext(r.journal,&r.session,"client".into(),"goal".into(),"75".into()).unwrap();assert_eq!(r.code,"");
+    let r=commit(r.journal,&r.session,"ingest".into(),"client".into(),&["Update".into(),"Unrelated context\nAmount: 75.".into()]).unwrap();assert_eq!(r.code,"");
+    let before=r.session.clone();let view=overview(&r.session,Role::Client).unwrap();assert_eq!(view.suggestion,"amount");assert!(view.context.iter().any(|v|v=="amount: 75"));
+    assert!(nextStep(&r.session,Role::Client,&view).unwrap().contains("Update · line 2"));assert_eq!(r.session,before);
+    assert!(!r.session.matter.nodes.iter().find(|n|n.value=="Amount: 75.").unwrap().accepted);
+    let r=reviewNext(r.journal,&r.session,"client".into(),"".into(),"".into()).unwrap();assert_eq!(r.code,"");
+    let selected=r.session.matter.nodes.iter().find(|n|n.facet=="amount"&&n.value=="75").unwrap();assert!(selected.accepted);assert_eq!(interpretationLocation(&r.session,selected).unwrap(),"Update · line 2");
+    assert!(!r.session.matter.nodes.iter().find(|n|n.value=="Unrelated context").unwrap().accepted);assert_eq!(replay(r.journal).unwrap().session,r.session);
+}
+
+#[test]
+fn attention_uses_the_displayed_learned_facet_when_the_classifier_disagrees() {
+    let s=reviewed_matter();
+    let s=accepted(ingest(&s,s.matter.revision,Role::Client,"client".into(),"Training".into(),b"Amount: 50.".to_vec()).unwrap());
+    let training=s.matter.nodes.iter().max_by_key(|n|n.id).unwrap();
+    let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),nodeReference(training),"amount".into(),"50".into(),true).unwrap());
+    let s=assert_fact(&s,"context","Amount: 75.");
+    let mut rule=s.rules[0].clone();rule.definition=Reference{id:0,revision:0};rule.premises=vec![Requirement{facet:"amount".into(),value:"75".into(),question:"Confirm the amount".into()}];rule.exceptions=vec![];rule.action="Review the amount".into();
+    let s=accepted(commitRule(&s,s.matter.revision,Role::Lawyer,"lawyer".into(),&rule).unwrap());
+    let s=accepted(ingest(&s,s.matter.revision,Role::Client,"client".into(),"Update".into(),b"Unrelated context\nAmount: 75.".to_vec()).unwrap());
+    assert_eq!(suggestedFacet(&infer(&train(&s.matter.nodes,&s.matter.sources).unwrap(),"Amount: 75.".into()).unwrap()),"context");
+    assert_eq!(inferMeaning(&s.matter.nodes,&s.matter.sources,"Amount: 75.".into()).unwrap().facet,"amount");
+    assert_eq!(nextAttention(&s).unwrap().node.unwrap().value,"Amount: 75.");assert_eq!(overview(&s,Role::Client).unwrap().suggestion,"amount");
+}
+
+#[test]
+fn disputed_learned_values_do_not_create_goal_attention_evidence() {
+    let s=accepted(ingest(&initial("Disputed attention".into()),0,Role::Client,"client".into(),"Training".into(),b"Amount: 50.".to_vec()).unwrap());
+    let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:1},"amount".into(),"50".into(),true).unwrap());
+    let s=assert_fact(&s,"goal","75");
+    let s=accepted(annotate(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:2},"amount".into(),"unknown".into()).unwrap());
+    let s=accepted(ingest(&s,s.matter.revision,Role::Client,"client".into(),"Update".into(),b"Unrelated context\nAmount: 75.".to_vec()).unwrap());
+    assert!(inferFacetMeaning(&s.matter.nodes,&s.matter.sources,"Amount: 75.".into(),"amount".into()).unwrap().ambiguous);
+    assert_eq!(nextAttention(&s).unwrap().node.unwrap().value,"Unrelated context","an ambiguous extracted value cannot break the literal attention tie");
 }
