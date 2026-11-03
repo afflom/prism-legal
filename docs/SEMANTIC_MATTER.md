@@ -51,7 +51,13 @@ lawyer supplies required `facet = value` conditions, possible exceptions, and an
 action. Those conditions are a controlled language, not simulated understanding
 of unrestricted legal prose. An assessment is inactive, missing support,
 blocked by an observed exception, or supported. Missing conditions become
-questions. A supported proposal still requires lawyer review.
+questions. A supported proposal still requires lawyer review. Competing reviewed meanings
+of the same facet from the same exact source span suspend support from that
+passage. Contested exceptions remain unresolved instead of being treated as
+absent; contested authority suspends the rule. The next form opens the affected
+facet for correction, separation or withdrawal. Resolving the conflict does not
+automatically reaccept an earlier conclusion. Separate source spans can carry
+different values without an invented mutual-exclusion rule.
 
 Draft strategy text presents the reviewed goal, action, support, and citations.
 It is assembled from the current matter, not a generated pleading or invented
@@ -162,15 +168,15 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The final application source with source ID
-`fac36a378b1124cb8c43418213e48684ef531a120b38ececac5ed30abd958814`
+`47d9bc6ad5fdc4946c120be42a644700150688f246fa7a2be341f8a97f180747`
 and semantic ID
-`d7f09b69a8d229ed5427681d60a48240d77451c8db7f62b360b8a5bb77b87f46`
+`c01bee00279c87bb5e6c7f6da5aa2b541377e79c9e59fb05c2d8b5fd488b44cc`
 was emitted as build
-`0b8951059d4be329e3ade9edbadbe3201b7dcd757c8f9f328c502a27dcbf4ebb`
+`6a3a3b7fdc3b95cf3ee005cbcea0af2fdad4d58b96a475dfec4a778cce235926`
 and passed LexLean verification with attestation
-`c50a06034087c5f622425bea3c8670b00fa41b014af000f1fd54297153d2c937`.
+`b061471c9b32542d7627e6dff3907ba6901d507bfd770db50c50da43f4cf33eb`.
 
-The generated native library passes 22 tests across `behavior.rs` and
+The generated native library passes 25 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,

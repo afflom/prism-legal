@@ -75,12 +75,24 @@ definition{
 }
 
 definition{
+ name: impactStatus, parameters: [session : MatterSession::Session, node : Matter::Node, admitted : (List Matter::Reference)], result: String,
+ body: (if (MatterSession::isWithdrawn (project session audit) node) then "Withdrawn: " else
+ (if (MatterInference::competingMeaning (project (project session matter) nodes) admitted node) then "Competing interpretations: " else
+ (if (prim equal (project node facet) "rule" : Bool) then
+ (match (MatterSession::findRule (project session rules) (project node id)) | Option.none => "Unavailable: " | Option.some rule =>
+ (match (project (MatterInference::assess rule (project (project session matter) nodes) (project (project session matter) sources)) status)
+ | MatterInference::ReasoningStatus.Supported => "Supported rule: " | MatterInference::ReasoningStatus.Missing => "Open conditions: " | MatterInference::ReasoningStatus.Excepted => "Exception applies: " | MatterInference::ReasoningStatus.Inactive => "Basis needs review: ")) else
+ (if (Matter::containsReference admitted (Matter::nodeReference node)) then "Current: " else "Needs review: ")))),
+ executable: true, axioms: [propext]
+}
+
+definition{
  name: impactText, parameters: [references : (List Matter::Reference), session : MatterSession::Session, admitted : (List Matter::Reference)], result: MatterText::TextItems,
  body: (match references | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons reference rest =>
  (let following : MatterText::TextItems := (impactText rest session admitted);
  (match (Matter::findNode (project (project session matter) nodes) (project reference id)) | Option.none => following | Option.some node =>
  (record MatterText::TextItems {values := (cons (prim join
- (cons (if (MatterSession::isWithdrawn (project session audit) node) then "Withdrawn: " else (if (Matter::containsReference admitted reference) then "Current: " else "Needs review: "))
+ (cons (impactStatus session node admitted)
  (cons (project node facet) (cons " — " (cons (if (prim equal (project node facet) "rule" : Bool) then
  (match (MatterSession::findRule (project session rules) (project node id)) | Option.none => "Rule unavailable" | Option.some rule => (project rule action)) else (project node value)) (nil String))))) "" : String) (project following values))})))),
  executable: true, axioms: [propext], recursive_argument: references

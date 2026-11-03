@@ -270,3 +270,44 @@ fn one_passage_can_supply_separate_facets_without_cross_facet_ambiguity() {
     assert!(candidate.ambiguous);
     assert_eq!(candidate.examples.len(), 2);
 }
+
+#[test]
+fn competing_meanings_of_one_passage_suspend_support_until_resolved() {
+    let s = reviewed_matter();
+    let s = accepted(propose(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), s.rules[0].definition).unwrap());
+    let conclusion = s.matter.nodes.iter().max_by_key(|n| n.id).unwrap().clone();
+    let s = accepted(review(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), nodeReference(&conclusion), conclusion.facet, conclusion.value, true).unwrap());
+    let s = accepted(annotate(&s, s.matter.revision, Role::Client, "client".into(), node_ref(&s,"notice.receipt"), "notice.receipt".into(), "not received".into()).unwrap());
+    let alternative = s.matter.nodes.iter().max_by_key(|n| n.id).unwrap().clone();
+    let assessment = assess(&s.rules[0], &s.matter.nodes, &s.matter.sources).unwrap();
+    assert_eq!(assessment.status, ReasoningStatus::Missing);
+    assert!(assessment.questions.iter().any(|q| q.contains("competing interpretations")));
+    assert!(!s.matter.nodes.iter().find(|n| n.id == conclusion.id).unwrap().accepted);
+    let s = accepted(withdraw(&s, s.matter.revision, Role::Client, "client".into(), nodeReference(&alternative)).unwrap());
+    assert_eq!(assess(&s.rules[0], &s.matter.nodes, &s.matter.sources).unwrap().status, ReasoningStatus::Supported);
+    assert!(!s.matter.nodes.iter().find(|n| n.id == conclusion.id).unwrap().accepted, "resolving a conflict does not silently accept the old conclusion");
+}
+
+#[test]
+fn contested_exceptions_cannot_be_treated_as_absent_and_authority_must_be_uncontested() {
+    let s = reviewed_matter();
+    let receipt = node_ref(&s,"notice.receipt");
+    let s = accepted(annotate(&s, s.matter.revision, Role::Client, "client".into(), receipt, "notice.withdrawal".into(), "withdrawn".into()).unwrap());
+    assert_eq!(assess(&s.rules[0], &s.matter.nodes, &s.matter.sources).unwrap().status, ReasoningStatus::Excepted);
+    let s = accepted(annotate(&s, s.matter.revision, Role::Client, "client".into(), receipt, "notice.withdrawal".into(), "still in force".into()).unwrap());
+    let assessment = assess(&s.rules[0], &s.matter.nodes, &s.matter.sources).unwrap();
+    assert_eq!(assessment.status, ReasoningStatus::Missing);
+    assert!(assessment.questions[0].contains("notice.withdrawal"));
+    let s = reviewed_matter();
+    let s = accepted(annotate(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), node_ref(&s,"authority"), "authority".into(), "a competing construction".into()).unwrap());
+    assert_eq!(assess(&s.rules[0], &s.matter.nodes, &s.matter.sources).unwrap().status, ReasoningStatus::Inactive);
+}
+
+#[test]
+fn separate_passages_with_different_values_are_not_assumed_mutually_exclusive() {
+    let s = reviewed_matter();
+    let s = accepted(ingest(&s, s.matter.revision, Role::Client, "client".into(), "Other notice".into(), b"A different notice was disputed.".to_vec()).unwrap());
+    let latest = s.matter.nodes.iter().max_by_key(|n| n.id).unwrap();
+    let s = accepted(review(&s, s.matter.revision, Role::Client, "client".into(), nodeReference(latest), "notice.receipt".into(), "disputed".into(), true).unwrap());
+    assert_eq!(assess(&s.rules[0], &s.matter.nodes, &s.matter.sources).unwrap().status, ReasoningStatus::Supported);
+}

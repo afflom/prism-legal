@@ -266,13 +266,19 @@ definition{
  (prepareForm "review" role (cons (project view suggestion) (cons "" (nil String)))))) else
  (if (prim equal stage "question" : Bool) then
  (match (MatterSession::findRule (project session rules) (project view rule)) | Option.none => "" | Option.some rule =>
- (prepareForm "assertion" role (cons (missingFacet (project rule premises) (project (project session matter) nodes) (project admitted references)) (cons "" (nil String))))) else
+ (let exceptionConflict : String := (MatterInference::contestedFacet (project rule exceptions) (project (project session matter) nodes) (project admitted references));
+ (let conflict : String := (if (prim equal exceptionConflict "" : Bool) then (MatterInference::contestedFacet (project rule premises) (project (project session matter) nodes) (project admitted references)) else exceptionConflict);
+ (if (not (prim equal conflict "" : Bool)) then (prepareForm "inspect" role (cons conflict (cons "1" (nil String)))) else
+ (prepareForm "assertion" role (cons (missingFacet (project rule premises) (project (project session matter) nodes) (project admitted references)) (cons "" (nil String)))))))) else
  (if (prim equal stage "strategy" : Bool) then
  (match (MatterSession::findRule (project session rules) (project view rule)) | Option.none => "" | Option.some rule => (prepareForm "strategy" role (cons (project rule action) (nil String)))) else
  (if (prim equal stage "exception" : Bool) then (prepareForm "impact" role (cons "1" (nil String))) else
  (if (prim equal stage "authority" : Bool) then
  (if (not (MatterSession::isLawyer role)) then "" else
- (if (0 <? (project view rule)) then (prepareForm "strategies" role (cons "1" (nil String))) else
+ (if (0 <? (project view rule)) then
+ (match (MatterSession::findRule (project session rules) (project view rule)) | Option.none => "" | Option.some rule =>
+ (match (Matter::findNode (project (project session matter) nodes) (project (project rule authority) id)) | Option.none => (prepareForm "strategies" role (cons "1" (nil String))) | Option.some authority =>
+ (if (MatterInference::competingMeaning (project (project session matter) nodes) (project admitted references) authority) then (prepareForm "inspect" role (cons "authority" (cons "1" (nil String)))) else (prepareForm "strategies" role (cons "1" (nil String)))))) else
  (match (MatterJourney::findFacet (project (project session matter) nodes) (project admitted references) "authority")
  | Option.none => (prepareForm "ingest" role (cons "" (cons "" (nil String))))
  | Option.some authority => (prepareForm "rule" role (cons (project authority value) (cons "" (cons "" (cons "" (cons "" (nil String)))))))))) else "")))))))))),
@@ -366,12 +372,12 @@ definition{
 }
 
 definition{
- name: facetPage, parameters: [nodes : (List Matter::Node), audit : (List MatterSession::AuditEntry), admitted : (List Matter::Reference), facet : String, role : MatterSession::Role, skip : Nat, fuel : Nat], result: MatterText::TextItems,
+ name: facetPage, parameters: [nodes : (List Matter::Node), allNodes : (List Matter::Node), audit : (List MatterSession::AuditEntry), admitted : (List Matter::Reference), facet : String, role : MatterSession::Role, skip : Nat, fuel : Nat], result: MatterText::TextItems,
  body: (match nodes | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons node rest =>
- (if (not (prim equal (project node facet) facet : Bool)) then (facetPage rest audit admitted facet role skip fuel) else
- (match skip | Nat.succ remaining => (facetPage rest audit admitted facet role remaining fuel) | Nat.zero =>
+ (if (not (prim equal (project node facet) facet : Bool)) then (facetPage rest allNodes audit admitted facet role skip fuel) else
+ (match skip | Nat.succ remaining => (facetPage rest allNodes audit admitted facet role remaining fuel) | Nat.zero =>
  (match fuel | Nat.zero => (record MatterText::TextItems {values := (nil String)}) | Nat.succ remaining =>
- (record MatterText::TextItems {values := (cons (displayText (prim join (cons (if (Matter::containsReference admitted (Matter::nodeReference node)) then "Current interpretation: " else (if (MatterSession::isWithdrawn audit node) then "Withdrawn: " else "Needs review: ")) (cons (project node value) (cons (if (MatterSession::isLawyer role) then (MatterText::concat " — " (prim join (project (MatterJourney::sourceContext (project node citations)) values) "; " : String)) else "") (nil String)))) "" : String)) (project (facetPage rest audit admitted facet role 0 remaining) values))}))))),
+ (record MatterText::TextItems {values := (cons (displayText (prim join (cons (if (Matter::containsReference admitted (Matter::nodeReference node)) then (if (MatterInference::competingMeaning allNodes admitted node) then "Competing interpretation: " else "Current interpretation: ") else (if (MatterSession::isWithdrawn audit node) then "Withdrawn: " else "Needs review: ")) (cons (project node value) (cons (if (MatterSession::isLawyer role) then (MatterText::concat " — " (prim join (project (MatterJourney::sourceContext (project node citations)) values) "; " : String)) else "") (nil String)))) "" : String)) (project (facetPage rest allNodes audit admitted facet role 0 remaining) values))}))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
 }
 
@@ -381,7 +387,7 @@ definition{
  (if ((number =? 0) || (128 <? number)) then (workspaceError operation "request" journal) else
  (let skip : Nat := (prim multiply (prim subtract number 1 : Nat) 8 : Nat);
  (let items : MatterText::TextItems := (if (prim equal facet "" : Bool) then (itemPage (project (facetNames (project (project session matter) nodes)) values) skip 8) else
- (facetPage (project (project session matter) nodes) (project session audit) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references) facet role skip 8));
+ (facetPage (project (project session matter) nodes) (project (project session matter) nodes) (project session audit) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references) facet role skip 8));
  (MatterWire::reportState "ok" operation (if (prim equal facet "" : Bool) then "Choose an aspect to inspect" else (MatterText::concat "Matter context: " (displayText facet))) 0 0 (nil String)
  (match (project items values) | List.nil => (cons "There are no items on this page. Review a source or return to an earlier page." (nil String)) | List.cons first rest => (project items values)) "" journal))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]

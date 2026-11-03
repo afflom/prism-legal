@@ -23,6 +23,10 @@ try{
  await run('review',{facet:'legal-conclusion'});assert.equal(await page.locator('#result-error').isVisible(),true);assert.deepEqual(await save(),proposal,'client review must not accept a legal conclusion');
  await run('review',{role:'lawyer',facet:'legal-conclusion'});assert.equal(await message(),'Review the proposed next action');
  await run('inspect',{facet:'notice.receipt',page:'1',role:'lawyer'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: received/);assert.match(await page.locator('#result-details').textContent(),/Zoë/);
+ await run('annotate',{'from-facet':'notice.receipt','from-value':'received',facet:'notice.receipt',interpretation:'not received'});
+ assert.equal(await message(),'Complete the missing context');assert.match(await page.locator('#result-details').textContent(),/competing interpretations/);
+ assert.equal(await page.locator('#next-form').textContent(),'Inspect matter context');await page.locator('#next-form').click();assert.equal(await page.locator('#field-facet').inputValue(),'notice.receipt');await page.locator('#guided-submit').click();await ready();assert.match(await page.locator('#result-details').textContent(),/Competing interpretation: received/);
+ await run('withdraw',{facet:'notice.receipt',value:'not received'});await run('inspect',{facet:'legal-conclusion'});assert.match(await page.locator('#result-details').textContent(),/Needs review/);
  await run('revise-rule',{role:'lawyer',premises:'notice.receipt = received',exceptions:'notice.withdrawal = withdrawn',action:'Prepare a revised response.','previous-action':'Prepare a response.'});assert.equal(await message(),'Review the proposed next action');
  await run('inspect',{facet:'legal-conclusion',page:'1'});assert.match(await page.locator('#result-details').textContent(),/Needs review: Prepare a response/);
  await run('strategy');assert.match(await page.locator('#result-details').textContent(),/Prepare a revised response/);
