@@ -47,13 +47,34 @@ result=invoke('impact',[learned,'client','1']);assert.match(result.details.join(
 result=invoke('inspect',[learned,'client','claimed.amount','1']);assert.match(result.details.join(' '),/Withdrawn: 50/);
 assert.equal(invoke('restore',[learned]).response,learned);
 
+// Multiple reviewed slots may change together; no fixed source value is copied.
+let joint=invoke('create',['','Dated receipts']).response;
+joint=invoke('ingest',[joint,'client','Records','Amount: 50; day: Monday.\nAmount: 75; day: Tuesday.']).response;
+joint=invoke('goal',[joint,'client','Understand both receipt fields']).response;
+joint=invoke('review',[joint,'client','amount','50']).response;
+joint=invoke('annotate',[joint,'client','amount','50','day','Monday']).response;
+result=invoke('overview',[joint,'client']);assert.match(result.details.join(' '),/amount: 75/);assert.match(result.details.join(' '),/day: Tuesday/);
+result=invoke('review',[joint,'client','amount','']);assert.equal(result.status,'ok');joint=result.response;
+result=invoke('inspect',[joint,'client','amount','1']);assert.match(result.details.join(' '),/Current interpretation: 75/);
+assert.equal(invoke('restore',[joint]).response,joint);
+
+for (const next of ['Payment: 50 USD.','Payment: 75 USD.']) {
 let conflicting=invoke('create',['','Conflicting interpretations']).response;
-conflicting=invoke('ingest',[conflicting,'client','Receipts','Payment: 50 USD.\nPayment: 50 USD.']).response;
+conflicting=invoke('ingest',[conflicting,'client','Receipts','Payment: 50 USD.\n'+next]).response;
 conflicting=invoke('goal',[conflicting,'client','Understand the payments']).response;
 conflicting=invoke('review',[conflicting,'client','payment.amount','50']).response;
 conflicting=invoke('annotate',[conflicting,'client','payment.amount','50','payment.amount','not confirmed']).response;
 result=invoke('review',[conflicting,'client','payment.amount','']);assert.equal(result.status,'error');assert.equal(result.response,conflicting,'a blank review cannot resolve conflicting learned meanings');
 result=invoke('review',[conflicting,'client','payment.amount','50']);assert.equal(result.status,'ok');
+}
+let unanchored=invoke('create',['','Unanchored facets']).response;
+unanchored=invoke('ingest',[unanchored,'client','Notes','50\nunrelated wording']).response;
+unanchored=invoke('goal',[unanchored,'client','Understand the notes']).response;
+unanchored=invoke('review',[unanchored,'client','amount','50']).response;
+unanchored=invoke('annotate',[unanchored,'client','amount','50','claimed.amount','50']).response;
+result=invoke('overview',[unanchored,'client']);assert.equal(result.response,unanchored);
+assert.doesNotMatch(result.details.join(' '),/(?:amount|claimed.amount): unrelated wording/,'unanchored aliases cannot teach a meaning transfer');
+
 
 // Exercise the admitted journal count in the actual Wasm guest, not a smaller proxy.
 const field=value=>Buffer.byteLength(value)+':'+value;
@@ -63,4 +84,4 @@ for(let revision=0;revision<512;revision++)full+=field(command(['assert',String(
 result=invoke('restore',[full]);assert.equal(result.status,'ok');assert.equal(result.response,full);
 result=invoke('assertion',[full,'client','context','another']);assert.equal(result.status,'error');assert.equal(result.response,full);
 assert.equal(invoke('restore',[full+field(command(['assert','512','client','client','context','extra']))]).status,'error');
-console.log(`PASS: ${model.acceptance_vectors.length} source vectors plus unseen journal, Unicode, control-display, input-boundary, multiple-facet learning, withdrawal and refusal cases in generated Wasm`);
+console.log(`PASS: ${model.acceptance_vectors.length} source vectors plus unseen journal, Unicode, control-display, input-boundary, multiple-facet and joint-slot learning, withdrawal and refusal cases in generated Wasm`);

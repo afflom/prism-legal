@@ -12,7 +12,6 @@ runs:
         with open('toolchain/prismpm.json') as source:
             pin = json.load(source)
         print('revision=' + pin['revision'])
-        print('image=' + pin['sdk_image'])
         PY
     - name: Checkout the reviewed SDK fix
       uses: actions/checkout@v4
@@ -21,6 +20,7 @@ runs:
         ref: ${{ steps.inputs.outputs.revision }}
         path: .toolchain/prismpm
         persist-credentials: false
+        fetch-depth: 0
     - name: Make space for the pinned verification image
       shell: bash
       run: |
@@ -28,24 +28,41 @@ runs:
         # The verification container supplies its own pinned toolchain.
         sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup
         df -h .
+    - name: Install the pinned image construction tools
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+      with:
+        node-version: 22.23.2
+    - name: Configure the pinned builder
+      uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      with:
+        version: v0.28.0
+        driver-opts: image=docker.io/moby/buildkit@sha256:de10faf919fc71ba4eb1dd7bd6449566d012b0c9436b1c61bfee21d621b009aa
+    - name: Construct the SDK and its inventory from the pinned source
+      shell: bash
+      env:
+        SDK_REVISION: ${{ steps.inputs.outputs.revision }}
+      run: |
+        test "$(git -C .toolchain/prismpm rev-parse HEAD)" = "$SDK_REVISION"
+        test -z "$(git -C .toolchain/prismpm status --porcelain)"
+        node .toolchain/prismpm/scripts/sdk-image-inputs.mjs build \
+          .toolchain/prismpm "$SDK_REVISION" runtime \
+          --platform linux/amd64 --tag "prism-legal-sdk:$SDK_REVISION" --load \
+          --provenance=false --sbom=false --build-arg SOURCE_DATE_EPOCH=0 \
+          --label "org.opencontainers.image.revision=$SDK_REVISION" \
+          --metadata-file matter-sdk-build.json
+        docker image inspect "prism-legal-sdk:$SDK_REVISION" > matter-sdk-image.json
     - name: Compile and verify the complete source application
       shell: bash
       env:
-        PRISM_SDK_IMAGE: ${{ steps.inputs.outputs.image }}
+        SDK_REVISION: ${{ steps.inputs.outputs.revision }}
       run: |
-        docker pull "$PRISM_SDK_IMAGE"
-        # The SDK entrypoint runs commands as its fixed vscode UID (1000).
-        # Restore hosted-runner ownership even when verification fails.
+        # Construction produces a local test image, without registry publication.
+        # The runtime retains its original sealed inventory and installed tools.
         runner_uid=$(id -u)
         runner_gid=$(id -g)
         trap 'sudo chown -R "$runner_uid:$runner_gid" "$GITHUB_WORKSPACE"' EXIT
         sudo chown -R 1000:1000 "$GITHUB_WORKSPACE"
-        docker run --rm --user 0 --entrypoint /bin/bash \
+        docker run --rm --user 1000:1000 \
           --volume "$GITHUB_WORKSPACE:/workspace" --workdir /workspace \
           --env CARGO_TARGET_DIR=/workspace/.toolchain/target \
-          "$PRISM_SDK_IMAGE" -euc '
-            # This older immutable image lacks the source-pinned browser input.
-            # The SDK installer verifies the archive and every extracted member.
-            python3 -B .toolchain/prismpm/sdk/browser-engine/install.py --architecture amd64
-            exec sh .toolchain/prismpm/sdk/devcontainer-init.sh bash tools/verify_matter.sh
-          '
+          "prism-legal-sdk:$SDK_REVISION" bash tools/verify_matter.sh

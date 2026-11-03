@@ -59,18 +59,30 @@ definition{
 }
 
 definition{
- name: impactClosure, parameters: [fuel : Nat, nodes : (List Matter::Node), rules : (List MatterInference::Rule), known : Matter::Admission], result: Matter::Admission,
+ name: impactClosure, parameters: [fuel : Nat, nodes : (List Matter::Node), rules : (List MatterInference::Rule), semanticNodes : (List Matter::Node), known : Matter::Admission], result: Matter::Admission,
  body: (match fuel | Nat.zero => known | Nat.succ remaining =>
- (let next : Matter::Admission := (impactRound nodes rules nodes (project known references));
- (if (Matter::referencesEqual (project known references) (project next references)) then next else (impactClosure remaining nodes rules next)))),
+ (let next : Matter::Admission := (impactRound nodes rules semanticNodes (project known references));
+ (if (Matter::referencesEqual (project known references) (project next references)) then next else (impactClosure remaining nodes rules semanticNodes next)))),
  executable: true, axioms: [], recursive_argument: fuel
+}
+
+definition{
+ name: previousMeaning, parameters: [changes : (List Matter::Change), node : Matter::Node], result: (Option Matter::Node),
+ body: (match changes | List.nil => (ctor Option.none [Matter::Node]) | List.cons change rest =>
+ (if (((project (project change after) id) =? (project node id)) && ((project (project change after) revision) =? (project node revision))) then
+ (ctor Option.some [Matter::Node] (project change before)) else (previousMeaning rest node))),
+ executable: true, axioms: [], recursive_argument: changes
 }
 
 definition{
  name: latestImpact, parameters: [session : MatterSession::Session], result: Matter::Admission,
  body: (match (project session audit) | List.nil => (record Matter::Admission {references := (nil Matter::Reference)}) | List.cons entry rest =>
  (let nodes : (List Matter::Node) := (project (project session matter) nodes);
- (impactClosure (Matter::nodeCount nodes) nodes (project session rules) (impactSeeds nodes (project entry target) ((prim equal (project entry operation) "ingest" : Bool) || (prim equal (project entry operation) "revise-source" : Bool)))))),
+ (let resource : Bool := ((prim equal (project entry operation) "ingest" : Bool) || (prim equal (project entry operation) "revise-source" : Bool));
+ (let semanticNodes : Matter::Nodes := (record Matter::Nodes {nodes := (if resource then nodes else
+ (match (Matter::findNode nodes (project entry target)) | Option.none => nodes | Option.some node =>
+ (match (previousMeaning (project (project session matter) changes) node) | Option.none => nodes | Option.some previous => (cons previous nodes))))});
+ (impactClosure (Matter::nodeCount nodes) nodes (project session rules) (project semanticNodes nodes) (impactSeeds nodes (project entry target) resource)))))),
  executable: true, axioms: []
 }
 

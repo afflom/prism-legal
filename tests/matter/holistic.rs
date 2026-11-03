@@ -264,11 +264,18 @@ fn one_passage_can_supply_separate_facets_without_cross_facet_ambiguity() {
         assert_eq!(candidate.examples.len(), 1);
     }
     let candidate = inferFacetMeaning(&s.matter.nodes, &s.matter.sources, "Amount: 75; day: Tuesday.".into(), "amount".into()).unwrap();
-    assert!(!usableMeaning(&candidate), "unreviewed changes to the anchor must abstain");
+    assert!(usableMeaning(&candidate), "both changing values have independently reviewed slots");
+    assert_eq!(candidate.value, "75");
+    assert_eq!(candidate.examples.len(), 2);
+    let candidate = inferFacetMeaning(&s.matter.nodes, &s.matter.sources, "Amount: 75; unreviewed day: Tuesday.".into(), "amount".into()).unwrap();
+    assert!(!usableMeaning(&candidate), "changes to unreviewed literal anchors must abstain");
     let s = accepted(annotate(&s, 3, Role::Client, "client".into(), Reference { id: 1, revision: 2 }, "amount".into(), "not confirmed".into()).unwrap());
     let candidate = inferFacetMeaning(&s.matter.nodes, &s.matter.sources, "Amount: 50; day: Monday.".into(), "amount".into()).unwrap();
     assert!(candidate.ambiguous);
     assert_eq!(candidate.examples.len(), 2);
+    let candidate = inferFacetMeaning(&s.matter.nodes, &s.matter.sources, "Amount: 75; day: Monday.".into(), "amount".into()).unwrap();
+    assert!(candidate.matched && candidate.ambiguous, "a single matching template cannot resolve disputed training");
+    assert_eq!(candidate.examples.len(), 2, "retain the competing interpretation that prevents transfer");
 }
 
 #[test]
@@ -310,4 +317,85 @@ fn separate_passages_with_different_values_are_not_assumed_mutually_exclusive() 
     let latest = s.matter.nodes.iter().max_by_key(|n| n.id).unwrap();
     let s = accepted(review(&s, s.matter.revision, Role::Client, "client".into(), nodeReference(latest), "notice.receipt".into(), "disputed".into(), true).unwrap());
     assert_eq!(assess(&s.rules[0], &s.matter.nodes, &s.matter.sources).unwrap().status, ReasoningStatus::Supported);
+}
+
+#[test]
+fn joint_slots_preserve_utf8_and_all_training_provenance() {
+    let s = accepted(ingest(&initial("Records".into()), 0, Role::Client, "client".into(), "Record".into(),
+        "Person: Zoë; amount: 50; day: Monday.".as_bytes().to_vec()).unwrap());
+    let s = accepted(review(&s, 1, Role::Client, "client".into(), Reference { id: 1, revision: 1 }, "day".into(), "Monday".into(), true).unwrap());
+    let s = accepted(annotate(&s, 2, Role::Client, "client".into(), Reference { id: 1, revision: 2 }, "person".into(), "Zoë".into()).unwrap());
+    let s = accepted(annotate(&s, 3, Role::Client, "client".into(), Reference { id: 1, revision: 2 }, "amount".into(), "50".into()).unwrap());
+    let text = "Person: 李明; amount: 75; day: Tuesday.";
+    for (facet, value) in [("person", "李明"), ("amount", "75"), ("day", "Tuesday")] {
+        let candidate = inferFacetMeaning(&s.matter.nodes, &s.matter.sources, text.into(), facet.into()).unwrap();
+        assert!(usableMeaning(&candidate)); assert_eq!(candidate.value, value);
+        assert_eq!(candidate.examples.len(), 3);
+        for node in &s.matter.nodes { assert!(candidate.examples.contains(&nodeReference(node))); }
+    }
+    assert!(inferMeaning(&s.matter.nodes, &s.matter.sources, text.into()).unwrap().ambiguous,
+        "a multi-facet passage does not invent a single preferred facet");
+    let s = accepted(annotate(&s, s.matter.revision, Role::Client, "client".into(), node_ref(&s, "amount"), "claimed.amount".into(), "50".into()).unwrap());
+    for facet in ["amount", "claimed.amount"] {
+        let candidate = inferFacetMeaning(&s.matter.nodes, &s.matter.sources, text.into(), facet.into()).unwrap();
+        assert!(usableMeaning(&candidate), "identical source spans can carry independently reviewed facets");
+        assert_eq!(candidate.value, "75"); assert_eq!(candidate.examples.len(), 4);
+    }
+    let s = accepted(withdraw(&s, s.matter.revision, Role::Client, "client".into(), node_ref(&s, "day")).unwrap());
+    assert!(!usableMeaning(&inferFacetMeaning(&s.matter.nodes, &s.matter.sources, text.into(), "amount".into()).unwrap()),
+        "withdrawn anchors cannot train a joint template");
+}
+
+#[test]
+fn joint_templates_refuse_ambiguous_anchors_overlaps_and_conflicting_training() {
+    let s = accepted(ingest(&initial("Receipt".into()), 0, Role::Client, "client".into(), "Receipt".into(), b"Amount: 50; day: Monday.".to_vec()).unwrap());
+    let s = accepted(review(&s, 1, Role::Client, "client".into(), Reference { id: 1, revision: 1 }, "amount".into(), "50".into(), true).unwrap());
+    let s = accepted(annotate(&s, 2, Role::Client, "client".into(), Reference { id: 1, revision: 2 }, "day".into(), "Monday".into()).unwrap());
+    for text in ["Amount: ; day: Tuesday.", "Amount: 75; day: Tuesday; day: Friday.", "Amount: 75; day: Tuesday!", "Other: 75; day: Tuesday."] {
+        assert!(!usableMeaning(&inferFacetMeaning(&s.matter.nodes, &s.matter.sources, text.into(), "amount".into()).unwrap()), "{text}");
+    }
+    let s = accepted(annotate(&s, 3, Role::Client, "client".into(), Reference { id: 1, revision: 2 }, "amount".into(), "not confirmed".into()).unwrap());
+    assert!(!usableMeaning(&inferFacetMeaning(&s.matter.nodes, &s.matter.sources, "Amount: 75; day: Tuesday.".into(), "amount".into()).unwrap()));
+    let s = accepted(ingest(&initial("Overlap".into()), 0, Role::Client, "client".into(), "Receipt".into(), b"Amount: 50 USD; day: Monday.".to_vec()).unwrap());
+    let s = accepted(review(&s, 1, Role::Client, "client".into(), Reference { id: 1, revision: 1 }, "amount".into(), "50".into(), true).unwrap());
+    let s = accepted(annotate(&s, 2, Role::Client, "client".into(), Reference { id: 1, revision: 2 }, "payment".into(), "50 USD".into()).unwrap());
+    let s = accepted(annotate(&s, 3, Role::Client, "client".into(), Reference { id: 1, revision: 2 }, "day".into(), "Monday".into()).unwrap());
+    assert!(!usableMeaning(&inferFacetMeaning(&s.matter.nodes, &s.matter.sources, "Amount: 75 EUR; day: Tuesday.".into(), "amount".into()).unwrap()));
+}
+
+#[test]
+fn joint_templates_do_not_merge_unrelated_source_spans_or_adjacent_slots() {
+    let s = accepted(ingest(&initial("Separate records".into()), 0, Role::Client, "client".into(), "Receipt".into(), b"Amount: 50; day: Monday.\nAmount: 50; day: Monday.".to_vec()).unwrap());
+    let s = accepted(review(&s, 1, Role::Client, "client".into(), Reference { id: 1, revision: 1 }, "amount".into(), "50".into(), true).unwrap());
+    let s = accepted(review(&s, 2, Role::Client, "client".into(), Reference { id: 2, revision: 1 }, "day".into(), "Monday".into(), true).unwrap());
+    assert!(!usableMeaning(&inferFacetMeaning(&s.matter.nodes, &s.matter.sources, "Amount: 75; day: Tuesday.".into(), "amount".into()).unwrap()));
+    let s = accepted(ingest(&initial("Adjacent values".into()), 0, Role::Client, "client".into(), "Record".into(), b"AB!".to_vec()).unwrap());
+    let s = accepted(review(&s, 1, Role::Client, "client".into(), Reference { id: 1, revision: 1 }, "left".into(), "A".into(), true).unwrap());
+    let s = accepted(annotate(&s, 2, Role::Client, "client".into(), Reference { id: 1, revision: 2 }, "right".into(), "B".into()).unwrap());
+    assert!(!usableMeaning(&inferFacetMeaning(&s.matter.nodes, &s.matter.sources, "CD!".into(), "left".into()).unwrap()));
+    let s = accepted(ingest(&initial("Unanchored aliases".into()), 0, Role::Client, "client".into(), "Record".into(), b"50".to_vec()).unwrap());
+    let s = accepted(review(&s, 1, Role::Client, "client".into(), Reference { id: 1, revision: 1 }, "amount".into(), "50".into(), true).unwrap());
+    let s = accepted(annotate(&s, 2, Role::Client, "client".into(), Reference { id: 1, revision: 2 }, "claimed.amount".into(), "50".into()).unwrap());
+    assert!(!usableMeaning(&inferFacetMeaning(&s.matter.nodes, &s.matter.sources, "unrelated wording".into(), "amount".into()).unwrap()),
+        "multiple facets on the same value do not establish a literal anchor");
+}
+
+#[test]
+fn renamed_facets_show_both_removed_and_added_rule_connections() {
+    let s = reviewed_matter();
+    let original_rule = s.rules[0].definition;
+    let mut changed = s.rules[0].clone(); changed.definition = Reference { id: 0, revision: 0 };
+    changed.premises = vec![Requirement { facet: "communication.receipt".into(), value: "received".into(), question: "Was communication received?".into() }];
+    changed.action = "Review the communication".into();
+    let s = accepted(commitRule(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), &changed).unwrap());
+    let new_rule = s.rules.iter().find(|rule| rule.action == "Review the communication").unwrap().definition;
+    let reference = node_ref(&s, "notice.receipt");
+    let s = accepted(review(&s, s.matter.revision, Role::Client, "client".into(), reference, "communication.receipt".into(), "received".into(), true).unwrap());
+    let impact = latestImpact(&s).unwrap().references;
+    assert!(impact.iter().any(|r| r.id == original_rule.id), "removing a formerly relevant facet affects the old condition");
+    assert!(impact.iter().any(|r| r.id == new_rule.id), "the new facet also affects its own conditions");
+    let s = accepted(review(&s, s.matter.revision, Role::Client, "client".into(), node_ref(&s, "communication.receipt"), "unrelated.receipt".into(), "received".into(), true).unwrap());
+    let impact = latestImpact(&s).unwrap().references;
+    assert!(impact.iter().any(|r| r.id == new_rule.id));
+    assert!(!impact.iter().any(|r| r.id == original_rule.id), "older facet history must not create spurious current impact");
 }

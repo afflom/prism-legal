@@ -1,8 +1,7 @@
 {
   "repository": "UOR-Foundation/PrismPM",
-  "revision": "834c7fc5e8a82b95b0b5f2a8e4d7f02de979be8b",
+  "revision": "e6119be0658fa964237d31db58deb4a8a9265c92",
   "upstream_pull_request": "https://github.com/UOR-Foundation/PrismPM/pull/495",
-  "sdk_image": "ghcr.io/uor-foundation/prismpm-sdk-candidate@sha256:42213da87c564d859e327ab7df2459357d674fa538050f13905caa24c352588e",
   "lexlean_revision": "e0b74b81e6f49c83596a957d232c8383a5db1a25",
   "lean_toolchain": "leanprover/lean4:v4.32.1"
 }

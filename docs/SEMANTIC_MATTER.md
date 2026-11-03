@@ -39,6 +39,18 @@ values, changed anchors and conflicting examples abstain. Each suggestion retain
 the example references that produced it. This is an explicit learned grammar,
 not unrestricted language understanding.
 
+Several independently reviewed literal values in the same exact source span can
+form one joint grammar. Reviewing both fields of `Amount: 50; day: Monday.`
+permits separate suggestions of `75` and `Tuesday` from
+`Amount: 75; day: Tuesday.`. All participating interpretations remain attached
+as training provenance. UTF-8 byte ranges preserve non-ASCII values. Multiple
+facets may share the same literal span; partial overlaps, adjacent slots with
+no separating anchor, repeated separators, empty values, and unanchored aliases
+abstain. Equal wording at different source locations does not combine training.
+A competing interpretation marks even a single matching transfer ambiguous and
+retains the conflicting example, rather than allowing a partial match to settle
+that disagreement.
+
 One passage may have independently reviewed interpretations for several facets.
 Meaning candidates are evaluated per facet, so a date interpretation does not
 conflict with an amount interpretation. A blank review cannot resolve conflicting
@@ -87,7 +99,9 @@ removes the interpretation from current support and training, and does not
 requeue it as an unreviewed passage. `MatterContext` follows both explicit support
 references and semantic rule-condition links when presenting the latest change.
 A newly observed exception therefore reaches an existing conclusion even though
-it was absent from that conclusion's original supporting references.
+it was absent from that conclusion's original supporting references. Renaming a
+facet follows connections from both its immediately previous and current name;
+older facet history does not create unrelated current impacts.
 
 Client commands cannot accept authority, rules, or rule-linked legal conclusions;
 reader commands cannot mutate the session. These are modeled workflow checks,
@@ -117,7 +131,7 @@ unique visible wording rather than asking users to find internal IDs. Ambiguous
 selection refuses rather than choosing arbitrarily.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 25 acceptance vectors. Unused help and
+controls, errors, empty states, and 28 acceptance vectors. Unused help and
 transport details are collapsed. Facet inspection shows eight items per page;
 the lawyer view adds source locations. Control characters are rendered safely
 without altering retained source bytes. Long context is explicitly truncated
@@ -167,20 +181,21 @@ untrained network cannot invent a facet, proposals require review, and refusal
 preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
-The final application source with source ID
-`b570d4bf06cb24f155c9b872f1fde77cd04edca228fb4f204b15a119ca30a601`
+The application source with source ID
+`3688c15bdc0fcaf3f5ad46166016f29aed79f9abf4393dbae2ec8bcf20e1b060`
 and semantic ID
-`1215fde249903552deb005c91a7854095e66afc748a3172fcbd1f48b9c7a0625`
+`2a33b0eb0078896c5775fe03931a4671ceef96feff7b6b4cd9c2d74e1e6f3899`
 was emitted as build
-`54318ca59e291f8954c940a2344aa92d8f9975cfba2549ea4a1a67823772afbf`
+`1b25c523af8fa290c4abb28236078208396cf7781e1d84d6b8c70205ed636eb6`
 and passed LexLean verification with attestation
-`4585763c3e7e48a53d107a342e10ae5a8eb776823f2a7b18f8b10db5d456b65a`.
+`0fd60a11cc4e67d71505ae076d7bfc8d030f971a830c5e676a4b611192f61513`.
 
-The generated native library passes 25 tests across `behavior.rs` and
+The generated native library passes 29 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
-learned literal extraction, multiple facets, withdrawal and semantic impact.
+learned literal and joint-slot extraction, overlapping and ambiguous training,
+multiple facets, withdrawal and facet-rename impact.
 Patch test dependencies to actual emitted packages rather than editing generated
 code:
 
@@ -190,7 +205,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 25 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 28 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -200,10 +215,15 @@ next-form navigation, and mobile layout.
 
 The source corpus includes a 70,831-byte restore request containing nine imported
 resources. It exceeds the old portable transport limit and returns the exact
-accepted journal. The patched Hologram runtime executes all 25 vectors directly
-and through resident execution. Its portable browser runs all nine file-session
-journeys with 24 accepted intents and one verified oversized-request refusal,
-including actual file reopening of the larger matter.
+accepted journal. The previous 25-vector artifact passed direct and resident Hologram execution
+and all nine portable browser journeys, including actual file reopening of the
+larger matter. The current 28-vector artifact passes native, Wasm and application
+browser checks. Its development portable-browser run fails while reading a
+response through Playwright (`Network.getResponseBody: No data found for
+resource`). Repeating the run and starting body capture earlier did not resolve
+it. That portable gate remains unverified; the required pinned-browser CI must
+resolve it without replacing the response-body assertion or changing retention
+buffers.
 
 The source-pinned SDK carries explicit transport bounds from
 [PrismPM #496](https://github.com/UOR-Foundation/PrismPM/issues/496).
@@ -213,11 +233,14 @@ limits. The SDK records the upstream base, exact dependency patch, and patched
 archive digests in its execution report; the patch is not described as an
 unmodified upstream runtime.
 
-Those checks pass in development Chromium 154.0.8037.57 with Playwright 1.62.1.
-They are distinct from PrismPM's pinned Chromium 157 oracle. Full SDK verification
+Application browser checks pass in development Chromium 154.0.8037.57 with
+Playwright 1.62.1. They are distinct from PrismPM's pinned Chromium 157 oracle. Full SDK verification
 has not completed locally: its oracle environment is unavailable, and the network
-policy denies the exact browser archive. CI requires the complete pinned SDK
-pipeline and must not publish on failure. The upstream SDK PR also needs its
+policy denies the exact browser archive. CI constructs the complete SDK image from the pinned source with its official
+image-input recipe, including the browser and sealed inventory. An older
+candidate image passed the application browser journey but failed full
+verification because its inventory named a different browser. The replacement
+pipeline must pass full verification before publication. The upstream SDK PR also needs its
 reviewed native golden records regenerated in the required environment; existing
 records must not be relabeled as current evidence.
 

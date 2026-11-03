@@ -45,6 +45,12 @@ try{
  if(process.env.BROWSER_SCREENSHOT){await page.setViewportSize({width:1280,height:1000});await page.screenshot({path:process.env.BROWSER_SCREENSHOT,fullPage:true});}
  await run('review',{facet:'payment.amount'});await run('inspect',{facet:'payment.amount'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: 75/);
  await run('withdraw',{facet:'claimed.amount',value:'50'});await run('inspect',{facet:'claimed.amount'});assert.match(await page.locator('#result-details').textContent(),/Withdrawn: 50/);
+ await page.reload();await ready();await run('create',{title:'Dated receipts'});
+ await run('ingest',{title:'Records',content:'Amount: 50; day: Monday.\nAmount: 75; day: Tuesday.'});await run('goal',{value:'Understand both fields'});
+ await run('review',{facet:'amount',interpretation:'50'});
+ await run('annotate',{'from-facet':'amount','from-value':'50',facet:'day',interpretation:'Monday'});
+ assert.match(await page.locator('#result-details').textContent(),/amount: 75/);assert.match(await page.locator('#result-details').textContent(),/day: Tuesday/);
+ await run('review',{facet:'amount'});await run('inspect',{facet:'amount'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: 75/);
  assert.deepEqual(errors,[]);
- console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet interpretation, withdrawal, next-form navigation, and mobile layout');
+ console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet and joint-slot interpretation, withdrawal, next-form navigation, and mobile layout');
 }finally{await context.close();await browser.close();}

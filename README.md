@@ -31,8 +31,10 @@ intake, learning, inference, journal replay, journeys, UI copy, design, resource
 bounds, and acceptance vectors. Product behavior is not handwritten in a second
 application runtime. Rust and JavaScript under `tests/matter/` are test harnesses.
 
-[toolchain/prismpm.json](toolchain/prismpm.json) pins the SDK source fix and
-verification image. The generic file-session capability is proposed upstream in
+[toolchain/prismpm.json](toolchain/prismpm.json) pins the SDK source fix.
+CI constructs its verification image and sealed tool inventory from that exact
+source using the SDK’s own image recipe. It does not patch an older installed
+inventory. The generic file-session capability is proposed upstream in
 [PrismPM #495](https://github.com/UOR-Foundation/PrismPM/pull/495), following
 [issue #491](https://github.com/UOR-Foundation/PrismPM/issues/491). The app uses
 that fix directly while it awaits upstream review. Its bounded portable session

@@ -2,12 +2,8 @@
 # Build orchestration only: application behavior is compiled from LexLean.
 set -euo pipefail
 source /etc/profile.d/prismpm-sdk.sh
-# The pinned image supplies the verification tools, but its Cargo cache may
-# predate the pinned SDK source. Resolve that exact lock before going offline.
-CARGO_NET_OFFLINE=false cargo fetch --locked --manifest-path .toolchain/prismpm/Cargo.toml
-cargo build --locked --offline --manifest-path .toolchain/prismpm/Cargo.toml -p prismpm
-prism_sdk="${CARGO_TARGET_DIR:?}/debug/prismpm"
-rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl wasm32-unknown-unknown
+# This binary and its oracle inventory were built together from the pinned SDK.
+prism_sdk=/usr/local/bin/prismpm
 if ! "$prism_sdk" --project . --json build > matter-build.json; then
   cat matter-build.json
   exit 1

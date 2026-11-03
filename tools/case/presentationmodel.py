@@ -1129,7 +1129,7 @@ jobs:
   view:
     name: Compile and Verify Modeled Matter Workspace
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 180
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -1247,7 +1247,7 @@ jobs:
   matter:
     name: Build and exercise the modeled application
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/build-matter
@@ -1256,6 +1256,8 @@ jobs:
         with:
           name: matter-verification
           path: |
+            matter-sdk-build.json
+            matter-sdk-image.json
             matter-build.json
             matter-verification.json
             .prism/verified/

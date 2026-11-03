@@ -7,9 +7,11 @@ target/
 .lexlean/
 .matter/
 .prism/
-node_modules/
+node_modules
 
 .toolchain/
 matter-site/
 matter-build.json
 matter-verification.json
+matter-sdk-build.json
+matter-sdk-image.json
