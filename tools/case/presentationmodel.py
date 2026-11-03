@@ -1127,12 +1127,15 @@ concurrency:
 
 jobs:
   view:
-    name: Render & Verify Portal View Artifacts
+    name: Render & Check Legacy Portal View Artifacts
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 30
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install the real compiler
+        uses: ./.github/actions/lexlean
 
       - name: Render the portal view artifacts
         run: ./bin/prism-legal view render --out view
@@ -1214,12 +1217,15 @@ concurrency:
 
 jobs:
   validate:
-    name: Sanitize, Check & Render Portal
+    name: Compile and verify source models
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install the real compiler
+        uses: ./.github/actions/lexlean
 
       - name: Run Zero-PII & Case-Sanitization Gate
         run: ./bin/prism-legal sanitize
@@ -1229,7 +1235,13 @@ jobs:
           ./bin/prism-legal api check
           ./bin/prism-legal check
 
-      - name: Verify Inference & Discovery Engines
+      - name: Verify the matter model in Lean
+        run: |
+          lexlean --project matter.lexlean.toml lock --check
+          lexlean --project matter.lexlean.toml verify
+          python -m unittest discover -s tests -p 'test_*.py'
+
+      - name: Exercise legacy inference and conversion fixtures
         run: |
           ./bin/prism-legal engine
           ./bin/prism-legal discover

@@ -5,3 +5,6 @@ __pycache__/
 target/
 .DS_Store
 .lexlean/
+.matter/
+.prism/
+node_modules/

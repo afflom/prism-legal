@@ -1,0 +1,12 @@
+[package]
+name = "prism-legal-matter-tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+prism-legal-matter = "=0.1.0"
+
+[[test]]
+name = "matter_behavior"
+path = "behavior.rs"

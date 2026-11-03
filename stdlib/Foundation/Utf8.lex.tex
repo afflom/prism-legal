@@ -8,7 +8,8 @@ definition{
   name: encode,
   parameters: [value : String],
   result: Bytes,
-  body: (prim utf8_encode value : Bytes)
+  body: (prim utf8_encode value : Bytes),
+  executable: true
 }
 
 definition{
@@ -16,7 +17,8 @@ definition{
   parameters: [value : Bytes],
   result: (Option String),
   body: (prim utf8_decode value : (Option String)),
-  axioms: [Classical.choice, Quot.sound, propext]
+  axioms: [Classical.choice, Quot.sound, propext],
+  executable: true
 }
 \end{semanticmodule}
 \end{lexlean}

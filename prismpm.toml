@@ -1,5 +1,10 @@
-spec = "prismpm/workspace/1"
-name = "prism-legal"
-version = "1.0.0"
-description = "PrismLegal — Public-Benefit Open-Source Legal Case Management, Formal Strategy & Courtroom Preparation Platform"
+spec = "prismpm/project/1"
+project = "PrismLegal"
+lexlean_project = "matter.lexlean.toml"
+build_root = ".prism"
+
+[limits]
+max_holo_bytes = 67108864
+max_entities = 100000
+max_diagnostics = 256
 

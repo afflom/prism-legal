@@ -1,0 +1,91 @@
+\begin{lexlean}{MatterLaws}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Matter}
+\title{Text application model}
+\begin{semanticmodule}
+definition{name: chain, parameters: [], result: (List Matter::Node), body: (cons (record Matter::Node {id := 3, revision := 1, facet := "Event", value := "reviewed observation", origin := (ctor Matter::Origin.Inferred), accepted := true, citations := (nil Matter::Citation), dependencies := (cons (record Matter::Reference {id := 2, revision := 1}) (nil Matter::Reference))}) (cons (record Matter::Node {id := 2, revision := 1, facet := "Event", value := "reviewed observation", origin := (ctor Matter::Origin.Inferred), accepted := true, citations := (nil Matter::Citation), dependencies := (cons (record Matter::Reference {id := 1, revision := 1}) (nil Matter::Reference))}) (cons (record Matter::Node {id := 1, revision := 1, facet := "Event", value := "reviewed observation", origin := (ctor Matter::Origin.Reviewed), accepted := true, citations := (nil Matter::Citation), dependencies := (nil Matter::Reference)}) (cons (record Matter::Node {id := 4, revision := 1, facet := "Event", value := "reviewed observation", origin := (ctor Matter::Origin.Reviewed), accepted := true, citations := (nil Matter::Citation), dependencies := (nil Matter::Reference)}) (nil Matter::Node)))))}
+
+definition{name: editedChain, parameters: [], result: (List Matter::Node), body: (match (Matter::edit (chain) (record Matter::Reference {id := 1, revision := 1}) "Event" "corrected observation" true) | Option.none => (nil Matter::Node) | Option.some updated => (project updated nodes))}
+
+theorem{
+  name: unorderedDependenciesReachFixedPoint, parameters: [],
+  statement: ((Matter::containsReference (project (Matter::current (chain) (nil Matter::Source)) references) (record Matter::Reference {id := 3, revision := 1})) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: correctionInvalidatesImmediateDependent, parameters: [],
+  statement: ((Matter::containsReference (project (Matter::current (editedChain) (nil Matter::Source)) references) (record Matter::Reference {id := 2, revision := 1})) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: correctionInvalidatesTransitiveDependent, parameters: [],
+  statement: ((Matter::containsReference (project (Matter::current (editedChain) (nil Matter::Source)) references) (record Matter::Reference {id := 3, revision := 1})) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: correctionKeepsUnrelatedContext, parameters: [],
+  statement: ((Matter::containsReference (project (Matter::current (editedChain) (nil Matter::Source)) references) (record Matter::Reference {id := 4, revision := 1})) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: correctedRevisionIsCurrent, parameters: [],
+  statement: ((Matter::containsReference (project (Matter::current (editedChain) (nil Matter::Source)) references) (record Matter::Reference {id := 1, revision := 2})) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: oldRevisionIsNotCurrent, parameters: [],
+  statement: ((Matter::containsReference (project (Matter::current (editedChain) (nil Matter::Source)) references) (record Matter::Reference {id := 1, revision := 1})) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: missingSupportIsNotCurrent, parameters: [],
+  statement: ((Matter::containsReference (project (Matter::current (cons (record Matter::Node {id := 2, revision := 1, facet := "Event", value := "reviewed observation", origin := (ctor Matter::Origin.Inferred), accepted := true, citations := (nil Matter::Citation), dependencies := (cons (record Matter::Reference {id := 99, revision := 1}) (nil Matter::Reference))}) (nil Matter::Node)) (nil Matter::Source)) references) (record Matter::Reference {id := 2, revision := 1})) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: unreviewedSupportCannotAuthorizeInference, parameters: [],
+  statement: ((Matter::containsReference (project (Matter::current (cons (record Matter::Node {id := 1, revision := 1, facet := "Event", value := "reviewed observation", origin := (ctor Matter::Origin.Reviewed), accepted := false, citations := (nil Matter::Citation), dependencies := (nil Matter::Reference)}) (cons (record Matter::Node {id := 2, revision := 1, facet := "Event", value := "reviewed observation", origin := (ctor Matter::Origin.Inferred), accepted := true, citations := (nil Matter::Citation), dependencies := (cons (record Matter::Reference {id := 1, revision := 1}) (nil Matter::Reference))}) (nil Matter::Node))) (nil Matter::Source)) references) (record Matter::Reference {id := 2, revision := 1})) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: selfCycleIsNotEvidence, parameters: [],
+  statement: ((Matter::containsReference (project (Matter::current (cons (record Matter::Node {id := 1, revision := 1, facet := "Event", value := "reviewed observation", origin := (ctor Matter::Origin.Inferred), accepted := true, citations := (nil Matter::Citation), dependencies := (cons (record Matter::Reference {id := 1, revision := 1}) (nil Matter::Reference))}) (nil Matter::Node)) (nil Matter::Source)) references) (record Matter::Reference {id := 1, revision := 1})) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: mutualCycleIsNotEvidence, parameters: [],
+  statement: ((Matter::containsReference (project (Matter::current (cons (record Matter::Node {id := 1, revision := 1, facet := "Event", value := "reviewed observation", origin := (ctor Matter::Origin.Inferred), accepted := true, citations := (nil Matter::Citation), dependencies := (cons (record Matter::Reference {id := 2, revision := 1}) (nil Matter::Reference))}) (cons (record Matter::Node {id := 2, revision := 1, facet := "Event", value := "reviewed observation", origin := (ctor Matter::Origin.Inferred), accepted := true, citations := (nil Matter::Citation), dependencies := (cons (record Matter::Reference {id := 1, revision := 1}) (nil Matter::Reference))}) (nil Matter::Node))) (nil Matter::Source)) references) (record Matter::Reference {id := 1, revision := 1})) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: duplicateIdentityFailsClosed, parameters: [],
+  statement: ((Matter::containsReference (project (Matter::current (cons (record Matter::Node {id := 1, revision := 1, facet := "Event", value := "reviewed observation", origin := (ctor Matter::Origin.Reviewed), accepted := true, citations := (nil Matter::Citation), dependencies := (nil Matter::Reference)}) (cons (record Matter::Node {id := 1, revision := 1, facet := "Event", value := "reviewed observation", origin := (ctor Matter::Origin.Reviewed), accepted := false, citations := (nil Matter::Citation), dependencies := (nil Matter::Reference)}) (nil Matter::Node))) (nil Matter::Source)) references) (record Matter::Reference {id := 1, revision := 1})) = false),
+  proof: decide{}
+}
+
+theorem{
+  name: staleConcurrentEditIsRejected, parameters: [],
+  statement: ((match (Matter::edit (editedChain) (record Matter::Reference {id := 1, revision := 1}) "Event" "stale edit" true) | Option.none => true | Option.some updated => false) = true),
+  proof: decide{}
+}
+
+theorem{
+  name: unknownEditDoesNotCreateFact, parameters: [],
+  statement: ((match (Matter::edit (chain) (record Matter::Reference {id := 99, revision := 1}) "Event" "new fact" true) | Option.none => true | Option.some updated => false) = true),
+  proof: decide{}
+}
+
+\end{semanticmodule}
+\end{lexlean}

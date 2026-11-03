@@ -33,28 +33,32 @@ definition{
   name: appendBytes,
   parameters: [left : Bytes, right : Bytes],
   result: Bytes,
-  body: (prim append left right : Bytes)
+  body: (prim append left right : Bytes),
+  executable: true
 }
 
 definition{
   name: byteLength,
   parameters: [value : Bytes],
   result: Nat,
-  body: (prim length value : Nat)
+  body: (prim length value : Nat),
+  executable: true
 }
 
 definition{
   name: byteAt,
   parameters: [value : Bytes, offset : Nat],
   result: (Option UInt8),
-  body: (prim index value offset : (Option UInt8))
+  body: (prim index value offset : (Option UInt8)),
+  executable: true
 }
 
 definition{
   name: sliceBytes,
   parameters: [value : Bytes, start : Nat, count : Nat],
   result: (Option Bytes),
-  body: (prim slice value start count : (Option Bytes))
+  body: (prim slice value start count : (Option Bytes)),
+  executable: true
 }
 
 definition{
@@ -62,7 +66,8 @@ definition{
   parameters: [left : Bytes, right : Bytes],
   result: Ordering,
   body: (prim compare_bytes left right : Ordering),
-  axioms: [propext]
+  axioms: [propext],
+  executable: true
 }
 \end{semanticmodule}
 \end{lexlean}

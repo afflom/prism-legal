@@ -285,8 +285,8 @@ def cmd_convert(args):
         f"=== COMPILED CONTROLLED-ENGLISH LEGAL PROPOSITION ENGINE (src/Convert.lex.tex · {len(rows)} Fixtures · Zero External LLM) ==="
     ]
     for r in rows:
-        tag = "OK" if r["ok"] else "REFUSED"
-        lines.append(f"  • {r['id']} [{tag}] ({r['name']}, claim={r['claimId'] or 'refusal'}): {r['statement']}")
+        tag = "OK" if r["verdict"] == "statement" else "REFUSED"
+        lines.append(f"  • {r['id']} [{tag}] (claim={r['claimId'] or 'refusal'}): {r['controlledEnglish']}")
     out(args, {"fixtures": rows, "lexiconPackage": "prism.legal@1.0.0", "externalLlm": False}, "\n".join(lines))
 
 
@@ -637,7 +637,7 @@ def cmd_api(args):
 
 def cmd_check(args):
     res = checks.check()
-    text = "LexLean static & sanitization check: PASS" if res["ok"] else ("LexLean check FAILED:\n" + "\n".join(res["diagnostics"]))
+    text = "LexLean static check: PASS" if res["ok"] else ("LexLean check FAILED:\n" + "\n".join(res["diagnostics"]))
     out(args, res, text)
     if not res["ok"]:
         sys.exit(1)
