@@ -84,12 +84,13 @@ fn conflicting_attention_abstains_and_repetition_does_not_inflate_evidence() {
     first.facet = "Notice".into();
     let mut second = node(2, &[]);
     second.facet = "Evidence".into();
-    let tokens = words("notice received".into());
-    let attention = attend(&tokens.values, &[first, second], &emptyAttention()).unwrap();
+    let network = train(&[first, second], &[]).unwrap();
+    let attention = infer(&network, "notice received".into()).unwrap();
     assert!(attention.ambiguous);
-    assert_eq!(inferredFacet(&attention), "Unassigned");
-    assert_eq!(words("notice notice notice".into()).values, vec!["notice"]);
-    assert_eq!(inferredFacet(&attend(&tokens.values, &[], &emptyAttention()).unwrap()), "Unassigned");
+    assert_eq!(suggestedFacet(&attention), "");
+    assert_eq!(features("notice notice notice notice".into()).unwrap(),
+        features("notice notice".into()).unwrap());
+    assert_eq!(suggestedFacet(&infer(&train(&[], &[]).unwrap(), "notice".into()).unwrap()), "");
 }
 
 #[test]

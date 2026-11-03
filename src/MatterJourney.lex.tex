@@ -1,0 +1,155 @@
+\begin{lexlean}{MatterJourney}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Matter}
+\importmodule{MatterSession}
+\importmodule{MatterInference}
+\importmodule{MatterNetwork}
+\importmodule{MatterReview}
+\importmodule{MatterText}
+\importmodule{Foundation.Bytes}
+\importmodule{Foundation.Utf8}
+\title{Text application model}
+\begin{semanticmodule}
+structure{
+ name: JourneyView, type_parameters: [], parameters: [],
+ fields: [{name: matterRevision, type: Nat}, {name: title, type: String}, {name: stage, type: String}, {name: heading, type: String}, {name: explanation, type: String}, {name: node, type: Nat}, {name: rule, type: Nat}, {name: suggestion, type: String}, {name: context, type: (List String)}]
+}
+
+structure{
+ name: Draft, type_parameters: [], parameters: [],
+ fields: [{name: matterRevision, type: Nat}, {name: goal, type: Matter::Reference}, {name: body, type: String}, {name: dependencies, type: (List Matter::Reference)}]
+}
+
+definition{
+ name: findFacet, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), facet : String], result: (Option Matter::Node),
+ body: (match nodes | List.nil => (ctor Option.none [Matter::Node]) | List.cons node rest =>
+ (if ((prim equal (project node facet) facet : Bool) && (Matter::containsReference admitted (Matter::nodeReference node))) then (ctor Option.some [Matter::Node] node) else (findFacet rest admitted facet))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: pending, parameters: [nodes : (List Matter::Node), sources : (List Matter::Source)], result: (Option Matter::Node),
+ body: (match nodes | List.nil => (ctor Option.none [Matter::Node]) | List.cons node rest =>
+ (if ((not (project node accepted)) && ((Matter::hasCitations (project node citations)) && (Matter::citationsCurrent sources (project node citations)))) then (ctor Option.some [Matter::Node] node) else (pending rest sources))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: pendingProposal, parameters: [nodes : (List Matter::Node), session : MatterSession::Session], result: (Option Matter::Node),
+ body: (match nodes | List.nil => (ctor Option.none [Matter::Node]) | List.cons node rest =>
+ (if ((not (project node accepted)) && ((match (project node origin) | Matter::Origin.Inferred => true | Matter::Origin.Extracted => false | Matter::Origin.Reviewed => false) &&
+ ((MatterSession::ruleReviewSupported session node) && (Matter::allReferencesIn (project node dependencies) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references))))) then (ctor Option.some [Matter::Node] node) else (pendingProposal rest session))),
+ executable: true, axioms: [propext], recursive_argument: nodes
+}
+
+definition{
+ name: nextReview, parameters: [session : MatterSession::Session], result: (Option Matter::Node),
+ body: (match (pending (project (project session matter) nodes) (project (project session matter) sources)) | Option.some node => (ctor Option.some [Matter::Node] node) | Option.none => (pendingProposal (project (project session matter) nodes) session)),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: view, parameters: [session : MatterSession::Session, stage : String, heading : String, explanation : String, node : Nat, rule : Nat, suggestion : String, context : (List String)], result: JourneyView,
+ body: (record JourneyView {matterRevision := (project (project session matter) revision), title := (project session title), stage := stage, heading := heading, explanation := explanation, node := node, rule := rule, suggestion := suggestion, context := context}),
+ executable: true, axioms: []
+}
+
+definition{
+ name: sourceContext, parameters: [citations : (List Matter::Citation)], result: MatterText::TextItems,
+ body: (match citations | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons citation rest =>
+ (let following : MatterText::TextItems := (sourceContext rest);
+ (record MatterText::TextItems {values := (cons (MatterReview::citationSummary citation) (cons (match (Foundation.Utf8::decode (project citation quote)) | Option.none => "" | Option.some text => text) (project following values)))}))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
+}
+
+definition{
+ name: reviewView, parameters: [session : MatterSession::Session, node : Matter::Node, role : MatterSession::Role], result: JourneyView,
+ body: (let network : MatterNetwork::NeuralModel := (MatterNetwork::train (project (project session matter) nodes) (project (project session matter) sources));
+ (let activation : MatterNetwork::Activation := (MatterNetwork::infer network (project node value));
+ (view session "review" (match (project node origin) | Matter::Origin.Inferred => "Lawyer review: proposed conclusion" | Matter::Origin.Extracted => "Review this passage" | Matter::Origin.Reviewed => "Review this interpretation") (project node value) (project node id) 0 (MatterNetwork::suggestedFacet activation)
+ (if (MatterSession::isLawyer role) then (project (sourceContext (project node citations)) values) else (nil String))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: assessmentView, parameters: [session : MatterSession::Session, assessment : MatterInference::Assessment], result: JourneyView,
+ body: (match (project assessment status)
+ | MatterInference::ReasoningStatus.Inactive => (view session "authority" "Review the basis for this strategy" "Its rule, authority, jurisdiction, or goal has changed or is not currently supported." 0 (project (project assessment rule) id) "" (nil String))
+ | MatterInference::ReasoningStatus.Excepted => (view session "exception" "An exception needs attention" "A reviewed matter fact matches an exception to this rule. The proposed conclusion is not currently supported." 0 (project (project assessment rule) id) "" (nil String))
+ | MatterInference::ReasoningStatus.Missing => (view session "question" "Complete the missing context" (match (project assessment questions) | List.nil => "Review the rule's required facts." | List.cons question rest => question) 0 (project (project assessment rule) id) "" (nil String))
+ | MatterInference::ReasoningStatus.Supported => (view session "strategy" "Review the proposed next action" (project assessment action) 0 (project (project assessment rule) id) (project assessment conclusionValue) (cons "The reviewed premises support this proposal. Review the rule's scope and any unrecorded exceptions before relying on it." (nil String)))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: overview, parameters: [session : MatterSession::Session, role : MatterSession::Role], result: JourneyView,
+ body: (let matter : Matter::State := (project session matter);
+ (let admitted : Matter::Admission := (Matter::current (project matter nodes) (project matter sources));
+ (if ((MatterSession::sourceCount (project matter sources)) =? 0) then (view session "intake" "Start with a source" "Add a resource that helps explain what happened. Its original wording will remain available alongside your interpretation." 0 0 "" (nil String)) else
+ (match (findFacet (project matter nodes) (project admitted references) "goal")
+ | Option.none => (view session "goal" "What would you like to achieve?" "Describe the outcome you want. This will guide which facts and possible actions need attention." 0 0 "" (nil String))
+ | Option.some goal => (match (nextReview session)
+ | Option.some node => (reviewView session node role)
+ | Option.none => (match (findFacet (project matter nodes) (project admitted references) "jurisdiction")
+ | Option.none => (view session "jurisdiction" "Confirm the governing jurisdiction" "Identify the jurisdiction before connecting the facts to legal authority." 0 0 "" (nil String))
+ | Option.some jurisdiction => (match (project session rules)
+ | List.nil => (view session "authority" "Connect the matter to governing authority" "A lawyer can review the relevant source, its conditions and exceptions, and the action it may support." 0 0 "" (nil String))
+ | List.cons rule rest => (assessmentView session (MatterInference::assess rule (project matter nodes) (project matter sources)))))))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: select, parameters: [session : MatterSession::Session, role : MatterSession::Role, nodeId : Nat, ruleId : Nat], result: JourneyView,
+ body: (if (0 <? nodeId) then (match (Matter::findNode (project (project session matter) nodes) nodeId)
+ | Option.none => (view session "missing" "This item is unavailable" "Select a current item from this matter." 0 0 "" (nil String))
+ | Option.some node => (if (Matter::citationsCurrent (project (project session matter) sources) (project node citations)) then (reviewView session node role) else (view session "source-changed" "The source has changed" "This interpretation belongs to an older source revision. Review the current source before relying on it." nodeId 0 "" (project (sourceContext (project node citations)) values))))
+ else (if (0 <? ruleId) then (match (MatterSession::findRule (project session rules) ruleId)
+ | Option.none => (view session "missing" "This rule is unavailable" "Select a rule from this matter." 0 0 "" (nil String))
+ | Option.some rule => (assessmentView session (MatterInference::assess rule (project (project session matter) nodes) (project (project session matter) sources))))
+ else (overview session role))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: nodeText, parameters: [node : Matter::Node], result: String,
+ body: (prim join (cons (project node facet) (cons ": " (cons (project node value) (cons "\n" (cons (prim join (project (sourceContext (project node citations)) values) "\n" : String) (cons "\n" (nil String))))))) "" : String),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: referenceText, parameters: [references : (List Matter::Reference), nodes : (List Matter::Node)], result: String,
+ body: (match references | List.nil => "" | List.cons reference rest =>
+ (MatterText::concat (match (Matter::findNode nodes (project reference id)) | Option.none => "" | Option.some node => (if (prim equal (project node facet) "rule" : Bool) then "" else (nodeText node))) (referenceText rest nodes))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: references
+}
+
+definition{
+ name: assessmentText, parameters: [assessment : MatterInference::Assessment, nodes : (List Matter::Node)], result: String,
+ body: (match (project assessment status)
+ | MatterInference::ReasoningStatus.Supported => (prim join (cons "Proposed conclusion: " (cons (project assessment conclusionValue) (cons "\nProposed action: " (cons (project assessment action) (cons "\nSupporting context:\n" (cons (referenceText (project assessment dependencies) nodes) (cons "Scope and unrecorded exceptions require review.\n" (nil String)))))))) "" : String)
+ | MatterInference::ReasoningStatus.Missing => (prim join (cons "Unresolved conditions:\n" (cons (prim join (project assessment questions) "\n" : String) (cons "\n" (nil String)))) "" : String)
+ | MatterInference::ReasoningStatus.Excepted => (prim join (cons "An exception prevents this proposal:\n" (cons (referenceText (project assessment exceptions) nodes) (nil String))) "" : String)
+ | MatterInference::ReasoningStatus.Inactive => "The rule's authority, jurisdiction, goal or review is no longer current.\n"),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: goalDraft, parameters: [session : MatterSession::Session, ruleId : Nat], result: (Option Draft),
+ body: (match (MatterSession::findRule (project session rules) ruleId)
+ | Option.none => (ctor Option.none [Draft])
+ | Option.some rule => (let assessment : MatterInference::Assessment := (MatterInference::assess rule (project (project session matter) nodes) (project (project session matter) sources));
+ (ctor Option.some [Draft] (record Draft {matterRevision := (project (project session matter) revision), goal := (project rule goal), body := (prim join (cons "Matter strategy — draft for review\n" (cons (project session title) (cons "\n\n" (cons (assessmentText assessment (project (project session matter) nodes)) (nil String))))) "" : String), dependencies := (project assessment dependencies)})))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: draftCurrent, parameters: [draft : Draft, session : MatterSession::Session], result: Bool,
+ body: (((project draft matterRevision) =? (project (project session matter) revision)) &&
+ (Matter::allReferencesIn (project draft dependencies) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references))),
+ executable: true, axioms: []
+}
+
+\end{semanticmodule}
+\end{lexlean}

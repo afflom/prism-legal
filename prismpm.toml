@@ -1,6 +1,6 @@
 spec = "prismpm/project/1"
 project = "PrismLegal"
-lexlean_project = "matter.lexlean.toml"
+lexlean_project = "holistic.lexlean.toml"
 build_root = ".prism"
 
 [limits]

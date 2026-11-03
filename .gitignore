@@ -8,3 +8,8 @@ target/
 .matter/
 .prism/
 node_modules/
+
+.toolchain/
+matter-site/
+matter-build.json
+matter-verification.json

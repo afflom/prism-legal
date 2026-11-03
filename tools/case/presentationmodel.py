@@ -1095,7 +1095,7 @@ PUBLICATION = {
     "pagesUrl": "https://afflom.github.io/prism-legal/",
     "workflowPath": ".github/workflows/pages.yml",
     "ciWorkflowPath": ".github/workflows/ci.yml",
-    "artifactRoot": "view",
+    "artifactRoot": "matter-site",
     "uploadAction": "actions/upload-pages-artifact@v3",
     "deployAction": "actions/deploy-pages@v4",
     "githubActionsEnabled": True,
@@ -1127,34 +1127,26 @@ concurrency:
 
 jobs:
   view:
-    name: Render & Check Legacy Portal View Artifacts
+    name: Compile and Verify Modeled Matter Workspace
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install the real compiler
-        uses: ./.github/actions/lexlean
-
-      - name: Render the portal view artifacts
-        run: ./bin/prism-legal view render --out view
-
-      - name: Run Zero-PII & Static Conformance Gate
-        run: |
-          ./bin/prism-legal sanitize
-          ./bin/prism-legal check
+      - name: Build and verify the modeled matter workspace
+        uses: ./.github/actions/build-matter
 
       - name: Upload view artifact
         uses: actions/upload-artifact@v4
         with:
           name: prism-legal-current-view
-          path: view
+          path: matter-site
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: view
+          path: matter-site
 
   deploy:
     name: Deploy to GitHub Pages
@@ -1176,23 +1168,28 @@ jobs:
         uses: actions/deploy-pages@v4
 
   verify:
-    name: Verify Deployed Page Serves Commit
+    name: Verify Deployed Modeled Artifact
     needs: deploy
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
       PAGE_URL: ${{ needs.deploy.outputs.page_url }}
     steps:
-      - name: Fetch deployed page and verify embedded commit SHA
+      - uses: actions/download-artifact@v4
+        with:
+          name: prism-legal-current-view
+          path: expected-view
+      - name: Compare deployed provenance with this run's verified artifact
         run: |
           for attempt in 1 2 3 4 5 6; do
-            if curl -fsSL "$PAGE_URL" | grep -qF "\\"commit\\": \\"$GITHUB_SHA\\""; then
-              echo "$PAGE_URL serves commit $GITHUB_SHA"
+            if curl -fsSL "${PAGE_URL%/}/provenance.json" --output deployed-provenance.json && \
+               cmp --silent expected-view/provenance.json deployed-provenance.json; then
+              echo "$PAGE_URL serves the verified modeled artifact"
               exit 0
             fi
             sleep 10
           done
-          echo "$PAGE_URL did not yet reflect commit $GITHUB_SHA" >&2
+          echo "$PAGE_URL does not yet serve the verified modeled artifact" >&2
           exit 1
 """
 
@@ -1237,8 +1234,8 @@ jobs:
 
       - name: Verify the matter model in Lean
         run: |
-          lexlean --project matter.lexlean.toml lock --check
-          lexlean --project matter.lexlean.toml verify
+          lexlean --project holistic.lexlean.toml lock --check
+          lexlean --project holistic.lexlean.toml verify
           python -m unittest discover -s tests -p 'test_*.py'
 
       - name: Exercise legacy inference and conversion fixtures
@@ -1246,6 +1243,22 @@ jobs:
           ./bin/prism-legal engine
           ./bin/prism-legal discover
           ./bin/prism-legal convert
+
+  matter:
+    name: Build and exercise the modeled application
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/build-matter
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: matter-verification
+          path: |
+            matter-build.json
+            matter-verification.json
+            .prism/verified/
 """
 
 

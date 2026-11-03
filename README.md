@@ -1,85 +1,77 @@
 # PrismLegal
 
-PrismLegal is being refined into a source-grounded legal matter application
-whose behavior and views are authored in LexLean and compiled by PrismPM.
-It inherits its formal inference and evidence discipline from
-[afflom/rule30](https://github.com/afflom/rule30).
+PrismLegal is a local legal matter workspace authored in LexLean and compiled
+by PrismPM. Its evidence and inference discipline follows
+[afflom/rule30](https://github.com/afflom/rule30): source material, reviewed
+interpretations, rules, and conclusions remain distinguishable and connected.
+No remote model, inference service, or model credentials are used.
 
-**This repository is not a completed production legal service.** The legacy
-browser portal contains handwritten heuristics. Its extraction, inferred
-legal conclusions, deadlines, and filing outputs are not made correct by
-verification of the separate formal modules.
+The compiled application lets a client or lawyer create a matter, import actual
+UTF-8 resources, review passages, record goals and jurisdiction, and connect
+reviewed authority to conditional strategies. Changes invalidate dependent
+conclusions. A saved matter file replays the complete accepted command history.
+The view presents one next review action, with focused facet inspection and
+supporting source context available when needed.
 
-The new executable source graph provides:
-
-- Actual UTF-8 intake extraction with exact quotations and source ranges,
-  checked at the model boundary.
-- Reviewed interpretations kept separate from original source wording.
-- Facet suggestions from lexical overlap with reviewed examples, with
-  abstention and no automatic promotion to legal findings.
-- Revision-aware dependencies, transitive invalidation, optimistic edit
-  checks, and retained before/after history.
-- A PrismPM-generated excerpt-review browser and CLI, with one next review
-  action and supporting context limited to the relevant passages.
-
-The excerpt view currently handles one reviewed exemplar per evaluation.
-It does not save a matter or provide the full persistent application.
-The revision/dependency library is exported separately for the modeled
-matter host. See [the implementation boundary](docs/SEMANTIC_MATTER.md)
-for exact behavior, limitations, and the SDK dependency that remains.
+**This is an implemented local workspace, not a completed production legal
+service.** Its associative classifier learns words and ordered word pairs from
+current reviewed examples. It abstains without support or on conflicting best
+matches. It is not a general pretrained language model. Legal inference uses
+explicit, lawyer-reviewed conditions; it does not invent law, search authorities,
+read PDFs/images/audio, or provide authenticated collaboration. See
+[the implementation and verification boundary](docs/SEMANTIC_MATTER.md).
 
 ## Source and build
 
-Application behavior lives in `src/Matter*.lex.tex`. The UI, copy, design,
-errors, resource bounds, and acceptance corpus are declared in
-`src/MatterApp.lex.tex`. There is no handwritten runtime implementation for
-this source graph.
+`holistic.lexlean.toml`, selected by `prismpm.toml`, compiles
+`src/HolisticApp.lex.tex` and the `Matter*.lex.tex` modules. They own state,
+intake, learning, inference, journal replay, journeys, UI copy, design, resource
+bounds, and acceptance vectors. Product behavior is not handwritten in a second
+application runtime. Rust and JavaScript under `tests/matter/` are test harnesses.
 
-The build uses PrismPM commit
-`f0c479e94c87ffc18c79b4632b8c73b44993da5b`, its bundled LexLean 0.4.0
-(commit `e0b74b81e6f49c83596a957d232c8383a5db1a25`), and Lean 4.32.1.
-Use that SDK's pinned native toolchain or source-bootstrap environment;
-PrismPM checks executable identities and refuses mismatches.
+[toolchain/prismpm.json](toolchain/prismpm.json) pins the SDK source fix and
+verification image. The generic file-session capability is proposed upstream in
+[PrismPM #495](https://github.com/UOR-Foundation/PrismPM/pull/495), following
+[issue #491](https://github.com/UOR-Foundation/PrismPM/issues/491). The app uses
+that fix directly while it awaits upstream review. Legal behavior stays here.
+LexLean is 0.4.0 (`e0b74b81e6f49c83596a957d232c8383a5db1a25`), with Lean 4.32.1.
+
+With that SDK's pinned toolchain installed:
 
 ```sh
-lexlean --project matter.lexlean.toml lock --check
-lexlean --project matter.lexlean.toml verify
+lexlean --project holistic.lexlean.toml lock --check
+lexlean --project holistic.lexlean.toml verify
 prismpm --project . check
 prismpm --project . build
+prismpm --project . verify
 ```
 
-PrismPM writes generated Rust, the CLI, Core-Wasm, a browser view, and the
-Hologram archive under `.prism/build/<build-id>/`. Build success alone is
-not a kernel or production attestation. Run `prismpm --project . verify`
-in the complete pinned SDK environment for its complete verification
-pipeline; retain its evidence and report any unavailable checks explicitly.
+Builds emit Rust, a native CLI, Core-Wasm, a browser view, and a Hologram archive
+under `.prism/build/<build-id>/`. Serve `view/browser/` over HTTP to use the app.
+Use **Save matter** to download the journal and **Open matter** to restore it.
+No ambient browser storage or server stores the matter. A download is not proof
+that the user retained the file. Client/lawyer selection is a local workflow
+choice, not authentication; journals are not encrypted or tamper-proof.
 
-The legacy models use `lexlean.toml`; the new application uses
-`matter.lexlean.toml`, selected by the root `prismpm.toml`. Both locks are
-committed. Checking or verifying never silently rewrites them.
-
-## Validation
+## Validation and publication
 
 ```sh
 python -m unittest discover -s tests -p 'test_*.py'
-node tests/matter/runtime.mjs .prism/build/<build-id>/view/browser
+node tests/matter/holistic_runtime.mjs .prism/build/<build-id>/view/browser
+npm ci --prefix tests/matter
+CHROMIUM_EXECUTABLE=/path/to/chromium \
+  node tests/matter/run_browser.mjs .prism/build/<build-id>/view/browser
 ```
 
-The latter runs the source acceptance corpus and unseen adversarial and
-boundary inputs against generated WebAssembly. The Lean laws separately
-cover revision, provenance, dependencies, missing support, cycles, and
-conflicting edits. Neither is a claim that lexical similarity understands
-legal meaning.
+Native test instructions and evidence boundaries are in
+[docs/SEMANTIC_MATTER.md](docs/SEMANTIC_MATTER.md). A successful build, kernel
+proof, or development-browser run is not a full PrismPM verification attestation.
+CI runs the pinned SDK verification pipeline without a static fallback. Pages
+publishes only the emitted `matter-site/` after that gate passes.
 
-`./bin/prism-legal check` and `./bin/prism-legal verify` require the actual
-LexLean compiler. Missing tools, malformed results, or missing kernel
-attestations fail; there is no portable-static verification fallback.
-CI installs the pinned compiler and checks the new model in Lean.
-
-## Legacy portal
-
-The existing `view/`, `site/`, and `docs/` portal artifacts are generated by
-`tools/case/site.py`. Their generators and reference fixtures remain
-available for migration and comparison. They are not the generated runtime
-of `MatterApp`. The published Pages site remains the legacy portal until
-an explicitly reviewed replacement is deployed.
+The prior Text/3 excerpt application remains selectable with
+`matter.prismpm.toml`. The older portal in `view/`, `site/`, and `docs/*.html`
+and its generators remain migration references; they are not the new runtime or
+the new Pages artifact. `bin/prism-legal api check` and `check` continue checking
+those legacy model-generated artifacts for drift. No deployment is implied by
+the draft implementation PR.

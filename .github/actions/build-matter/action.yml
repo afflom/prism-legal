@@ -1,0 +1,40 @@
+name: Build the modeled matter workspace
+description: Compile the pinned SDK fix, verify the actual application, and test its generated browser.
+runs:
+  using: composite
+  steps:
+    - name: Read pinned SDK inputs
+      id: inputs
+      shell: bash
+      run: |
+        python3 - <<'PY' >> "$GITHUB_OUTPUT"
+        import json
+        with open('toolchain/prismpm.json') as source:
+            pin = json.load(source)
+        print('revision=' + pin['revision'])
+        print('image=' + pin['sdk_image'])
+        PY
+    - name: Checkout the reviewed SDK fix
+      uses: actions/checkout@v4
+      with:
+        repository: UOR-Foundation/PrismPM
+        ref: ${{ steps.inputs.outputs.revision }}
+        path: .toolchain/prismpm
+        persist-credentials: false
+    - name: Make space for the pinned verification image
+      shell: bash
+      run: |
+        # These are preinstalled tools on the disposable hosted runner.
+        # The verification container supplies its own pinned toolchain.
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup
+        df -h .
+    - name: Compile and verify the complete source application
+      shell: bash
+      env:
+        PRISM_SDK_IMAGE: ${{ steps.inputs.outputs.image }}
+      run: |
+        docker pull "$PRISM_SDK_IMAGE"
+        docker run --rm --user 0 \
+          --volume "$GITHUB_WORKSPACE:/workspace" --workdir /workspace \
+          --env CARGO_TARGET_DIR=/workspace/.toolchain/target \
+          "$PRISM_SDK_IMAGE" bash tools/verify_matter.sh

@@ -36,8 +36,8 @@ jobs:
 
       - name: Verify the matter model in Lean
         run: |
-          lexlean --project matter.lexlean.toml lock --check
-          lexlean --project matter.lexlean.toml verify
+          lexlean --project holistic.lexlean.toml lock --check
+          lexlean --project holistic.lexlean.toml verify
           python -m unittest discover -s tests -p 'test_*.py'
 
       - name: Exercise legacy inference and conversion fixtures
@@ -45,3 +45,19 @@ jobs:
           ./bin/prism-legal engine
           ./bin/prism-legal discover
           ./bin/prism-legal convert
+
+  matter:
+    name: Build and exercise the modeled application
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/build-matter
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: matter-verification
+          path: |
+            matter-build.json
+            matter-verification.json
+            .prism/verified/

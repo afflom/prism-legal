@@ -1,6 +1,11 @@
 {
   "private": true,
   "type": "module",
-  "scripts": {"test:browser": "node browser.mjs"},
-  "devDependencies": {"playwright": "1.62.1"}
+  "scripts": {
+    "test:browser": "node run_browser.mjs",
+    "test:legacy-browser": "node browser.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
 }
