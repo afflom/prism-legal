@@ -180,6 +180,16 @@ try{
  await run('edit',{facet:'notice.receipt','old-value':'received','new-value':'not received',location:'Notice · line 1'});
  await run('strategy',{role:'lawyer',action:'Seek clarification.'});await page.locator('#next-form').click();assert.equal(await page.locator('#operation').inputValue(),'assertion');assert.equal(await page.locator('#field-facet').inputValue(),'notice.receipt');assert.equal(await page.locator('#field-value').inputValue(),'');
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
- if(process.env.SCREENSHOT_PATH)await page.screenshot({path:process.env.SCREENSHOT_PATH,fullPage:true});
+ await page.reload();await ready();assert.equal(await run('create',{title:'Goal attention'}),'Start with a source');await run('ingest',{title:'Records',content:'repair invoice\nrent refund'});await run('goal',{value:'rent refund'});
+ const attentionBefore=await save();await page.locator('#next-form').click();assert.equal(await page.locator('#field-location').inputValue(),'Records · line 2');assert.deepEqual(await save(),attentionBefore);
+ await run('goal',{value:'repair invoice'});await page.locator('#next-form').click();assert.equal(await page.locator('#field-location').inputValue(),'Records · line 1');
+ await page.locator('#field-facet').fill('item');await page.locator('#guided-submit').click();await ready();await run('inspect',{facet:'item',page:'1'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: repair invoice/);
+ await page.reload();await ready();assert.equal(await run('create',{title:'Unified attention'}),'Start with a source');await run('ingest',{title:'Records',content:'Amount: 50; day: Monday.\nAmount: 75; day: Tuesday.'});
+ await run('review',{facet:'amount',interpretation:'50',location:'Records · line 1'});await run('annotate',{'from-facet':'amount','from-value':'50',facet:'day',interpretation:'Monday'});await run('review',{facet:'amount',interpretation:'75',location:'Records · line 2'});
+ await run('goal',{value:'Tuesday'});await run('ingest',{title:'Other',content:'Unrelated item'});assert.equal(await message(),'Review another aspect of this passage');const aspectBefore=await save();
+ await page.locator('#next-form').click();assert.equal(await page.locator('#field-facet').inputValue(),'day');assert.equal(await page.locator('#field-interpretation').inputValue(),'Tuesday');assert.deepEqual(await save(),aspectBefore);
+ await page.locator('#guided-submit').click();await ready();assert.equal(await page.locator('#result-error').isVisible(),false);await run('inspect',{facet:'day',page:'1'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: Tuesday/);
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
+ if(process.env.SCREENSHOT_PATH){await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:process.env.SCREENSHOT_PATH,fullPage:true});}
  console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet and joint-slot interpretation, withdrawal, next-form navigation, and mobile layout');
 }finally{await context.close();await browser.close();}

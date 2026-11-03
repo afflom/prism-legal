@@ -271,4 +271,27 @@ result=invoke('edit',[proposals,'client','notice.receipt','received','not receiv
 result=invoke('review-proposal',[proposals,'lawyer','Seek clarification.']);assert.equal(result.status,'error');assert.equal(result.response,proposals);
 result=invoke('strategy',[proposals,'lawyer','Seek clarification.']);assert.match(result.request,/^assertion\u001f/);assert(result.request.endsWith('14:notice.receipt0:'));assert.equal(result.response,proposals);
 assert.equal(invoke('restore',[proposals]).response,proposals);
+// The current goal selects the next passage; opening the prepared review is read-only.
+let attention=invoke('create',['','Goal attention']).response;
+for(const [op,fields] of [['ingest',['client','Records','repair invoice\nrent refund']],['goal',['client','rent refund']]]) {result=invoke(op,[attention,...fields]);assert.equal(result.status,'ok');attention=result.response;}
+result=invoke('overview',[attention,'client']);assert.match(result.request,/Records · line 2/);assert.equal(result.response,attention);
+result=invoke('goal',[attention,'client','repair invoice']);assert.equal(result.status,'ok');attention=result.response;assert.match(result.request,/Records · line 1/);
+result=invoke('review',[attention,'client','item','']);assert.equal(result.status,'ok');attention=result.response;
+result=invoke('inspect',[attention,'client','item','1']);assert.match(result.details.join(' '),/Current interpretation: repair invoice/);
+let aspects=invoke('create',['','Unified attention']).response;
+for(const [op,fields] of [
+ ['ingest',['client','Records','Amount: 50; day: Monday.\nAmount: 75; day: Tuesday.']],
+ ['review',['client','amount','50','Records · line 1']],
+ ['annotate',['client','amount','50','day','Monday']],
+ ['review',['client','amount','75','Records · line 2']],
+ ['goal',['client','Tuesday']],['ingest',['client','Other','Unrelated item']]]) {result=invoke(op,[aspects,...fields]);assert.equal(result.status,'ok');aspects=result.response;}
+result=invoke('overview',[aspects,'client']);assert.equal(result.message,'Review another aspect of this passage');assert.match(result.request,/Tuesday/);assert.equal(result.response,aspects);
+result=invoke('review',[aspects,'client','','']);assert.equal(result.status,'ok');aspects=result.response;
+result=invoke('inspect',[aspects,'client','day','1']);assert.match(result.details.join(' '),/Current interpretation: Tuesday/);
+assert.equal(invoke('restore',[aspects]).response,aspects);
+// Attention is part of the actual ingestion response even at the modeled cell bound.
+const attentionTable=Array.from({length:16},(_,i)=>`column${i}`).join(',')+'\n'+Array.from({length:63},(_,row)=>Array.from({length:16},(_,column)=>row===62&&column===15?'finale':'x').join(',')).join('\n');
+result=invoke('ingest-csv',[proposals,'client','Large table',attentionTable]);assert.equal(result.status,'ok');assert.match(result.request,/Large table · row 2 · column 1/);
+assert.equal(invoke('restore',[result.response]).response,result.response);
+result=invoke('goal',[result.response,'client','finale']);assert.equal(result.status,'ok');assert.match(result.request,/Large table · row 64 · column 16/);
 console.log(`PASS: ${model.acceptance_vectors.length} source vectors plus unseen journal, Unicode, control-display, input-boundary, multiple-facet and joint-slot learning, withdrawal and refusal cases in generated Wasm`);

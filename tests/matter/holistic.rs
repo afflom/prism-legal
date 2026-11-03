@@ -512,6 +512,8 @@ fn additional_facet_attention_prioritizes_unresolved_rule_conditions() {
         conclusionFacet: "receipt.review".into(), conclusionValue: "dated receipt reviewed".into(), action: "Review the dated receipt".into() };
     let s = accepted(commitRule(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), &rule).unwrap());
     assert_eq!(nextAdditionalReview(&s).unwrap().meaning.facet, "day");
+    let s=accepted(ingest(&s,s.matter.revision,Role::Client,"client".into(),"Other".into(),b"Understand both fields".to_vec()).unwrap());
+    let focused=nextAttention(&s).unwrap();assert!(focused.additional,"unresolved rule conditions outrank mere goal vocabulary");assert_eq!(focused.meaning.facet,"day");
 }
 
 fn repeated_reviewed_journal() -> String {
@@ -818,6 +820,7 @@ fn csv_resource_and_cell_limits_accept_the_boundary_and_refuse_the_next_cell() {
     let s=initial("Bounded table".into());
     let at_bytes=format!("a\n{}","x".repeat(8190));assert_eq!(at_bytes.len(),8192);
     let imported=accepted(ingestCsv(&s,0,Role::Client,"client".into(),"Bytes".into(),at_bytes.into_bytes()).unwrap());assert_eq!(imported.matter.nodes[0].value.len(),8190);
+    assert_eq!(nextAttention(&imported).unwrap().node.unwrap().value.len(),8190);
     let headers=(0..512).map(|i|format!("a{i}")).collect::<Vec<_>>().join(",");
     let values=vec!["x";512].join(",");let table=format!("{headers}\n{values}");
     let imported=accepted(ingestCsv(&s,0,Role::Client,"client".into(),"Cells".into(),table.into_bytes()).unwrap());assert_eq!(imported.matter.nodes.len(),512);
@@ -828,6 +831,8 @@ fn csv_resource_and_cell_limits_accept_the_boundary_and_refuse_the_next_cell() {
     let with_rule=reviewed_matter();
     let combined=accepted(ingestCsv(&with_rule,with_rule.matter.revision,Role::Client,"client".into(),"Rows".into(),format!("{headers}\n{rows}").into_bytes()).unwrap());
     assert!(combined.matter.nodes.len()>1008);assert_eq!(assess(&combined.rules[0],&combined.matter.nodes,&combined.matter.sources).unwrap().status,ReasoningStatus::Supported);
+    assert_eq!(nextAttention(&combined).unwrap().node.unwrap().value,"notice disputed");
+    assert_eq!(overview(&combined,Role::Client).unwrap().stage,"review");
 }
 
 #[test]
@@ -1025,4 +1030,106 @@ fn proposal_matching_handles_large_matters_without_duplicate_nodes_or_larger_tes
     let s=accepted(ingestCsv(&s,s.matter.revision,Role::Client,"client".into(),"Large table".into(),table.into_bytes()).unwrap());
     let s=accepted(proposeCurrent(&s,s.matter.revision,Role::Lawyer,"lawyer".into(),rule.definition).unwrap());assert!(s.matter.nodes.len()>1008);
     let repeated=proposeCurrent(&s,s.matter.revision,Role::Lawyer,"lawyer".into(),rule.definition).unwrap();assert_eq!(repeated.code,"proposal-already-current");assert_eq!(repeated.session,s);
+}
+
+#[test]
+fn changing_goal_reorders_attention_without_accepting_source_content() {
+    let s=accepted(ingest(&initial("Attention".into()),0,Role::Client,"client".into(),"Records".into(),b"repair invoice\nrent refund".to_vec()).unwrap());
+    let s=assert_fact(&s,"goal","rent refund");
+    assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,2);
+    for role in [Role::Client,Role::Lawyer,Role::Reader] {assert_eq!(overview(&s,role).unwrap().node,2);}
+    assert!(s.matter.nodes.iter().filter(|n|!n.citations.is_empty()).all(|n|!n.accepted));
+    let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),node_ref(&s,"goal"),"goal".into(),"repair invoice".into(),true).unwrap());
+    assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,1);
+    let s=accepted(withdraw(&s,s.matter.revision,Role::Client,"client".into(),node_ref(&s,"goal")).unwrap());
+    assert_eq!(overview(&s,Role::Client).unwrap().stage,"goal");
+    assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,1,"without a current goal, preserve source order");
+}
+
+#[test]
+fn repeated_goal_words_do_not_inflate_attention_and_ties_keep_source_order() {
+    let s=accepted(ingest(&initial("Attention".into()),0,Role::Client,"client".into(),"Records".into(),b"rent refund\nrent rent rent rent".to_vec()).unwrap());
+    let s=assert_fact(&s,"goal","rent refund");
+    assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,1);
+    let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),node_ref(&s,"goal"),"goal".into(),"rent rent rent rent".into(),true).unwrap());
+    assert_eq!(goalFeatures(&s,&current(&s.matter.nodes,&s.matter.sources).unwrap().references).unwrap().values.len(),2,"one distinct word and one ordered pair");
+    let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),node_ref(&s,"goal"),"goal".into(),"rent".into(),true).unwrap());
+    assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,1,"equal lexical scores preserve earliest passage");
+}
+
+#[test]
+fn a_learned_missing_aspect_competes_with_unrelated_new_passages() {
+    let s=jointly_reviewed_amounts();
+    let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),node_ref(&s,"goal"),"goal".into(),"Tuesday".into(),true).unwrap());
+    let s=accepted(ingest(&s,s.matter.revision,Role::Client,"client".into(),"Other".into(),b"An unrelated item".to_vec()).unwrap());
+    let focus=nextAttention(&s).unwrap();assert!(focus.additional);assert_eq!(focus.node.unwrap().id,2);assert_eq!(focus.meaning.value,"Tuesday");
+    assert_eq!(overview(&s,Role::Client).unwrap().stage,"additional-interpretation");
+    let s=accepted(withdraw(&s,s.matter.revision,Role::Client,"client".into(),node_ref(&s,"day")).unwrap());
+    let focus=nextAttention(&s).unwrap();assert!(!focus.additional);assert_eq!(focus.node.unwrap().value,"An unrelated item");
+}
+
+#[test]
+fn unified_attention_review_commits_the_displayed_additional_aspect_and_replays() {
+    let journal=initialJournal("Attention".into());let s=replay(journal.clone()).unwrap().session;
+    let r=commit(journal,&s,"ingest".into(),"client".into(),&["Records".into(),"Amount: 50; day: Monday.\nAmount: 75; day: Tuesday.".into()]).unwrap();assert_eq!(r.code,"");
+    let r=reviewLocated(r.journal,&r.session,"client".into(),"amount".into(),"50".into(),"Records · line 1".into()).unwrap();assert_eq!(r.code,"");
+    let r=commit(r.journal,&r.session,"annotate".into(),"client".into(),&["1".into(),"2".into(),"day".into(),"Monday".into()]).unwrap();assert_eq!(r.code,"");
+    let r=reviewLocated(r.journal,&r.session,"client".into(),"amount".into(),"75".into(),"Records · line 2".into()).unwrap();assert_eq!(r.code,"");
+    let r=setContext(r.journal,&r.session,"client".into(),"goal".into(),"Tuesday".into()).unwrap();assert_eq!(r.code,"");
+    let r=commit(r.journal,&r.session,"ingest".into(),"client".into(),&["Other".into(),"Unrelated item".into()]).unwrap();assert_eq!(r.code,"");
+    let view=overview(&r.session,Role::Client).unwrap();assert_eq!(view.stage,"additional-interpretation");assert_eq!(view.node,2);
+    let r=reviewNext(r.journal,&r.session,"client".into(),"".into(),"".into()).unwrap();assert_eq!(r.code,"");
+    let added=r.session.matter.nodes.iter().find(|n|n.facet=="day"&&n.value=="Tuesday").unwrap();assert!(added.accepted);assert_eq!(added.citations[0].source,1);
+    assert!(!r.session.matter.nodes.iter().find(|n|n.value=="Unrelated item").unwrap().accepted);
+    assert_eq!(replay(r.journal).unwrap().session,r.session);
+}
+
+#[test]
+fn goal_attention_selects_between_learned_aspects_of_the_same_passage() {
+    let s=jointly_reviewed_amounts();
+    let s=accepted(annotate(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:2},"claimed.amount".into(),"50".into()).unwrap());
+    assert_eq!(nextAdditionalReview(&s).unwrap().meaning.facet,"claimed.amount","preserve prior traversal on a tie");
+    let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),node_ref(&s,"goal"),"goal".into(),"Tuesday".into(),true).unwrap());
+    assert_eq!(nextAdditionalReview(&s).unwrap().meaning.facet,"day");
+    let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),node_ref(&s,"goal"),"goal".into(),"claimed.amount".into(),true).unwrap());
+    assert_eq!(nextAdditionalReview(&s).unwrap().meaning.facet,"claimed.amount");
+    assert!(!s.matter.nodes.iter().any(|n|n.facet=="day"&&n.value=="Tuesday"));
+}
+
+#[test]
+fn attention_finishes_for_a_full_matter_of_reviewed_text_passages() {
+    let mut s=initial("Reviewed archive".into());
+    for index in 0..16 {
+        s=accepted(ingest(&s,s.matter.revision,Role::Client,"client".into(),format!("Record {index}"),vec!["entry";63].join("\n").into_bytes()).unwrap());
+    }
+    s=assert_fact(&s,"goal","Understand the archive");
+    let references=s.matter.nodes.iter().filter(|n|!n.citations.is_empty()).map(nodeReference).collect::<Vec<_>>();
+    for reference in references {s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),reference,"entry".into(),"entry".into(),true).unwrap());}
+    assert_eq!(s.matter.nodes.len(),1009);
+    assert!(nextAttention(&s).unwrap().node.is_none());
+    assert_eq!(overview(&s,Role::Client).unwrap().stage,"jurisdiction");
+}
+
+#[test]
+fn attention_reaches_the_last_cell_at_the_intake_bound() {
+    let headers=(0..16).map(|i|format!("column{i}")).collect::<Vec<_>>().join(",");
+    let rows=(0..63).map(|row|(0..16).map(|column|if row==62&&column==15{"finale"}else{"entry"}).collect::<Vec<_>>().join(",")).collect::<Vec<_>>().join("\n");
+    let s=assert_fact(&initial("Last cell".into()),"goal","finale");
+    let s=accepted(ingestCsv(&s,s.matter.revision,Role::Client,"client".into(),"Records".into(),format!("{headers}\n{rows}").into_bytes()).unwrap());
+    let selected=nextAttention(&s).unwrap().node.unwrap();assert_eq!(selected.value,"finale");assert_eq!(selected.facet,"column15");assert!(!selected.accepted);
+    assert_eq!(interpretationLocation(&s,&selected).unwrap(),"Records · row 64 · column 16");
+    assert_eq!(overview(&s,Role::Client).unwrap().node,selected.id);
+}
+
+#[test]
+fn batched_meaning_context_preserves_the_visible_eight_aspect_limit() {
+    let mut s=accepted(ingest(&initial("Context".into()),0,Role::Client,"client".into(),"Record".into(),b"Amount: 50".to_vec()).unwrap());
+    s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:1},"facet0".into(),"50".into(),true).unwrap());
+    for index in 1..8 {s=accepted(annotate(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:2},format!("facet{index}"),"50".into()).unwrap());}
+    let context=meaningContext(&s.matter.nodes,&s.matter.nodes,&s.matter.sources,"Amount: 50".into(),&[],8).unwrap();
+    assert_eq!(context.values.len(),8);assert!(context.values.iter().all(|v|v.ends_with(": 50")));
+    s=accepted(annotate(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:2},"facet8".into(),"50".into()).unwrap());
+    let context=meaningContext(&s.matter.nodes,&s.matter.nodes,&s.matter.sources,"Amount: 50".into(),&[],8).unwrap();
+    assert_eq!(context.values.len(),9);assert!(context.values[..8].iter().all(|v|v.ends_with(": 50")));assert_eq!(context.values[8],"Additional facets can be checked by selecting a facet during review.");
+    assert!(meaningContext(&[],&s.matter.nodes,&s.matter.sources,"Amount: 50".into(),&[],0).unwrap().values.is_empty());
 }

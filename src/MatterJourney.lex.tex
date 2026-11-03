@@ -3,6 +3,7 @@
 \useglossary{lexlean.std.nat@1.2.0}
 \useglossary{prism.arch@1.0.0}
 \importmodule{Matter}
+\importmodule{MatterBatch}
 \importmodule{MatterSession}
 \importmodule{MatterInference}
 \importmodule{MatterNetwork}
@@ -39,10 +40,16 @@ definition{
 }
 
 definition{
+ name: currentPendingProposal, parameters: [node : Matter::Node, session : MatterSession::Session], result: Bool,
+ body: ((not (MatterSession::isWithdrawn (project session audit) node)) && ((not (project node accepted)) && ((match (project node origin) | Matter::Origin.Inferred => true | Matter::Origin.Extracted => false | Matter::Origin.Reviewed => false) &&
+ ((MatterSession::ruleReviewSupported session node) && (Matter::allReferencesIn (project node dependencies) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references)))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
  name: pendingProposal, parameters: [nodes : (List Matter::Node), session : MatterSession::Session], result: (Option Matter::Node),
  body: (match nodes | List.nil => (ctor Option.none [Matter::Node]) | List.cons node rest =>
- (if ((not (MatterSession::isWithdrawn (project session audit) node)) && ((not (project node accepted)) && ((match (project node origin) | Matter::Origin.Inferred => true | Matter::Origin.Extracted => false | Matter::Origin.Reviewed => false) &&
- ((MatterSession::ruleReviewSupported session node) && (Matter::allReferencesIn (project node dependencies) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references)))))) then (ctor Option.some [Matter::Node] node) else (pendingProposal rest session))),
+ (if (currentPendingProposal node session) then (ctor Option.some [Matter::Node] node) else (pendingProposal rest session))),
  executable: true, axioms: [propext], recursive_argument: nodes
 }
 
@@ -60,27 +67,77 @@ definition{
  executable: true, axioms: [propext], recursive_argument: rules
 }
 
-structure{
- name: ReviewFocus, type_parameters: [], parameters: [],
- fields: [{name: node, type: (Option Matter::Node)}, {name: relevance, type: Nat}]
+
+definition{
+ name: sharedFeatures, parameters: [features : (List String), query : (List String)], result: Nat,
+ body: (match features | List.nil => 0 | List.cons feature rest => ((if (MatterText::wordPresent query feature) then 1 else 0) + (sharedFeatures rest query))),
+ executable: true, axioms: [], recursive_argument: features
 }
 
 definition{
- name: focusPending, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), focus : ReviewFocus], result: ReviewFocus,
- body: (match nodes | List.nil => focus | List.cons node rest =>
- (focusPending rest session network admitted
- (if ((not (MatterSession::isWithdrawn (project session audit) node)) && ((not (project node accepted)) && ((Matter::hasCitations (project node citations)) && (Matter::citationsCurrent (project (project session matter) sources) (project node citations))))) then
- (let facet : String := (if (MatterSession::csvNode session node) then (project node facet) else (MatterNetwork::suggestedFacet (MatterNetwork::infer network (project node value))));
+ name: goalFeatures, parameters: [session : MatterSession::Session, admitted : (List Matter::Reference)], result: MatterText::TextItems,
+ body: (match (findFacet (project (project session matter) nodes) admitted "goal") | Option.none => (record MatterText::TextItems {values := (nil String)}) | Option.some goal => (MatterNetwork::features (project goal value))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: goalOverlap, parameters: [goal : (List String), node : Matter::Node, facet : String, value : String], result: Nat,
+ body: (sharedFeatures goal (project (MatterNetwork::appendFeatures (project (MatterNetwork::observationFeatures node) values) (project (MatterNetwork::appendFeatures (project (MatterNetwork::features facet) values) (project (MatterNetwork::features value) values)) values)) values)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: higherAttention, parameters: [relevance : Nat, goalRelevance : Nat, previousRelevance : Nat, previousGoalRelevance : Nat], result: Bool,
+ body: ((previousRelevance <? relevance) || ((relevance =? previousRelevance) && (previousGoalRelevance <? goalRelevance))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: pendingFacet, parameters: [session : MatterSession::Session, network : MatterNetwork::NeuralModel, node : Matter::Node], result: String,
+ body: (if (MatterSession::csvNode session node) then (project node facet) else (MatterNetwork::suggestedFacet (MatterNetwork::infer network (project node value)))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+structure{
+ name: ReviewFocus, type_parameters: [], parameters: [],
+ fields: [{name: node, type: (Option Matter::Node)}, {name: relevance, type: Nat}, {name: goalRelevance, type: Nat}]
+}
+
+definition{
+ name: considerPending, parameters: [node : Matter::Node, session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
+ body: (if ((not (MatterSession::isWithdrawn (project session audit) node)) && ((not (project node accepted)) && ((Matter::hasCitations (project node citations)) && (Matter::citationsCurrent (project (project session matter) sources) (project node citations))))) then
+ (let facet : String := (pendingFacet session network node);
  (let relevance : Nat := (questionRelevance (project session rules) facet (project (project session matter) nodes) admitted);
- (if (match (project focus node) | Option.none => true | Option.some selected => (((project focus relevance) <? relevance) || ((relevance =? (project focus relevance)) && ((project node id) <? (project selected id))))) then
- (record ReviewFocus {node := (ctor Option.some [Matter::Node] node), relevance := relevance}) else focus))) else focus))),
+ (let goalRelevance : Nat := (goalOverlap goal node facet (project node value));
+ (if (match (project focus node) | Option.none => true | Option.some selected => ((higherAttention relevance goalRelevance (project focus relevance) (project focus goalRelevance)) || (((relevance =? (project focus relevance)) && (goalRelevance =? (project focus goalRelevance))) && ((project node id) <? (project selected id))))) then
+ (record ReviewFocus {node := (ctor Option.some [Matter::Node] node), relevance := relevance, goalRelevance := goalRelevance}) else focus)))) else focus),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: focusPendingRows, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
+ body: (match nodes | List.nil => focus | List.cons node rest =>
+ (focusPendingRows rest session network admitted goal (considerPending node session network admitted goal focus))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
+}
+
+definition{
+ name: focusPendingChunks, parameters: [chunks : (List MatterBatch::NodeChunk), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
+ body: (match chunks | List.nil => focus | List.cons chunk rest =>
+ (focusPendingChunks rest session network admitted goal (focusPendingRows (project chunk values) session network admitted goal focus))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: chunks
+}
+
+definition{
+ name: focusPending, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), goal : (List String), focus : ReviewFocus], result: ReviewFocus,
+ body: (focusPendingChunks (project (MatterBatch::nodeChunks nodes) values) session network admitted goal focus),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
  name: nextReview, parameters: [session : MatterSession::Session], result: (Option Matter::Node),
  body: (let matter : Matter::State := (project session matter);
- (let focused : ReviewFocus := (focusPending (project matter nodes) session (MatterNetwork::train (project matter nodes) (project matter sources)) (project (Matter::current (project matter nodes) (project matter sources)) references) (record ReviewFocus {node := (ctor Option.none [Matter::Node]), relevance := 0}));
+ (let focused : ReviewFocus := (focusPending (project matter nodes) session (MatterNetwork::train (project matter nodes) (project matter sources)) (project (Matter::current (project matter nodes) (project matter sources)) references) (project (goalFeatures session (project (Matter::current (project matter nodes) (project matter sources)) references)) values) (record ReviewFocus {node := (ctor Option.none [Matter::Node]), relevance := 0, goalRelevance := 0}));
  (match (project focused node) | Option.some node => (ctor Option.some [Matter::Node] node) | Option.none => (pendingProposal (project matter nodes) session)))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
@@ -191,7 +248,7 @@ definition{
 
 structure{
  name: AdditionalReview, type_parameters: [], parameters: [],
- fields: [{name: node, type: (Option Matter::Node)}, {name: meaning, type: MatterLanguage::MeaningSuggestion}, {name: relevance, type: Nat}]
+ fields: [{name: node, type: (Option Matter::Node)}, {name: meaning, type: MatterLanguage::MeaningSuggestion}, {name: relevance, type: Nat}, {name: goalRelevance, type: Nat}]
 }
 
 definition{
@@ -234,24 +291,52 @@ definition{
 }
 
 definition{
- name: additionalMeaningLoop, parameters: [remaining : (List Matter::Node), training : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), citation : Matter::Citation, quotation : String, seen : (List String), selected : MatterLanguage::MeaningSuggestion, relevance : Nat], result: MatterLanguage::MeaningSuggestion,
- body: (match remaining | List.nil => selected | List.cons node rest =>
- (let facet : String := (project node facet);
- (if ((MatterLanguage::hasFacet seen facet) || ((prim equal facet "rule" : Bool) ||
- (representedInterpretation (project (project session matter) nodes) citation facet))) then
- (additionalMeaningLoop rest training session admitted citation quotation seen selected relevance) else
- (let candidate : MatterLanguage::MeaningSuggestion := (MatterLanguage::facetMeaningLoop training (project (project session matter) nodes) admitted quotation facet (MatterLanguage::noMeaning));
+ name: meaningGoalOverlap, parameters: [goal : (List String), quotation : String, meaning : MatterLanguage::MeaningSuggestion], result: Nat,
+ body: (sharedFeatures goal (project (MatterNetwork::appendFeatures (project (MatterNetwork::features quotation) values) (project (MatterNetwork::appendFeatures (project (MatterNetwork::features (project meaning facet)) values) (project (MatterNetwork::features (project meaning value)) values)) values)) values)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+structure{
+ name: MeaningFocus, type_parameters: [], parameters: [],
+ fields: [{name: seen, type: (List String)}, {name: meaning, type: MatterLanguage::MeaningSuggestion}, {name: relevance, type: Nat}]
+}
+
+definition{
+ name: considerAdditionalMeaning, parameters: [node : Matter::Node, training : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), citation : Matter::Citation, quotation : String, goal : (List String), focus : MeaningFocus], result: MeaningFocus,
+ body: (let facet : String := (project node facet);
+ (if (MatterLanguage::hasFacet (project focus seen) facet) then focus else
+ (let candidate : MatterLanguage::MeaningSuggestion := (if ((prim equal facet "rule" : Bool) || (representedInterpretation (project (project session matter) nodes) citation facet)) then (MatterLanguage::noMeaning) else (MatterLanguage::facetMeaningLoop training (project (project session matter) nodes) admitted quotation facet (MatterLanguage::noMeaning)));
  (let score : Nat := (questionRelevance (project session rules) facet (project (project session matter) nodes) admitted);
- (let choose : Bool := ((project candidate matched) && ((not (project selected matched)) || (relevance <? score)));
- (additionalMeaningLoop rest training session admitted citation quotation (cons facet seen) (if choose then candidate else selected) (if choose then score else relevance)))))))),
+ (let choose : Bool := ((project candidate matched) && ((not (project (project focus meaning) matched)) || (higherAttention score (meaningGoalOverlap goal quotation candidate) (project focus relevance) (meaningGoalOverlap goal quotation (project focus meaning)))));
+ (record MeaningFocus {seen := (cons facet (project focus seen)), meaning := (if choose then candidate else (project focus meaning)), relevance := (if choose then score else (project focus relevance))})))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: additionalMeaningScanRows, parameters: [remaining : (List Matter::Node), training : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), citation : Matter::Citation, quotation : String, goal : (List String), focus : MeaningFocus], result: MeaningFocus,
+ body: (match remaining | List.nil => focus | List.cons node rest =>
+ (additionalMeaningScanRows rest training session admitted citation quotation goal (considerAdditionalMeaning node training session admitted citation quotation goal focus))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: remaining
+}
+
+definition{
+ name: additionalMeaningScanChunks, parameters: [chunks : (List MatterBatch::NodeChunk), training : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), citation : Matter::Citation, quotation : String, goal : (List String), focus : MeaningFocus], result: MeaningFocus,
+ body: (match chunks | List.nil => focus | List.cons chunk rest =>
+ (additionalMeaningScanChunks rest training session admitted citation quotation goal (additionalMeaningScanRows (project chunk values) training session admitted citation quotation goal focus))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: chunks
+}
+
+definition{
+ name: additionalMeaningScan, parameters: [remaining : (List Matter::Node), training : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), citation : Matter::Citation, quotation : String, goal : (List String), focus : MeaningFocus], result: MatterLanguage::MeaningSuggestion,
+ body: (project (additionalMeaningScanChunks (project (MatterBatch::nodeChunks remaining) values) training session admitted citation quotation goal focus) meaning),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
  name: additionalCitationMeaningWith, parameters: [citations : (List Matter::Citation), session : MatterSession::Session, admitted : (List Matter::Reference)], result: MatterLanguage::MeaningSuggestion,
  body: (match citations | List.nil => (MatterLanguage::noMeaning) | List.cons citation rest =>
  (match (Foundation.Utf8::decode (project citation quote)) | Option.none => (additionalCitationMeaningWith rest session admitted) | Option.some quotation =>
- (let meaning : MatterLanguage::MeaningSuggestion := (let training : Matter::Nodes := (contextualExamples session citation); (additionalMeaningLoop (project training nodes) (project training nodes) session admitted citation quotation (nil String) (MatterLanguage::noMeaning) 0));
+ (let meaning : MatterLanguage::MeaningSuggestion := (let training : Matter::Nodes := (contextualExamples session citation); (additionalMeaningScan (project training nodes) (project training nodes) session admitted citation quotation (project (goalFeatures session admitted) values) (record MeaningFocus {seen := (nil String), meaning := (MatterLanguage::noMeaning), relevance := 0})));
  (if (project meaning matched) then meaning else (additionalCitationMeaningWith rest session admitted))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
 }
@@ -263,24 +348,65 @@ definition{
 }
 
 definition{
- name: additionalReviewLoop, parameters: [remaining : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), selected : AdditionalReview], result: AdditionalReview,
- body: (match remaining | List.nil => selected | List.cons node rest =>
- (additionalReviewLoop rest session admitted
- (if ((Matter::containsReference admitted (Matter::nodeReference node)) &&
+ name: considerAdditional, parameters: [node : Matter::Node, session : MatterSession::Session, admitted : (List Matter::Reference), goal : (List String), selected : AdditionalReview], result: AdditionalReview,
+ body: (if ((Matter::containsReference admitted (Matter::nodeReference node)) &&
  (match (project node origin) | Matter::Origin.Reviewed => true | Matter::Origin.Extracted => false | Matter::Origin.Inferred => false)) then
  (let meaning : MatterLanguage::MeaningSuggestion := (additionalCitationMeaningWith (project node citations) session admitted);
  (let score : Nat := (questionRelevance (project session rules) (project meaning facet) (project (project session matter) nodes) admitted);
+ (let goalRelevance : Nat := (goalOverlap goal node (project meaning facet) (project meaning value));
  (if ((project meaning matched) && (match (project selected node) | Option.none => true | Option.some previous =>
- (((project selected relevance) <? score) || ((score =? (project selected relevance)) && ((project node id) <? (project previous id)))))) then
- (record AdditionalReview {node := (ctor Option.some [Matter::Node] node), meaning := meaning, relevance := score}) else selected))) else selected))),
+ ((higherAttention score goalRelevance (project selected relevance) (project selected goalRelevance)) || (((score =? (project selected relevance)) && (goalRelevance =? (project selected goalRelevance))) && ((project node id) <? (project previous id)))))) then
+ (record AdditionalReview {node := (ctor Option.some [Matter::Node] node), meaning := meaning, relevance := score, goalRelevance := goalRelevance}) else selected)))) else selected),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: additionalReviewLoopRows, parameters: [remaining : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), goal : (List String), selected : AdditionalReview], result: AdditionalReview,
+ body: (match remaining | List.nil => selected | List.cons node rest =>
+ (additionalReviewLoopRows rest session admitted goal (considerAdditional node session admitted goal selected))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: remaining
+}
+
+definition{
+ name: additionalReviewLoopChunks, parameters: [chunks : (List MatterBatch::NodeChunk), session : MatterSession::Session, admitted : (List Matter::Reference), goal : (List String), selected : AdditionalReview], result: AdditionalReview,
+ body: (match chunks | List.nil => selected | List.cons chunk rest =>
+ (additionalReviewLoopChunks rest session admitted goal (additionalReviewLoopRows (project chunk values) session admitted goal selected))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: chunks
+}
+
+definition{
+ name: additionalReviewLoop, parameters: [remaining : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), goal : (List String), selected : AdditionalReview], result: AdditionalReview,
+ body: (additionalReviewLoopChunks (project (MatterBatch::nodeChunks remaining) values) session admitted goal selected),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
  name: nextAdditionalReview, parameters: [session : MatterSession::Session], result: AdditionalReview,
  body: (additionalReviewLoop (project (project session matter) nodes) session
  (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references)
- (record AdditionalReview {node := (ctor Option.none [Matter::Node]), meaning := (MatterLanguage::noMeaning), relevance := 0})),
+ (project (goalFeatures session (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references)) values)
+ (record AdditionalReview {node := (ctor Option.none [Matter::Node]), meaning := (MatterLanguage::noMeaning), relevance := 0, goalRelevance := 0})),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+
+structure{
+ name: ReviewAttention, type_parameters: [], parameters: [],
+ fields: [{name: node, type: (Option Matter::Node)}, {name: additional, type: Bool}, {name: meaning, type: MatterLanguage::MeaningSuggestion}]
+}
+
+definition{
+ name: nextAttention, parameters: [session : MatterSession::Session], result: ReviewAttention,
+ body: (let pendingCandidate : (Option Matter::Node) := (nextReview session);
+ (let additional : AdditionalReview := (nextAdditionalReview session);
+ (let admitted : (List Matter::Reference) := (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references);
+ (let chooseAdditional : Bool := (match (project additional node) | Option.none => false | Option.some extra =>
+ (match pendingCandidate | Option.none => true | Option.some node =>
+ (let facet : String := (match (project node origin) | Matter::Origin.Inferred => (project node facet) | Matter::Origin.Reviewed => (project node facet) | Matter::Origin.Extracted => (pendingFacet session (MatterNetwork::train (project (project session matter) nodes) (project (project session matter) sources)) node));
+ (higherAttention (project additional relevance) (project additional goalRelevance)
+ (questionRelevance (project session rules) facet (project (project session matter) nodes) admitted)
+ (goalOverlap (project (goalFeatures session admitted) values) node facet (project node value))))));
+ (record ReviewAttention {node := (if chooseAdditional then (project additional node) else pendingCandidate), additional := chooseAdditional, meaning := (if chooseAdditional then (project additional meaning) else (MatterLanguage::noMeaning))}))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -309,16 +435,14 @@ definition{
  (if ((MatterSession::sourceCount (project matter sources)) =? 0) then (view session "intake" "Start with a source" "Add a resource that helps explain what happened. Its original wording will remain available alongside your interpretation." 0 0 "" (nil String)) else
  (match (findFacet (project matter nodes) (project admitted references) "goal")
  | Option.none => (view session "goal" "What would you like to achieve?" "Describe the outcome you want. This will guide which facts and possible actions need attention." 0 0 "" (nil String))
- | Option.some goal => (match (nextReview session)
- | Option.some node => (reviewView session node role)
- | Option.none => (let additional : AdditionalReview := (nextAdditionalReview session);
- (match (project additional node)
- | Option.some node => (additionalReviewView session role node (project additional meaning))
+ | Option.some goal => (let attention : ReviewAttention := (nextAttention session);
+ (match (project attention node)
+ | Option.some node => (if (project attention additional) then (additionalReviewView session role node (project attention meaning)) else (reviewView session node role))
  | Option.none => (match (findFacet (project matter nodes) (project admitted references) "jurisdiction")
  | Option.none => (view session "jurisdiction" "Confirm the governing jurisdiction" "Identify the jurisdiction before connecting the facts to legal authority." 0 0 "" (nil String))
  | Option.some jurisdiction => (match (attentionAssessment (project (MatterInference::assessAll (project session rules) (project matter nodes) (project matter sources)) values))
  | Option.none => (view session "authority" "Connect the matter to governing authority" "A lawyer can review the relevant source, its conditions and exceptions, and the action it may support." 0 0 "" (nil String))
- | Option.some assessment => (assessmentView session assessment)))))))))),
+ | Option.some assessment => (assessmentView session assessment))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 

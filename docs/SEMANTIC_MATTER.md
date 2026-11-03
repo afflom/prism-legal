@@ -207,18 +207,35 @@ stale revisions, and over-bound input are refused. Corrupt replay does not
 return a partially accepted matter. A failed transaction preserves the complete
 previous session and journal.
 
-`MatterJourney` selects useful next context: intake, goal, one passage review,
-jurisdiction, authority, then strategy assessment. Pending legal conclusions
-appear as lawyer review tasks. Pending passages are prioritized by their learned
-facets' connections to unresolved rule conditions; ties retain source order.
+`MatterJourney` selects useful next context: intake, goal, one review task,
+jurisdiction, authority, then strategy assessment. The pending review and additional learned facets participate in a shared
+attention selection. Connections to unresolved conditions of current reviewed rules take
+priority. Distinct words and adjacent word pairs shared with the current goal
+break ties; remaining ties preserve source order and the existing pending-review
+precedence. No numeric tuning weights or remote inference service are used.
+Goal matching is bounded literal vocabulary attention, not evidence that a
+legal condition is satisfied. Editing or withdrawing the goal recomputes focus;
+only current admitted context contributes. Selection never accepts a fact.
 A supported strategy cannot hide an unresolved assessment from another rule.
 
-After pending passages are reviewed, the journey checks their original quotations
-for additional learned facets that have not yet been interpreted. It presents
-one such aspect at a time, prioritizing unresolved rule conditions. Accepting one
-field does not hide the other fields learned from the same passage. A withdrawn
-interpretation remains represented, so it does not become an endless review task.
-Withdrawing the only supporting training removes its pending suggestion.
+The journey checks reviewed passages' original quotations for additional learned
+facets that have not yet been interpreted. A relevant missing aspect can receive
+attention before an unrelated new passage. It presents one aspect at a time,
+using the same rule and goal priorities within a passage and between passages.
+Accepting one field does not hide other fields learned from the same passage.
+A withdrawn interpretation remains represented, so it does not become an endless
+review task. Withdrawing the only supporting training removes its suggestion.
+The overview and automatic review operation use the same attention selector.
+
+`MatterBatch` preserves node order while splitting traversal into groups of at
+most 32 nodes: at the 1,024-node matter limit, both traversal levels have at
+most 32 elements. Attention and meaning scans fold those groups without changing
+their candidate priorities. This is an execution bound, not an inference weight
+or a truncation limit: all nodes remain eligible, including the final cell of a
+maximum-size table. Candidate scoring and citation construction run outside the
+recursive traversal frames. Repeated represented facets are checked once per
+passage. These model changes keep nested review explanations within ordinary
+native test stacks.
 
 The existing review operation applies to the exact displayed passage. It can
 therefore review equal values at distinct source locations without an ambiguous
@@ -255,7 +272,7 @@ Historical interpretations show their source revision and original line, using
 the retained source bytes rather than the replacement resource's text.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 97 acceptance vectors. Unused help and
+controls, errors, empty states, and 107 acceptance vectors. The shorter opening and help sections leave more room for the active matter. Unused help and
 transport details are collapsed. Shorter field guidance and the neutral Continue
 action serve both review and read-only forms. Acceptance bytes are factored into
 closed byte aliases, preserving their exact values while reducing large inline
@@ -310,23 +327,27 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`2879d5a753f91d6986c7583fe09446f1f822b454b25a99802deea30012bc0193`
+`11f8c8ebf4097fde4f679ce3ff22d9a4acbebd9ed267f6d276234f4a1e332617`
 and semantic ID
-`ae95ac6943642eea130eff4302b7ebc3fdeef3da9960575c651450ccb2484816`
+`ac97fecc5340e7bf0b2f09f2fa0ead90e37240b49523172b20b5225c515ca71e`
 was emitted as build
-`f38a193460f906bb6db5e96bece6a4636a0adfb31747304eb5a62adcc8857c06`
+`8536c08bb1e1bf210082a7b82abcce35ce24f9564efeefbb0b264f291a7cb231`
 and passed LexLean verification with attestation
-`2e225e3b07694ae396e5e44b08d621a4759bd841b4fd3a41953c5d4e4f7e8de6`.
+`d45ec36bf07320c4bd7b3c8a48431050cd143d351296c3756c6e4d77d5334dd9`.
 
-The generated native library passes 71 tests across `behavior.rs` and
+The generated native library passes 79 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
 learned literal and joint-slot extraction, overlapping and ambiguous training,
 multiple facets, withdrawal, facet-rename impact, CSV quoting and byte provenance,
-column-aware learning, source replacement, large-table reconciliation, retained-version source inspection, and automatic passage pagination.
+column-aware learning, source replacement, large-table reconciliation, retained-version source inspection, automatic passage pagination, goal-relative attention, and unified additional-facet review.
 CSV boundaries exercise 8192 bytes and 1024 cells, including 1008 populated
-cells in both an empty matter and a matter with an existing legal rule. Native
+cells in both an empty matter and a matter with an existing legal rule. The
+boundary checks also select the last cell through a changed goal and render the
+review overview. A separate native core-session test reviews all 1,008 text passages before
+checking that no pending interpretation remains. This does not establish saved-file
+capacity: the current journal still admits at most 512 operations. Native
 tests retain their ordinary stack configuration; the recursive byte scan, node
 construction and matter reconciliation were refined in the model. No test stack
 limit was increased to conceal a failure.
@@ -339,7 +360,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 97 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 107 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -354,8 +375,8 @@ The source corpus also exercises a complete strategy lifecycle: reviewed authori
 
 The source corpus includes a 70,831-byte restore request containing nine imported
 resources. It exceeds the old portable transport limit and returns the exact
-accepted journal. The current 97-vector artifact passes native, Wasm and
-application-browser checks. Its portable gate has not been rerun. The preceding 82-vector artifact failed a local Chromium 154 diagnostic during file-session vectors at index 24 with `Network.getResponseBody: No data found for resource`; this is relevant to [PrismPM #67](https://github.com/UOR-Foundation/PrismPM/issues/67) and is not a pinned-browser result. The prior
+accepted journal. The current 107-vector artifact passes native, Wasm and
+application-browser checks. Its development Chromium 154 portable diagnostic failed during file-session vectors at index 18 (empty-file restoration), with the response-body-unavailable condition (`Network.getResponseBody: No data found for resource`). The response assertion was retained and this is not a pinned-browser attestation. The preceding 82-vector artifact failed a local Chromium 154 diagnostic during file-session vectors at index 24 with `Network.getResponseBody: No data found for resource`; this is relevant to [PrismPM #67](https://github.com/UOR-Foundation/PrismPM/issues/67) and is not a pinned-browser result. The prior
 40-vector and 34-vector artifacts' development portable-browser runs failed while
 reading a response through Playwright (`Network.getResponseBody: No data found
 for resource`). A diagnostic run of the prior 30-vector artifact also failed;

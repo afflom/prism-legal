@@ -94,7 +94,9 @@ definition{
 
 definition{
  name: reviewNext, parameters: [journal : String, session : MatterSession::Session, role : String, facet : String, interpretation : String], result: MatterJournal::JournalResult,
- body: (match (MatterJourney::nextReview session) | Option.none => (reviewAdditional journal session role facet interpretation) | Option.some node => (reviewNode journal session role facet interpretation node)),
+ body: (let attention : MatterJourney::ReviewAttention := (MatterJourney::nextAttention session);
+ (if (project attention additional) then (reviewAdditional journal session role facet interpretation) else
+ (match (project attention node) | Option.none => (failed journal session "no-pending-passage") | Option.some node => (reviewNode journal session role facet interpretation node)))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
