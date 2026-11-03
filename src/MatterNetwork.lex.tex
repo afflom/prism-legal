@@ -119,10 +119,23 @@ definition{
 }
 
 definition{
+ name: quotationFeatures, parameters: [citations : (List Matter::Citation)], result: MatterText::TextItems,
+ body: (match citations | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons citation rest =>
+ (appendFeatures (project (match (Foundation.Utf8::decode (project citation quote)) | Option.none => (record MatterText::TextItems {values := (nil String)}) | Option.some text => (features text)) values) (project (quotationFeatures rest) values))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
+}
+
+definition{
+ name: observationFeatures, parameters: [node : Matter::Node], result: MatterText::TextItems,
+ body: (MatterText::distinctWords (project (appendFeatures (project (features (project node value)) values) (project (quotationFeatures (project node citations)) values)) values)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
  name: trainLoop, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), network : NeuralModel], result: NeuralModel,
  body: (match nodes | List.nil => network | List.cons node rest =>
  (if ((Matter::containsReference admitted (Matter::nodeReference node)) && (not (prim equal (project node facet) "rule" : Bool))) then
- (trainLoop rest admitted (learnExample (project network neurons) node (project (features (project node value)) values))) else (trainLoop rest admitted network))),
+ (trainLoop rest admitted (learnExample (project network neurons) node (project (observationFeatures node) values))) else (trainLoop rest admitted network))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
 }
 

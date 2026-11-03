@@ -6,6 +6,7 @@
 \importmodule{MatterSession}
 \importmodule{MatterInference}
 \importmodule{MatterNetwork}
+\importmodule{MatterLanguage}
 \importmodule{MatterReview}
 \importmodule{MatterText}
 \importmodule{Foundation.Bytes}
@@ -39,15 +40,48 @@ definition{
 definition{
  name: pendingProposal, parameters: [nodes : (List Matter::Node), session : MatterSession::Session], result: (Option Matter::Node),
  body: (match nodes | List.nil => (ctor Option.none [Matter::Node]) | List.cons node rest =>
- (if ((not (project node accepted)) && ((match (project node origin) | Matter::Origin.Inferred => true | Matter::Origin.Extracted => false | Matter::Origin.Reviewed => false) &&
- ((MatterSession::ruleReviewSupported session node) && (Matter::allReferencesIn (project node dependencies) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references))))) then (ctor Option.some [Matter::Node] node) else (pendingProposal rest session))),
+ (if ((not (MatterSession::isWithdrawn (project session audit) node)) && ((not (project node accepted)) && ((match (project node origin) | Matter::Origin.Inferred => true | Matter::Origin.Extracted => false | Matter::Origin.Reviewed => false) &&
+ ((MatterSession::ruleReviewSupported session node) && (Matter::allReferencesIn (project node dependencies) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references)))))) then (ctor Option.some [Matter::Node] node) else (pendingProposal rest session))),
  executable: true, axioms: [propext], recursive_argument: nodes
 }
 
 definition{
+ name: unresolvedWeight, parameters: [requirements : (List MatterInference::Requirement), facet : String, nodes : (List Matter::Node), admitted : (List Matter::Reference)], result: Nat,
+ body: (match requirements | List.nil => 0 | List.cons requirement rest =>
+ ((if ((prim equal (project requirement facet) facet : Bool) && (match (MatterInference::support requirement nodes admitted) | Option.none => true | Option.some reference => false)) then 1 else 0) + (unresolvedWeight rest facet nodes admitted))),
+ executable: true, axioms: [], recursive_argument: requirements
+}
+
+definition{
+ name: questionRelevance, parameters: [rules : (List MatterInference::Rule), facet : String, nodes : (List Matter::Node), admitted : (List Matter::Reference)], result: Nat,
+ body: (match rules | List.nil => 0 | List.cons rule rest =>
+ ((if (MatterInference::ruleReady rule nodes admitted) then ((unresolvedWeight (project rule premises) facet nodes admitted) + (unresolvedWeight (project rule exceptions) facet nodes admitted)) else 0) + (questionRelevance rest facet nodes admitted))),
+ executable: true, axioms: [propext], recursive_argument: rules
+}
+
+structure{
+ name: ReviewFocus, type_parameters: [], parameters: [],
+ fields: [{name: node, type: (Option Matter::Node)}, {name: relevance, type: Nat}]
+}
+
+definition{
+ name: focusPending, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, network : MatterNetwork::NeuralModel, admitted : (List Matter::Reference), focus : ReviewFocus], result: ReviewFocus,
+ body: (match nodes | List.nil => focus | List.cons node rest =>
+ (focusPending rest session network admitted
+ (if ((not (MatterSession::isWithdrawn (project session audit) node)) && ((not (project node accepted)) && ((Matter::hasCitations (project node citations)) && (Matter::citationsCurrent (project (project session matter) sources) (project node citations))))) then
+ (let facet : String := (MatterNetwork::suggestedFacet (MatterNetwork::infer network (project node value)));
+ (let relevance : Nat := (questionRelevance (project session rules) facet (project (project session matter) nodes) admitted);
+ (if (match (project focus node) | Option.none => true | Option.some selected => (((project focus relevance) <? relevance) || ((relevance =? (project focus relevance)) && ((project node id) <? (project selected id))))) then
+ (record ReviewFocus {node := (ctor Option.some [Matter::Node] node), relevance := relevance}) else focus))) else focus))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
+}
+
+definition{
  name: nextReview, parameters: [session : MatterSession::Session], result: (Option Matter::Node),
- body: (match (pending (project (project session matter) nodes) (project (project session matter) sources)) | Option.some node => (ctor Option.some [Matter::Node] node) | Option.none => (pendingProposal (project (project session matter) nodes) session)),
- executable: true, axioms: [propext]
+ body: (let matter : Matter::State := (project session matter);
+ (let focused : ReviewFocus := (focusPending (project matter nodes) session (MatterNetwork::train (project matter nodes) (project matter sources)) (project (Matter::current (project matter nodes) (project matter sources)) references) (record ReviewFocus {node := (ctor Option.none [Matter::Node]), relevance := 0}));
+ (match (project focused node) | Option.some node => (ctor Option.some [Matter::Node] node) | Option.none => (pendingProposal (project matter nodes) session)))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
@@ -68,8 +102,11 @@ definition{
  name: reviewView, parameters: [session : MatterSession::Session, node : Matter::Node, role : MatterSession::Role], result: JourneyView,
  body: (let network : MatterNetwork::NeuralModel := (MatterNetwork::train (project (project session matter) nodes) (project (project session matter) sources));
  (let activation : MatterNetwork::Activation := (MatterNetwork::infer network (project node value));
- (view session "review" (match (project node origin) | Matter::Origin.Inferred => "Lawyer review: proposed conclusion" | Matter::Origin.Extracted => "Review this passage" | Matter::Origin.Reviewed => "Review this interpretation") (project node value) (project node id) 0 (MatterNetwork::suggestedFacet activation)
- (if (MatterSession::isLawyer role) then (project (sourceContext (project node citations)) values) else (nil String))))),
+ (let meaning : MatterLanguage::MeaningSuggestion := (MatterLanguage::inferMeaning (project (project session matter) nodes) (project (project session matter) sources) (project node value));
+ (let context : MatterText::TextItems := (if (MatterSession::isLawyer role) then (sourceContext (project node citations)) else (record MatterText::TextItems {values := (nil String)}));
+ (view session "review" (match (project node origin) | Matter::Origin.Inferred => "Lawyer review: proposed conclusion" | Matter::Origin.Extracted => "Review this passage" | Matter::Origin.Reviewed => "Review this interpretation") (project node value) (project node id) 0
+ (match (project node origin) | Matter::Origin.Inferred => (project node facet) | Matter::Origin.Reviewed => (project node facet) | Matter::Origin.Extracted => (if (MatterLanguage::usableMeaning meaning) then (project meaning facet) else (MatterNetwork::suggestedFacet activation)))
+ (prim append (project (MatterLanguage::meaningContext (project (project session matter) nodes) (project (project session matter) nodes) (project (project session matter) sources) (project node value) (nil String) 8) values) (project context values) : (List String))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -84,6 +121,16 @@ definition{
 }
 
 definition{
+ name: attentionAssessment, parameters: [assessments : (List MatterInference::Assessment)], result: (Option MatterInference::Assessment),
+ body: (match assessments | List.nil => (ctor Option.none [MatterInference::Assessment]) | List.cons assessment rest =>
+ (match (project assessment status) | MatterInference::ReasoningStatus.Inactive => (ctor Option.some [MatterInference::Assessment] assessment)
+ | MatterInference::ReasoningStatus.Missing => (ctor Option.some [MatterInference::Assessment] assessment)
+ | MatterInference::ReasoningStatus.Excepted => (ctor Option.some [MatterInference::Assessment] assessment)
+ | MatterInference::ReasoningStatus.Supported => (match (attentionAssessment rest) | Option.none => (ctor Option.some [MatterInference::Assessment] assessment) | Option.some following => (ctor Option.some [MatterInference::Assessment] following)))),
+ executable: true, axioms: [], recursive_argument: assessments
+}
+
+definition{
  name: overview, parameters: [session : MatterSession::Session, role : MatterSession::Role], result: JourneyView,
  body: (let matter : Matter::State := (project session matter);
  (let admitted : Matter::Admission := (Matter::current (project matter nodes) (project matter sources));
@@ -94,9 +141,9 @@ definition{
  | Option.some node => (reviewView session node role)
  | Option.none => (match (findFacet (project matter nodes) (project admitted references) "jurisdiction")
  | Option.none => (view session "jurisdiction" "Confirm the governing jurisdiction" "Identify the jurisdiction before connecting the facts to legal authority." 0 0 "" (nil String))
- | Option.some jurisdiction => (match (project session rules)
- | List.nil => (view session "authority" "Connect the matter to governing authority" "A lawyer can review the relevant source, its conditions and exceptions, and the action it may support." 0 0 "" (nil String))
- | List.cons rule rest => (assessmentView session (MatterInference::assess rule (project matter nodes) (project matter sources)))))))))),
+ | Option.some jurisdiction => (match (attentionAssessment (project (MatterInference::assessAll (project session rules) (project matter nodes) (project matter sources)) values))
+ | Option.none => (view session "authority" "Connect the matter to governing authority" "A lawyer can review the relevant source, its conditions and exceptions, and the action it may support." 0 0 "" (nil String))
+ | Option.some assessment => (assessmentView session assessment)))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 

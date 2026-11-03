@@ -152,3 +152,121 @@ fn lawyer_cannot_reaccept_a_conclusion_after_an_observed_exception() {
     assert_eq!(refused.code, "support-is-stale");
     assert_eq!(refused.session, session);
 }
+
+#[test]
+fn reviewed_source_language_extracts_new_values_without_inventing_labels() {
+    let s = accepted(ingest(&initial("Payment".into()), 0, Role::Client, "client".into(),
+        "Receipt".into(), b"Payment: 50 USD.\nPayment: 75 USD.".to_vec()).unwrap());
+    let s = accepted(review(&s, s.matter.revision, Role::Client, "client".into(),
+        Reference { id: 1, revision: 1 }, "payment.amount".into(), "50".into(), true).unwrap());
+    let learned = inferMeaning(&s.matter.nodes, &s.matter.sources, "Payment: 75 USD.".into()).unwrap();
+    assert!(usableMeaning(&learned));
+    assert_eq!((learned.facet.as_str(), learned.value.as_str()), ("payment.amount", "75"));
+    assert_eq!(learned.examples, vec![Reference { id: 1, revision: 2 }]);
+    let network = train(&s.matter.nodes, &s.matter.sources).unwrap();
+    assert_eq!(suggestedFacet(&infer(&network, "Payment: 125 USD.".into()).unwrap()), "payment.amount",
+        "the reviewed source vocabulary must train the facet, not just the normalized meaning 50");
+    assert!(!usableMeaning(&inferMeaning(&s.matter.nodes, &s.matter.sources, "Payment disputed: 75 USD.".into()).unwrap()));
+    assert!(transferMeaning("50".into(), "50".into(), "arbitrary".into()).unwrap().is_none(),
+        "an unanchored whole-value example cannot classify arbitrary new content");
+    assert!(transferMeaning("50 and 50".into(), "50".into(), "60 and 70".into()).unwrap().is_none());
+    let changed = accepted(review(&s, s.matter.revision, Role::Client, "client".into(),
+        Reference { id: 1, revision: 2 }, "payment.dispute".into(), "unverified".into(), true).unwrap());
+    assert!(!usableMeaning(&inferMeaning(&changed.matter.nodes, &changed.matter.sources, "Payment: 75 USD.".into()).unwrap()));
+}
+
+#[test]
+fn competing_reviewed_meanings_abstain_and_keep_their_provenance() {
+    let s = accepted(ingest(&initial("Ambiguity".into()), 0, Role::Client, "client".into(),
+        "Receipt".into(), b"Payment: 50 USD.".to_vec()).unwrap());
+    let s = accepted(review(&s, 1, Role::Client, "client".into(), Reference { id: 1, revision: 1 },
+        "payment.amount".into(), "50".into(), true).unwrap());
+    let s = accepted(annotate(&s, 2, Role::Client, "client".into(), Reference { id: 1, revision: 2 },
+        "claimed.amount".into(), "50".into()).unwrap());
+    let suggestion = inferMeaning(&s.matter.nodes, &s.matter.sources, "Payment: 75 USD.".into()).unwrap();
+    assert!(suggestion.matched && suggestion.ambiguous);
+    assert!(!usableMeaning(&suggestion));
+    assert_eq!(suggestion.examples.len(), 2);
+    assert_eq!(s.matter.nodes[0].citations, s.matter.nodes[1].citations);
+}
+
+#[test]
+fn a_lawyer_cannot_substitute_a_different_conclusion_under_old_support() {
+    let s = reviewed_matter();
+    let s = accepted(propose(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), s.rules[0].definition).unwrap());
+    let n = s.matter.nodes.iter().max_by_key(|n| n.id).unwrap();
+    for (facet, value) in [(n.facet.as_str(), "a different legal finding"), ("unrelated.conclusion", n.value.as_str())] {
+        let refused = review(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), nodeReference(n),
+            facet.into(), value.into(), true).unwrap();
+        assert_eq!(refused.code, "support-is-stale");
+        assert_eq!(refused.session, s);
+    }
+}
+
+#[test]
+fn withdrawing_one_interpretation_retains_other_facets_and_does_not_requeue_it() {
+    let s = accepted(ingest(&initial("Review".into()), 0, Role::Client, "client".into(),
+        "Receipt".into(), b"Amount: 50; date: Monday.".to_vec()).unwrap());
+    let s = accepted(review(&s, 1, Role::Client, "client".into(), Reference { id: 1, revision: 1 },
+        "amount".into(), "50".into(), true).unwrap());
+    let s = accepted(annotate(&s, 2, Role::Client, "client".into(), Reference { id: 1, revision: 2 },
+        "date".into(), "Monday".into()).unwrap());
+    let s = accepted(withdraw(&s, 3, Role::Client, "client".into(), Reference { id: 2, revision: 1 }).unwrap());
+    let s = accepted(ingest(&s, 4, Role::Client, "client".into(), "Another source".into(), b"New context".to_vec()).unwrap());
+    let withdrawn = s.matter.nodes.iter().find(|n| n.id == 2).unwrap();
+    assert!(isWithdrawn(&s.audit, withdrawn), "source IDs and node IDs share a number space but not audit identity");
+    assert_eq!(nextReview(&s).unwrap().unwrap().value, "New context");
+    assert_eq!(current(&s.matter.nodes, &s.matter.sources).unwrap().references, vec![Reference { id: 1, revision: 2 }]);
+    assert_eq!(s.matter.changes[0].before.value, "Monday");
+    assert!(!s.matter.changes[0].after.accepted);
+}
+
+#[test]
+fn impact_follows_new_exception_edges_as_well_as_existing_support_references() {
+    let s = reviewed_matter();
+    let s = accepted(propose(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), s.rules[0].definition).unwrap());
+    let conclusion = s.matter.nodes.iter().max_by_key(|n| n.id).unwrap().clone();
+    let s = accepted(review(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), nodeReference(&conclusion),
+        conclusion.facet, conclusion.value, true).unwrap());
+    let s = assert_fact(&s, "notice.withdrawal", "withdrawn");
+    let affected = latestImpact(&s).unwrap().references;
+    assert!(affected.iter().any(|r| r.id == s.rules[0].definition.id));
+    assert!(affected.iter().any(|r| r.id == conclusion.id));
+    assert!(!affected.iter().any(|r| r.id == node_ref(&s, "goal").id), "consequences do not invalidate their upstream goal");
+}
+
+#[test]
+fn pending_source_attention_follows_unresolved_matter_conditions() {
+    let s = reviewed_matter();
+    let s = accepted(ingest(&s, s.matter.revision, Role::Client, "client".into(), "Status".into(), b"Case status: pending".to_vec()).unwrap());
+    let status = s.matter.nodes.iter().max_by_key(|n| n.id).unwrap();
+    let s = accepted(review(&s, s.matter.revision, Role::Client, "client".into(), nodeReference(status),
+        "case.status".into(), "pending".into(), true).unwrap());
+    let mut rule = s.rules[0].clone(); rule.definition = Reference { id: 0, revision: 0 };
+    rule.premises = vec![Requirement { facet: "case.status".into(), value: "confirmed".into(), question: "Has the status been confirmed?".into() }];
+    let s = accepted(commitRule(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), &rule).unwrap());
+    let s = accepted(ingest(&s, s.matter.revision, Role::Client, "client".into(), "Update".into(),
+        b"Unrelated context\nCase status: confirmed".to_vec()).unwrap());
+    assert_eq!(nextReview(&s).unwrap().unwrap().value, "Case status: confirmed");
+    let selected = attentionAssessment(&assessAll(&s.rules, &s.matter.nodes, &s.matter.sources).unwrap().values).unwrap();
+    assert_eq!(selected.status, ReasoningStatus::Missing);
+}
+
+#[test]
+fn one_passage_can_supply_separate_facets_without_cross_facet_ambiguity() {
+    let s = accepted(ingest(&initial("Receipt".into()), 0, Role::Client, "client".into(), "Receipt".into(), b"Amount: 50; day: Monday.".to_vec()).unwrap());
+    let s = accepted(review(&s, 1, Role::Client, "client".into(), Reference { id: 1, revision: 1 }, "amount".into(), "50".into(), true).unwrap());
+    let s = accepted(annotate(&s, 2, Role::Client, "client".into(), Reference { id: 1, revision: 2 }, "day".into(), "Monday".into()).unwrap());
+    for (facet, text, expected) in [("amount", "Amount: 75; day: Monday.", "75"), ("day", "Amount: 50; day: Tuesday.", "Tuesday")] {
+        let candidate = inferFacetMeaning(&s.matter.nodes, &s.matter.sources, text.into(), facet.into()).unwrap();
+        assert!(usableMeaning(&candidate));
+        assert_eq!(candidate.value, expected);
+        assert_eq!(candidate.examples.len(), 1);
+    }
+    let candidate = inferFacetMeaning(&s.matter.nodes, &s.matter.sources, "Amount: 75; day: Tuesday.".into(), "amount".into()).unwrap();
+    assert!(!usableMeaning(&candidate), "unreviewed changes to the anchor must abstain");
+    let s = accepted(annotate(&s, 3, Role::Client, "client".into(), Reference { id: 1, revision: 2 }, "amount".into(), "not confirmed".into()).unwrap());
+    let candidate = inferFacetMeaning(&s.matter.nodes, &s.matter.sources, "Amount: 50; day: Monday.".into(), "amount".into()).unwrap();
+    assert!(candidate.ambiguous);
+    assert_eq!(candidate.examples.len(), 2);
+}

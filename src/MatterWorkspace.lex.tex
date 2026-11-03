@@ -6,6 +6,8 @@
 \importmodule{MatterSession}
 \importmodule{MatterInference}
 \importmodule{MatterNetwork}
+\importmodule{MatterLanguage}
+\importmodule{MatterContext}
 \importmodule{MatterJourney}
 \importmodule{MatterJournal}
 \importmodule{MatterText}
@@ -63,9 +65,17 @@ definition{
  name: reviewNext, parameters: [journal : String, session : MatterSession::Session, role : String, facet : String, interpretation : String], result: MatterJournal::JournalResult,
  body: (match (MatterJourney::nextReview session)
  | Option.none => (failed journal session "no-pending-passage")
- | Option.some node => (commit journal session "review" role
+ | Option.some node => (let meaning : MatterLanguage::MeaningSuggestion := (MatterLanguage::inferMeaning (project (project session matter) nodes) (project (project session matter) sources) (project node value));
+ (let selectedFacet : String := (if (not (prim equal facet "" : Bool)) then facet else
+ (match (project node origin) | Matter::Origin.Inferred => (project node facet) | Matter::Origin.Reviewed => (project node facet) | Matter::Origin.Extracted =>
+ (if (MatterLanguage::usableMeaning meaning) then (project meaning facet) else (MatterNetwork::suggestedFacet (MatterNetwork::infer (MatterNetwork::train (project (project session matter) nodes) (project (project session matter) sources)) (project node value))))));
+ (let specificMeaning : MatterLanguage::MeaningSuggestion := (MatterLanguage::inferFacetMeaning (project (project session matter) nodes) (project (project session matter) sources) (project node value) selectedFacet);
+ (let selectedValue : String := (if (not (prim equal interpretation "" : Bool)) then interpretation else
+ (if (MatterLanguage::usableMeaning specificMeaning) then (project specificMeaning value) else (project node value)));
+ (if ((prim equal interpretation "" : Bool) && (project specificMeaning ambiguous)) then (failed journal session "ambiguous-meaning") else
+ (commit journal session "review" role
  (cons (MatterText::decimalLoop 20 (project node id)) (cons (MatterText::decimalLoop 20 (project node revision))
- (cons facet (cons (if (prim equal interpretation "" : Bool) then (project node value) else interpretation) (cons "true" (nil String)))))))),
+ (cons selectedFacet (cons selectedValue (cons "true" (nil String))))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -230,11 +240,51 @@ definition{
 }
 
 definition{
- name: workspaceView, parameters: [operation : String, journal : String, view : MatterJourney::JourneyView], result: Bytes,
- body: (MatterWire::reportState "ok" operation (displayText (project view heading)) 0 0 (nil String)
+ name: prepareForm, parameters: [operation : String, role : MatterSession::Role, values : (List String)], result: String,
+ body: (MatterText::concat operation (MatterText::concat "\u001f" (MatterJournal::encodeJournalFields
+ (cons "" (cons (match role | MatterSession::Role.Client => "client" | MatterSession::Role.Lawyer => "lawyer" | MatterSession::Role.Reader => "client") values))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: missingFacet, parameters: [requirements : (List MatterInference::Requirement), nodes : (List Matter::Node), admitted : (List Matter::Reference)], result: String,
+ body: (match requirements | List.nil => "" | List.cons requirement rest =>
+ (match (MatterInference::support requirement nodes admitted) | Option.none => (project requirement facet) | Option.some reference => (missingFacet rest nodes admitted))),
+ executable: true, axioms: [], recursive_argument: requirements
+}
+
+definition{
+ name: nextStep, parameters: [session : MatterSession::Session, role : MatterSession::Role, view : MatterJourney::JourneyView], result: String,
+ body: (let stage : String := (project view stage);
+ (let admitted : Matter::Admission := (Matter::current (project (project session matter) nodes) (project (project session matter) sources));
+ (if (prim equal stage "intake" : Bool) then (prepareForm "ingest" role (cons "" (cons "" (nil String)))) else
+ (if (prim equal stage "goal" : Bool) then (prepareForm "goal" role (cons "" (nil String))) else
+ (if (prim equal stage "jurisdiction" : Bool) then (prepareForm "jurisdiction" role (cons "" (nil String))) else
+ (if (prim equal stage "review" : Bool) then
+ (match (Matter::findNode (project (project session matter) nodes) (project view node)) | Option.none => "" | Option.some node =>
+ (if ((match (project node origin) | Matter::Origin.Inferred => true | Matter::Origin.Reviewed => false | Matter::Origin.Extracted => false) && (not (MatterSession::isLawyer role))) then "" else
+ (prepareForm "review" role (cons (project view suggestion) (cons "" (nil String)))))) else
+ (if (prim equal stage "question" : Bool) then
+ (match (MatterSession::findRule (project session rules) (project view rule)) | Option.none => "" | Option.some rule =>
+ (prepareForm "assertion" role (cons (missingFacet (project rule premises) (project (project session matter) nodes) (project admitted references)) (cons "" (nil String))))) else
+ (if (prim equal stage "strategy" : Bool) then
+ (match (MatterSession::findRule (project session rules) (project view rule)) | Option.none => "" | Option.some rule => (prepareForm "strategy" role (cons (project rule action) (nil String)))) else
+ (if (prim equal stage "exception" : Bool) then (prepareForm "impact" role (cons "1" (nil String))) else
+ (if (prim equal stage "authority" : Bool) then
+ (if (not (MatterSession::isLawyer role)) then "" else
+ (if (0 <? (project view rule)) then (prepareForm "strategies" role (cons "1" (nil String))) else
+ (match (MatterJourney::findFacet (project (project session matter) nodes) (project admitted references) "authority")
+ | Option.none => (prepareForm "ingest" role (cons "" (cons "" (nil String))))
+ | Option.some authority => (prepareForm "rule" role (cons (project authority value) (cons "" (cons "" (cons "" (cons "" (nil String)))))))))) else "")))))))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: workspaceView, parameters: [operation : String, journal : String, view : MatterJourney::JourneyView, session : MatterSession::Session, role : MatterSession::Role], result: Bytes,
+ body: (MatterWire::reportNext "ok" operation (displayText (project view heading)) 0 0 (nil String)
  (cons (displayText (project view explanation))
  (if (prim equal (project view suggestion) "" : Bool) then (project (displayItems (project view context)) values) else
- (cons (MatterText::concat "Suggested interpretation: " (displayText (project view suggestion))) (project (displayItems (project view context)) values)))) "" journal),
+ (cons (MatterText::concat "Suggested facet: " (displayText (project view suggestion))) (project (displayItems (project view context)) values)))) "" journal (nextStep session role view)),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -248,7 +298,7 @@ definition{
  name: finishChange, parameters: [operation : String, original : String, result : MatterJournal::JournalResult, role : MatterSession::Role], result: Bytes,
  body: (if (prim equal (project result code) "" : Bool) then
  (if (1048576 <? (Foundation.Bytes::byteLength (Foundation.Utf8::encode (project result journal)))) then (workspaceError operation "limit" original) else
- (workspaceView operation (project result journal) (MatterJourney::overview (project result session) role))) else (workspaceError operation (errorClass (project result code)) original)),
+ (workspaceView operation (project result journal) (MatterJourney::overview (project result session) role) (project result session) role)) else (workspaceError operation (errorClass (project result code)) original)),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -276,9 +326,18 @@ definition{
 }
 
 definition{
+ name: alterInterpretation, parameters: [journal : String, session : MatterSession::Session, operation : String, role : String, fields : (List String)], result: MatterJournal::JournalResult,
+ body: (match (uniqueNode session (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) | Option.none => (failed journal session "ambiguous-selection") | Option.some node =>
+ (commit journal session operation role (cons (MatterText::decimalLoop 20 (project node id)) (cons (MatterText::decimalLoop 20 (project node revision))
+ (if (prim equal operation "withdraw" : Bool) then (nil String) else (cons (MatterJournal::fieldAt fields 4) (cons (MatterJournal::fieldAt fields 5) (nil String)))))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
  name: changeFields, parameters: [operation : String, fields : (List String), journal : String, session : MatterSession::Session, role : String], result: MatterJournal::JournalResult,
  body: (let count : Nat := (MatterText::wordCount fields);
- (if ((prim equal operation "revise-rule" : Bool) && (count =? 8)) then (reviseRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6) (MatterJournal::fieldAt fields 7)) else  (if ((prim equal operation "ingest" : Bool) && (count =? 4)) then (commit journal session "ingest" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "review" : Bool) && (count =? 4)) then (reviewNext journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (if ((prim equal operation "edit" : Bool) && (count =? 5)) then (editValue journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4)) else (if ((prim equal operation "goal" : Bool) && (count =? 3)) then (setContext journal session role "goal" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "jurisdiction" : Bool) && (count =? 3)) then (setContext journal session role "jurisdiction" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "assertion" : Bool) && (count =? 4)) then (commit journal session "assert" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "rule" : Bool) && (count =? 7)) then (addRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6)) else (if ((prim equal operation "replace-source" : Bool) && (count =? 4)) then (replaceResource journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (if ((prim equal operation "propose" : Bool) && (count =? 3)) then (match (selectedRule (project session rules) (MatterJournal::fieldAt fields 2)) | Option.none => (failed journal session "select-rule") | Option.some rule => (commit journal session "propose" role (project (referenceFields (project rule definition)) values))) else (failed journal session "command-shape")))))))))))),
+ (if (((prim equal operation "annotate" : Bool) && (count =? 6)) || ((prim equal operation "withdraw" : Bool) && (count =? 4))) then (alterInterpretation journal session operation role fields) else
+ (if ((prim equal operation "revise-rule" : Bool) && (count =? 8)) then (reviseRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6) (MatterJournal::fieldAt fields 7)) else  (if ((prim equal operation "ingest" : Bool) && (count =? 4)) then (commit journal session "ingest" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "review" : Bool) && (count =? 4)) then (reviewNext journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (if ((prim equal operation "edit" : Bool) && (count =? 5)) then (editValue journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4)) else (if ((prim equal operation "goal" : Bool) && (count =? 3)) then (setContext journal session role "goal" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "jurisdiction" : Bool) && (count =? 3)) then (setContext journal session role "jurisdiction" (MatterJournal::fieldAt fields 2)) else (if ((prim equal operation "assertion" : Bool) && (count =? 4)) then (commit journal session "assert" role (cons (MatterJournal::fieldAt fields 2) (cons (MatterJournal::fieldAt fields 3) (nil String)))) else (if ((prim equal operation "rule" : Bool) && (count =? 7)) then (addRule journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3) (MatterJournal::fieldAt fields 4) (MatterJournal::fieldAt fields 5) (MatterJournal::fieldAt fields 6)) else (if ((prim equal operation "replace-source" : Bool) && (count =? 4)) then (replaceResource journal session role (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (if ((prim equal operation "propose" : Bool) && (count =? 3)) then (match (selectedRule (project session rules) (MatterJournal::fieldAt fields 2)) | Option.none => (failed journal session "select-rule") | Option.some rule => (commit journal session "propose" role (project (referenceFields (project rule definition)) values))) else (failed journal session "command-shape"))))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -307,12 +366,12 @@ definition{
 }
 
 definition{
- name: facetPage, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), facet : String, role : MatterSession::Role, skip : Nat, fuel : Nat], result: MatterText::TextItems,
+ name: facetPage, parameters: [nodes : (List Matter::Node), audit : (List MatterSession::AuditEntry), admitted : (List Matter::Reference), facet : String, role : MatterSession::Role, skip : Nat, fuel : Nat], result: MatterText::TextItems,
  body: (match nodes | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons node rest =>
- (if (not (prim equal (project node facet) facet : Bool)) then (facetPage rest admitted facet role skip fuel) else
- (match skip | Nat.succ remaining => (facetPage rest admitted facet role remaining fuel) | Nat.zero =>
+ (if (not (prim equal (project node facet) facet : Bool)) then (facetPage rest audit admitted facet role skip fuel) else
+ (match skip | Nat.succ remaining => (facetPage rest audit admitted facet role remaining fuel) | Nat.zero =>
  (match fuel | Nat.zero => (record MatterText::TextItems {values := (nil String)}) | Nat.succ remaining =>
- (record MatterText::TextItems {values := (cons (displayText (prim join (cons (if (Matter::containsReference admitted (Matter::nodeReference node)) then "Current interpretation: " else "Needs review: ") (cons (project node value) (cons (if (MatterSession::isLawyer role) then (MatterText::concat " — " (prim join (project (MatterJourney::sourceContext (project node citations)) values) "; " : String)) else "") (nil String)))) "" : String)) (project (facetPage rest admitted facet role 0 remaining) values))}))))),
+ (record MatterText::TextItems {values := (cons (displayText (prim join (cons (if (Matter::containsReference admitted (Matter::nodeReference node)) then "Current interpretation: " else (if (MatterSession::isWithdrawn audit node) then "Withdrawn: " else "Needs review: ")) (cons (project node value) (cons (if (MatterSession::isLawyer role) then (MatterText::concat " — " (prim join (project (MatterJourney::sourceContext (project node citations)) values) "; " : String)) else "") (nil String)))) "" : String)) (project (facetPage rest audit admitted facet role 0 remaining) values))}))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
 }
 
@@ -322,9 +381,22 @@ definition{
  (if ((number =? 0) || (128 <? number)) then (workspaceError operation "request" journal) else
  (let skip : Nat := (prim multiply (prim subtract number 1 : Nat) 8 : Nat);
  (let items : MatterText::TextItems := (if (prim equal facet "" : Bool) then (itemPage (project (facetNames (project (project session matter) nodes)) values) skip 8) else
- (facetPage (project (project session matter) nodes) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references) facet role skip 8));
+ (facetPage (project (project session matter) nodes) (project session audit) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references) facet role skip 8));
  (MatterWire::reportState "ok" operation (if (prim equal facet "" : Bool) then "Choose an aspect to inspect" else (MatterText::concat "Matter context: " (displayText facet))) 0 0 (nil String)
  (match (project items values) | List.nil => (cons "There are no items on this page. Review a source or return to an earlier page." (nil String)) | List.cons first rest => (project items values)) "" journal))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: relatedContext, parameters: [operation : String, journal : String, session : MatterSession::Session, page : String], result: Bytes,
+ body: (match (MatterJournal::natural page) | Option.none => (workspaceError operation "request" journal) | Option.some number =>
+ (if ((number =? 0) || (128 <? number)) then (workspaceError operation "request" journal) else
+ (let all : MatterText::TextItems := (if (prim equal operation "impact" : Bool) then
+ (MatterContext::impactText (project (MatterContext::latestImpact session) references) session (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references)) else
+ (MatterContext::strategyIndex (project (MatterInference::assessAll (project session rules) (project (project session matter) nodes) (project (project session matter) sources)) values)));
+ (let items : MatterText::TextItems := (itemPage (project all values) (prim multiply (prim subtract number 1 : Nat) 8 : Nat) 8);
+ (MatterWire::reportState "ok" operation (if (prim equal operation "impact" : Bool) then "How the last change connects" else "Strategies in this matter") 0 0 (nil String)
+ (match (project items values) | List.nil => (cons "There are no items on this page." (nil String)) | List.cons first rest => (project (displayItems (project items values)) values)) "" journal))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -334,12 +406,13 @@ definition{
  (if (not (prim equal (project restored code) "" : Bool)) then (workspaceError operation "journal" journal) else
  (let session : MatterSession::Session := (project restored session);
  (if (prim equal operation "restore" : Bool) then
- (if ((MatterText::wordCount fields) =? 1) then (workspaceView operation journal (MatterJourney::overview session (ctor MatterSession::Role.Client))) else (workspaceError operation "request" journal)) else
+ (if ((MatterText::wordCount fields) =? 1) then (workspaceView operation journal (MatterJourney::overview session (ctor MatterSession::Role.Client)) session (ctor MatterSession::Role.Client)) else (workspaceError operation "request" journal)) else
  (let role : String := (MatterJournal::fieldAt fields 1);
  (if (not ((prim equal role "client" : Bool) || (prim equal role "lawyer" : Bool))) then (workspaceError operation "role" journal) else (let audience : MatterSession::Role := (MatterJournal::roleField role);
- (if (((prim equal operation "overview" : Bool) || (prim equal operation "raw" : Bool)) && ((MatterText::wordCount fields) =? 2)) then (workspaceView operation journal (MatterJourney::overview session audience)) else
+ (if (((prim equal operation "overview" : Bool) || (prim equal operation "raw" : Bool)) && ((MatterText::wordCount fields) =? 2)) then (workspaceView operation journal (MatterJourney::overview session audience) session audience) else
+ (if (((prim equal operation "impact" : Bool) || (prim equal operation "strategies" : Bool)) && ((MatterText::wordCount fields) =? 3)) then (relatedContext operation journal session (MatterJournal::fieldAt fields 2)) else
  (if ((prim equal operation "strategy" : Bool) && ((MatterText::wordCount fields) =? 3)) then (strategyView operation journal session (MatterJournal::fieldAt fields 2)) else
- (if ((prim equal operation "inspect" : Bool) && ((MatterText::wordCount fields) =? 4)) then (inspectFacet operation journal session audience (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (finishChange operation journal (changeFields operation fields journal session role) audience))))))))))),
+ (if ((prim equal operation "inspect" : Bool) && ((MatterText::wordCount fields) =? 4)) then (inspectFacet operation journal session audience (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (finishChange operation journal (changeFields operation fields journal session role) audience)))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -351,7 +424,7 @@ definition{
  (if ((MatterText::wordCount fields) =? 2) then
  (let title : String := (MatterJournal::fieldAt fields 1);
  (if (MatterSession::boundedText title 256) then
- (workspaceView operation (MatterJournal::initialJournal title) (MatterJourney::overview (MatterSession::initial title) (ctor MatterSession::Role.Client))) else (workspaceError operation "request" journal))) else (workspaceError operation "request" journal))) else
+ (workspaceView operation (MatterJournal::initialJournal title) (MatterJourney::overview (MatterSession::initial title) (ctor MatterSession::Role.Client)) (MatterSession::initial title) (ctor MatterSession::Role.Client)) else (workspaceError operation "request" journal))) else (workspaceError operation "request" journal))) else
  (if (prim equal journal "" : Bool) then (workspaceError operation "no-matter" "") else (existingFields operation fields journal)))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }

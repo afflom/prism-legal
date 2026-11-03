@@ -40,7 +40,12 @@ runs:
         runner_gid=$(id -g)
         trap 'sudo chown -R "$runner_uid:$runner_gid" "$GITHUB_WORKSPACE"' EXIT
         sudo chown -R 1000:1000 "$GITHUB_WORKSPACE"
-        docker run --rm --user 0 \
+        docker run --rm --user 0 --entrypoint /bin/bash \
           --volume "$GITHUB_WORKSPACE:/workspace" --workdir /workspace \
           --env CARGO_TARGET_DIR=/workspace/.toolchain/target \
-          "$PRISM_SDK_IMAGE" bash tools/verify_matter.sh
+          "$PRISM_SDK_IMAGE" -euc '
+            # This older immutable image lacks the source-pinned browser input.
+            # The SDK installer verifies the archive and every extracted member.
+            python3 -B .toolchain/prismpm/sdk/browser-engine/install.py --architecture amd64
+            exec sh .toolchain/prismpm/sdk/devcontainer-init.sh bash tools/verify_matter.sh
+          '

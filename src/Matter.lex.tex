@@ -164,10 +164,17 @@ definition{
 
 
 definition{
+  name: referencesEqual, parameters: [left : (List Reference), right : (List Reference)], result: Bool,
+  body: (match left | List.nil => (match right | List.nil => true | List.cons item rest => false)
+    | List.cons item rest => (match right | List.nil => false | List.cons other following => ((referenceEq item other) && (referencesEqual rest following)))),
+  executable: true, recursive_argument: left
+}
+
+definition{
   name: closure, parameters: [fuel : Nat, nodes : (List Node), sources : (List Source), known : Admission], result: Admission,
   body: (match fuel
     | Nat.zero => known
-    | Nat.succ remaining => (closure remaining nodes sources (admitRound nodes sources (project known references)))),
+    | Nat.succ remaining => (let next : Admission := (admitRound nodes sources (project known references)); (if (referencesEqual (project known references) (project next references)) then next else (closure remaining nodes sources next)))),
   recursive_argument: fuel,
   executable: true
 }

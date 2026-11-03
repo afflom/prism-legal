@@ -1,0 +1,98 @@
+\begin{lexlean}{MatterContext}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Matter}
+\importmodule{MatterSession}
+\importmodule{MatterInference}
+\importmodule{MatterJourney}
+\importmodule{MatterText}
+\title{Text application model}
+\begin{semanticmodule}
+definition{
+ name: referenceIdPresent, parameters: [known : (List Matter::Reference), identifier : Nat], result: Bool,
+ body: (match known | List.nil => false | List.cons reference rest => (((project reference id) =? identifier) || (referenceIdPresent rest identifier))),
+ executable: true, axioms: [], recursive_argument: known
+}
+
+definition{
+ name: touchesReferences, parameters: [dependencies : (List Matter::Reference), known : (List Matter::Reference)], result: Bool,
+ body: (match dependencies | List.nil => false | List.cons reference rest => ((referenceIdPresent known (project reference id)) || (touchesReferences rest known))),
+ executable: true, axioms: [], recursive_argument: dependencies
+}
+
+definition{
+ name: citesResource, parameters: [citations : (List Matter::Citation), identifier : Nat], result: Bool,
+ body: (match citations | List.nil => false | List.cons citation rest => (((project citation source) =? identifier) || (citesResource rest identifier))),
+ executable: true, axioms: [], recursive_argument: citations
+}
+
+definition{
+ name: impactSeeds, parameters: [nodes : (List Matter::Node), target : Nat, resource : Bool], result: Matter::Admission,
+ body: (match nodes | List.nil => (record Matter::Admission {references := (nil Matter::Reference)}) | List.cons node rest =>
+ (let following : Matter::Admission := (impactSeeds rest target resource);
+ (if (if resource then (citesResource (project node citations) target) else ((project node id) =? target)) then
+ (record Matter::Admission {references := (cons (Matter::nodeReference node) (project following references))}) else following))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: facetTouched, parameters: [nodes : (List Matter::Node), known : (List Matter::Reference), facet : String], result: Bool,
+ body: (match nodes | List.nil => false | List.cons node rest =>
+ (((referenceIdPresent known (project node id)) && (prim equal (project node facet) facet : Bool)) || (facetTouched rest known facet))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: requirementsTouched, parameters: [requirements : (List MatterInference::Requirement), nodes : (List Matter::Node), known : (List Matter::Reference)], result: Bool,
+ body: (match requirements | List.nil => false | List.cons requirement rest => ((facetTouched nodes known (project requirement facet)) || (requirementsTouched rest nodes known))),
+ executable: true, axioms: [], recursive_argument: requirements
+}
+
+definition{
+ name: impactRound, parameters: [nodes : (List Matter::Node), rules : (List MatterInference::Rule), allNodes : (List Matter::Node), known : (List Matter::Reference)], result: Matter::Admission,
+ body: (match nodes | List.nil => (record Matter::Admission {references := (nil Matter::Reference)}) | List.cons node rest =>
+ (let following : Matter::Admission := (impactRound rest rules allNodes known);
+ (if ((referenceIdPresent known (project node id)) || ((touchesReferences (project node dependencies) known) || (match (MatterSession::findRule rules (project node id)) | Option.none => false | Option.some rule => ((requirementsTouched (project rule premises) allNodes known) || (requirementsTouched (project rule exceptions) allNodes known))))) then
+ (record Matter::Admission {references := (cons (Matter::nodeReference node) (project following references))}) else following))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: impactClosure, parameters: [fuel : Nat, nodes : (List Matter::Node), rules : (List MatterInference::Rule), known : Matter::Admission], result: Matter::Admission,
+ body: (match fuel | Nat.zero => known | Nat.succ remaining =>
+ (let next : Matter::Admission := (impactRound nodes rules nodes (project known references));
+ (if (Matter::referencesEqual (project known references) (project next references)) then next else (impactClosure remaining nodes rules next)))),
+ executable: true, axioms: [], recursive_argument: fuel
+}
+
+definition{
+ name: latestImpact, parameters: [session : MatterSession::Session], result: Matter::Admission,
+ body: (match (project session audit) | List.nil => (record Matter::Admission {references := (nil Matter::Reference)}) | List.cons entry rest =>
+ (let nodes : (List Matter::Node) := (project (project session matter) nodes);
+ (impactClosure (Matter::nodeCount nodes) nodes (project session rules) (impactSeeds nodes (project entry target) ((prim equal (project entry operation) "ingest" : Bool) || (prim equal (project entry operation) "revise-source" : Bool)))))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: impactText, parameters: [references : (List Matter::Reference), session : MatterSession::Session, admitted : (List Matter::Reference)], result: MatterText::TextItems,
+ body: (match references | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons reference rest =>
+ (let following : MatterText::TextItems := (impactText rest session admitted);
+ (match (Matter::findNode (project (project session matter) nodes) (project reference id)) | Option.none => following | Option.some node =>
+ (record MatterText::TextItems {values := (cons (prim join
+ (cons (if (MatterSession::isWithdrawn (project session audit) node) then "Withdrawn: " else (if (Matter::containsReference admitted reference) then "Current: " else "Needs review: "))
+ (cons (project node facet) (cons " — " (cons (if (prim equal (project node facet) "rule" : Bool) then
+ (match (MatterSession::findRule (project session rules) (project node id)) | Option.none => "Rule unavailable" | Option.some rule => (project rule action)) else (project node value)) (nil String))))) "" : String) (project following values))})))),
+ executable: true, axioms: [propext], recursive_argument: references
+}
+
+definition{
+ name: strategyIndex, parameters: [assessments : (List MatterInference::Assessment)], result: MatterText::TextItems,
+ body: (match assessments | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons assessment rest =>
+ (record MatterText::TextItems {values := (cons (prim join
+ (cons (match (project assessment status) | MatterInference::ReasoningStatus.Supported => "Supported proposal: " | MatterInference::ReasoningStatus.Missing => "Open conditions: " | MatterInference::ReasoningStatus.Excepted => "Exception applies: " | MatterInference::ReasoningStatus.Inactive => "Basis needs review: ")
+ (cons (project assessment action) (nil String))) "" : String) (project (strategyIndex rest) values))})),
+ executable: true, axioms: [propext], recursive_argument: assessments
+}
+\end{semanticmodule}
+\end{lexlean}

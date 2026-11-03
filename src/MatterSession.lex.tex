@@ -245,6 +245,14 @@ definition{
 }
 
 definition{
+ name: conclusionMatches, parameters: [session : Session, node : Matter::Node, facet : String, value : String], result: Bool,
+ body: (match (project node dependencies) | List.nil => true | List.cons dependency rest =>
+ (match (findRule (project session rules) (project dependency id)) | Option.none => true | Option.some rule =>
+ ((prim equal facet (project rule conclusionFacet) : Bool) && (prim equal value (project rule conclusionValue) : Bool)))),
+ executable: true, axioms: []
+}
+
+definition{
  name: review, parameters: [session : Session, expected : Nat, role : Role, actor : String, reference : Matter::Reference, facet : String, value : String, accepted : Bool], result: Outcome,
  body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
  (match (Matter::findNode (project (project session matter) nodes) (project reference id))
@@ -252,11 +260,46 @@ definition{
  | Option.some previous => (if ((prim equal facet "rule" : Bool) || (prim equal (project previous facet) "rule" : Bool)) then (refuse session "use-rule-review") else
  (if (((privileged facet) || ((privileged (project previous facet)) || (match (project previous dependencies) | List.nil => false | List.cons dependency remaining => (match (findRule (project session rules) (project dependency id)) | Option.none => false | Option.some linkedRule => true)))) && (not (isLawyer role))) then (refuse session "lawyer-review-required") else
  (if (not ((boundedText facet 128) && (boundedText value 8192))) then (refuse session "review-facet-or-value") else
- (if (accepted && (not ((ruleReviewSupported session previous) && ((Matter::citationsCurrent (project (project session matter) sources) (project previous citations)) && (Matter::allReferencesIn (project previous dependencies) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references)))))) then (refuse session "support-is-stale") else
+ (if (accepted && (not ((conclusionMatches session previous facet value) && ((ruleReviewSupported session previous) && ((Matter::citationsCurrent (project (project session matter) sources) (project previous citations)) && (Matter::allReferencesIn (project previous dependencies) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references))))))) then (refuse session "support-is-stale") else
  (match (Matter::commitEdit (project session matter) expected reference facet value accepted)
  | Option.none => (refuse session "node-conflict")
  | Option.some matter => (record Outcome {code := "", session := (changed session matter actor "review" (project reference id))})))))))),
  executable: true, axioms: [propext]
+}
+
+definition{
+ name: annotate, parameters: [session : Session, expected : Nat, role : Role, actor : String, reference : Matter::Reference, facet : String, value : String], result: Outcome,
+ body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
+ (if ((prim equal facet "rule" : Bool) || ((privileged facet) && (not (isLawyer role)))) then (refuse session "lawyer-review-required") else
+ (if (not ((boundedText facet 128) && (boundedText value 8192))) then (refuse session "review-facet-or-value") else
+ (if (not ((Matter::nodeCount (project (project session matter) nodes)) <? 1024)) then (refuse session "node-limit") else
+ (match (Matter::findNode (project (project session matter) nodes) (project reference id))
+ | Option.none => (refuse session "node-missing")
+ | Option.some previous => (if (not ((Matter::referenceEq reference (Matter::nodeReference previous)) && ((Matter::hasCitations (project previous citations)) && (Matter::containsReference (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references) reference)))) then (refuse session "support-is-stale") else
+ (let identifier : Nat := (nextNode (project (project session matter) nodes));
+ (let node : Matter::Node := (record Matter::Node {id := identifier, revision := 1, facet := facet, value := value, origin := (ctor Matter::Origin.Reviewed), accepted := true, citations := (project previous citations), dependencies := (nil Matter::Reference)});
+ (let matter : Matter::State := (record Matter::State {revision := (expected + 1), sources := (project (project session matter) sources), nodes := (cons node (project (project session matter) nodes)), changes := (project (project session matter) changes)});
+ (record Outcome {code := "", session := (changed session matter actor "annotate" identifier)})))))))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: withdraw, parameters: [session : Session, expected : Nat, role : Role, actor : String, reference : Matter::Reference], result: Outcome,
+ body: (match (Matter::findNode (project (project session matter) nodes) (project reference id))
+ | Option.none => (refuse session "node-missing") | Option.some node =>
+ (let outcome : Outcome := (review session expected role actor reference (project node facet) (project node value) false);
+ (if (not (prim equal (project outcome code) "" : Bool)) then outcome else
+ (let updated : Session := (project outcome session);
+ (record Outcome {code := "", session := (record Session {matter := (project updated matter), title := (project updated title), labels := (project updated labels), sourceHistory := (project updated sourceHistory), rules := (project updated rules), audit :=
+ (cons (record AuditEntry {revision := (project (project updated matter) revision), actor := actor, operation := "withdraw", target := (project reference id)}) (match (project updated audit) | List.nil => (nil AuditEntry) | List.cons entry rest => rest))})}))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: isWithdrawn, parameters: [audit : (List AuditEntry), node : Matter::Node], result: Bool,
+ body: (match audit | List.nil => false | List.cons entry rest =>
+ (if (((project entry target) =? (project node id)) && ((not (prim equal (project entry operation) "ingest" : Bool)) && (not (prim equal (project entry operation) "revise-source" : Bool)))) then (prim equal (project entry operation) "withdraw" : Bool) else (isWithdrawn rest node))),
+ executable: true, axioms: [], recursive_argument: audit
 }
 
 definition{

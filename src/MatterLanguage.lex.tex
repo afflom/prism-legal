@@ -1,0 +1,129 @@
+\begin{lexlean}{MatterLanguage}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Matter}
+\importmodule{MatterText}
+\importmodule{MatterNetwork}
+\importmodule{Foundation.Bytes}
+\importmodule{Foundation.Utf8}
+\title{Text application model}
+\begin{semanticmodule}
+structure{
+ name: MeaningSuggestion, type_parameters: [], parameters: [],
+ fields: [{name: facet, type: String}, {name: value, type: String}, {name: examples, type: (List Matter::Reference)}, {name: matched, type: Bool}, {name: ambiguous, type: Bool}]
+}
+
+definition{
+ name: noMeaning, parameters: [], result: MeaningSuggestion,
+ body: (record MeaningSuggestion {facet := "", value := "", examples := (nil Matter::Reference), matched := false, ambiguous := false}),
+ executable: true, axioms: []
+}
+
+definition{
+ name: anchoredValue, parameters: [prefix : String, suffix : String, text : String], result: (Option String),
+ body: (let input : Bytes := (Foundation.Utf8::encode text);
+ (let before : Bytes := (Foundation.Utf8::encode prefix); (let after : Bytes := (Foundation.Utf8::encode suffix);
+ (let size : Nat := (Foundation.Bytes::byteLength input); (let left : Nat := (Foundation.Bytes::byteLength before); (let right : Nat := (Foundation.Bytes::byteLength after);
+ (if (((left + right) =? 0) || (not ((left + right) <? size))) then (ctor Option.none [String]) else
+ (match (Foundation.Bytes::sliceBytes input 0 left) | Option.none => (ctor Option.none [String]) | Option.some head =>
+ (match (Foundation.Bytes::sliceBytes input (prim subtract size right : Nat) right) | Option.none => (ctor Option.none [String]) | Option.some tail =>
+ (if ((prim equal head before : Bool) && (prim equal tail after : Bool)) then
+ (match (Foundation.Bytes::sliceBytes input left (prim subtract size (left + right) : Nat)) | Option.none => (ctor Option.none [String]) | Option.some middle => (Foundation.Utf8::decode middle))
+ else (ctor Option.none [String]))))))))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: transferMeaning, parameters: [quotation : String, meaning : String, text : String], result: (Option String),
+ body: (if (prim equal meaning "" : Bool) then (ctor Option.none [String]) else
+ (if (prim equal quotation text : Bool) then (ctor Option.some [String] meaning) else
+ (match (prim split_exact quotation meaning (3 : UInt32) : (Option (List String)))
+ | Option.none => (ctor Option.none [String])
+ | Option.some parts => (match parts | List.nil => (ctor Option.none [String]) | List.cons prefix rest =>
+ (match rest | List.nil => (ctor Option.none [String]) | List.cons suffix remaining =>
+ (match remaining | List.nil => (anchoredValue prefix suffix text) | List.cons extra more => (ctor Option.none [String]))))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: combineMeaning, parameters: [previous : MeaningSuggestion, facet : String, value : String, reference : Matter::Reference], result: MeaningSuggestion,
+ body: (if (not (project previous matched)) then
+ (record MeaningSuggestion {facet := facet, value := value, examples := (cons reference (nil Matter::Reference)), matched := true, ambiguous := false}) else
+ (record MeaningSuggestion {facet := (project previous facet), value := (project previous value), examples := (if (Matter::containsReference (project previous examples) reference) then (project previous examples) else (cons reference (project previous examples))), matched := true,
+ ambiguous := ((project previous ambiguous) || (not ((prim equal facet (project previous facet) : Bool) && (prim equal value (project previous value) : Bool))))})),
+ executable: true, axioms: []
+}
+
+definition{
+ name: citationMeanings, parameters: [citations : (List Matter::Citation), node : Matter::Node, text : String, candidate : MeaningSuggestion], result: MeaningSuggestion,
+ body: (match citations | List.nil => candidate | List.cons citation rest =>
+ (citationMeanings rest node text
+ (match (Foundation.Utf8::decode (project citation quote)) | Option.none => candidate | Option.some quotation =>
+ (match (transferMeaning quotation (project node value) text) | Option.none => candidate | Option.some meaning =>
+ (combineMeaning candidate (project node facet) meaning (Matter::nodeReference node)))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
+}
+
+definition{
+ name: meaningLoop, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), text : String, candidate : MeaningSuggestion], result: MeaningSuggestion,
+ body: (match nodes | List.nil => candidate | List.cons node rest =>
+ (meaningLoop rest admitted text
+ (if ((Matter::containsReference admitted (Matter::nodeReference node)) && (match (project node origin) | Matter::Origin.Reviewed => true | Matter::Origin.Inferred => false | Matter::Origin.Extracted => false)) then
+ (citationMeanings (project node citations) node text candidate) else candidate))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
+}
+
+definition{
+ name: inferMeaning, parameters: [nodes : (List Matter::Node), sources : (List Matter::Source), text : String], result: MeaningSuggestion,
+ body: (meaningLoop nodes (project (Matter::current nodes sources) references) text (noMeaning)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: usableMeaning, parameters: [candidate : MeaningSuggestion], result: Bool,
+ body: ((project candidate matched) && (not (project candidate ambiguous))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: facetMeaningLoop, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), text : String, facet : String, candidate : MeaningSuggestion], result: MeaningSuggestion,
+ body: (match nodes | List.nil => candidate | List.cons node rest =>
+ (facetMeaningLoop rest admitted text facet
+ (if ((prim equal (project node facet) facet : Bool) && ((Matter::containsReference admitted (Matter::nodeReference node)) && (match (project node origin) | Matter::Origin.Reviewed => true | Matter::Origin.Inferred => false | Matter::Origin.Extracted => false))) then
+ (citationMeanings (project node citations) node text candidate) else candidate))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
+}
+
+definition{
+ name: inferFacetMeaning, parameters: [nodes : (List Matter::Node), sources : (List Matter::Source), text : String, facet : String], result: MeaningSuggestion,
+ body: (facetMeaningLoop nodes (project (Matter::current nodes sources) references) text facet (noMeaning)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: hasFacet, parameters: [facets : (List String), facet : String], result: Bool,
+ body: (match facets | List.nil => false | List.cons head rest => ((prim equal head facet : Bool) || (hasFacet rest facet))),
+ executable: true, axioms: [], recursive_argument: facets
+}
+
+definition{
+ name: meaningContext, parameters: [remaining : (List Matter::Node), nodes : (List Matter::Node), sources : (List Matter::Source), text : String, seen : (List String), limit : Nat], result: MatterText::TextItems,
+ body: (match remaining | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons node rest =>
+ (if (limit =? 0) then (record MatterText::TextItems {values := (cons "Additional facets can be checked by selecting a facet during review." (nil String))}) else
+ (if (hasFacet seen (project node facet)) then (meaningContext rest nodes sources text seen limit) else
+ (let candidate : MeaningSuggestion := (inferFacetMeaning nodes sources text (project node facet));
+ (if (not (project candidate matched)) then (meaningContext rest nodes sources text (cons (project node facet) seen) limit) else
+ (record MatterText::TextItems {values := (cons
+ (MatterText::concat (project candidate facet) (MatterText::concat ": " (if (project candidate ambiguous) then "Reviewed examples disagree; enter the intended meaning." else (project candidate value))))
+ (project (meaningContext rest nodes sources text (cons (project node facet) seen) (prim subtract limit 1 : Nat)) values))})))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: remaining
+}
+
+theorem{
+ name: noExamplesCannotSupplyMeaning, parameters: [sources : (List Matter::Source), text : String],
+ statement: ((usableMeaning (inferMeaning (nil Matter::Node) sources text)) = false),
+ proof: reflexivity{}, axioms: [Classical.choice, Quot.sound, propext]
+}
+\end{semanticmodule}
+\end{lexlean}

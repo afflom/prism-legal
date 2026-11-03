@@ -84,5 +84,11 @@ definition{
   executable: true
 }
 
+definition{
+ name: reportNext, parameters: [status : String, operation : String, message : String, rows : Nat, columns : Nat, cells : (List String), details : (List String), error : String, state : String, next : String], result: Bytes,
+ body: (Foundation.Utf8::encode (prim join (cons "{\"version\":1,\"status\":" (cons (quote status) (cons ",\"operation\":" (cons (quote operation) (cons ",\"message\":" (cons (quote message) (cons ",\"rows\":" (cons (MatterText::decimal rows) (cons ",\"columns\":" (cons (MatterText::decimal columns) (cons ",\"cells\":" (cons (array cells) (cons ",\"details\":" (cons (array details) (cons ",\"request\":" (cons (quote next) (cons ",\"response\":" (cons (quote state) (cons ",\"error\":" (cons (quote error) (cons "}" (nil String)))))))))))))))))))))) "" : String)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
 \end{semanticmodule}
 \end{lexlean}

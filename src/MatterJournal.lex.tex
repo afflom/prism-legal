@@ -157,6 +157,10 @@ definition{
  body: (let count : Nat := (MatterText::wordCount fields);
  (let operation : String := (fieldAt fields 0);
  (if (not ((numericField fields 1) && ((prim equal (fieldAt fields 3) "client" : Bool) || (prim equal (fieldAt fields 3) "lawyer" : Bool)))) then (MatterSession::refuse session "command-context") else
+ (if ((prim equal operation "annotate" : Bool) && (count =? 8)) then
+ (MatterSession::annotate session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (reference fields 4) (fieldAt fields 6) (fieldAt fields 7)) else
+ (if ((prim equal operation "withdraw" : Bool) && (count =? 6)) then
+ (MatterSession::withdraw session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (reference fields 4)) else
  (if ((prim equal operation "ingest" : Bool) && (count =? 6)) then
  (MatterSession::ingest session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (fieldAt fields 4) (Foundation.Utf8::encode (fieldAt fields 5))) else
  (if ((prim equal operation "assert" : Bool) && (count =? 6)) then
@@ -167,7 +171,7 @@ definition{
  (MatterSession::review session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (reference fields 4) (fieldAt fields 6) (fieldAt fields 7) (prim equal (fieldAt fields 8) "true" : Bool)) else
  (if ((prim equal operation "propose" : Bool) && (count =? 6)) then
  (MatterSession::propose session (numberField fields 1) (roleField (fieldAt fields 3)) (fieldAt fields 2) (reference fields 4)) else
- (if (prim equal operation "rule" : Bool) then (ruleCommand session fields) else (MatterSession::refuse session "command-shape")))))))))),
+ (if (prim equal operation "rule" : Bool) then (ruleCommand session fields) else (MatterSession::refuse session "command-shape")))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 

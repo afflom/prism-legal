@@ -30,4 +30,37 @@ assert.equal(invoke('inspect',[state,'client','','0']).status,'error');
 assert.equal(invoke('inspect',[state,'client','','1']).status,'ok');
 for(const payload of ['create\x1f00:0:','create\x1f1:é','create\x1f0:1:xjunk'])assert.equal(JSON.parse(decoder.decode(guest.invoke_bytes(Buffer.from(payload)))).status,'error');
 assert.throws(()=>guest.invoke_bytes(Uint8Array.of(255)));
-console.log(`PASS: ${model.acceptance_vectors.length} source vectors plus unseen journal, Unicode, control-display, input-boundary and refusal cases in generated Wasm`);
+
+// Learned source wording is exercised through the same byte entry used by the UI.
+let learned=invoke('create',['','Receipts']).response;
+learned=invoke('ingest',[learned,'client','Receipts','Payment: 50 USD.\nPayment: 75 USD.']).response;
+learned=invoke('goal',[learned,'client','Understand the payments']).response;
+learned=invoke('review',[learned,'client','payment.amount','50']).response;
+learned=invoke('annotate',[learned,'client','payment.amount','50','claimed.amount','50']).response;
+result=invoke('overview',[learned,'client']);
+assert.match(result.details.join(' '),/payment.amount: 75/);
+assert.match(result.details.join(' '),/claimed.amount: 75/);
+result=invoke('review',[learned,'client','payment.amount','']);assert.equal(result.status,'ok');learned=result.response;
+result=invoke('inspect',[learned,'client','payment.amount','1']);assert.match(result.details.join(' '),/Current interpretation: 75/);
+result=invoke('withdraw',[learned,'client','claimed.amount','50']);assert.equal(result.status,'ok');learned=result.response;
+result=invoke('impact',[learned,'client','1']);assert.match(result.details.join(' '),/Withdrawn/);
+result=invoke('inspect',[learned,'client','claimed.amount','1']);assert.match(result.details.join(' '),/Withdrawn: 50/);
+assert.equal(invoke('restore',[learned]).response,learned);
+
+let conflicting=invoke('create',['','Conflicting interpretations']).response;
+conflicting=invoke('ingest',[conflicting,'client','Receipts','Payment: 50 USD.\nPayment: 50 USD.']).response;
+conflicting=invoke('goal',[conflicting,'client','Understand the payments']).response;
+conflicting=invoke('review',[conflicting,'client','payment.amount','50']).response;
+conflicting=invoke('annotate',[conflicting,'client','payment.amount','50','payment.amount','not confirmed']).response;
+result=invoke('review',[conflicting,'client','payment.amount','']);assert.equal(result.status,'error');assert.equal(result.response,conflicting,'a blank review cannot resolve conflicting learned meanings');
+result=invoke('review',[conflicting,'client','payment.amount','50']);assert.equal(result.status,'ok');
+
+// Exercise the admitted journal count in the actual Wasm guest, not a smaller proxy.
+const field=value=>Buffer.byteLength(value)+':'+value;
+const command=values=>values.map(field).join('');
+let full=command(['prism-legal/journal/1','Boundary matter']);
+for(let revision=0;revision<512;revision++)full+=field(command(['assert',String(revision),'client','client','context',String(revision)]));
+result=invoke('restore',[full]);assert.equal(result.status,'ok');assert.equal(result.response,full);
+result=invoke('assertion',[full,'client','context','another']);assert.equal(result.status,'error');assert.equal(result.response,full);
+assert.equal(invoke('restore',[full+field(command(['assert','512','client','client','context','extra']))]).status,'error');
+console.log(`PASS: ${model.acceptance_vectors.length} source vectors plus unseen journal, Unicode, control-display, input-boundary, multiple-facet learning, withdrawal and refusal cases in generated Wasm`);
