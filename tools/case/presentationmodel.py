@@ -1210,7 +1210,7 @@ permissions:
 
 concurrency:
   group: main-validation-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   validate:

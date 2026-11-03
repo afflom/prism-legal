@@ -50,7 +50,15 @@ try{
  await run('review',{facet:'amount',interpretation:'50'});
  await run('annotate',{'from-facet':'amount','from-value':'50',facet:'day',interpretation:'Monday'});
  assert.match(await page.locator('#result-details').textContent(),/amount: 75/);assert.match(await page.locator('#result-details').textContent(),/day: Tuesday/);
- await run('review',{facet:'amount'});await run('inspect',{facet:'amount'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: 75/);
+ await run('review',{facet:'amount'});assert.equal(await message(),'Review another aspect of this passage');
+ const beforeDay=await save();assert.equal(await page.locator('#next-form').textContent(),'Review the next interpretation');
+ await page.locator('#next-form').click();assert.equal(await page.locator('#operation').inputValue(),'review');
+ assert.equal(await page.locator('#field-facet').inputValue(),'day');assert.equal(await page.locator('#field-interpretation').inputValue(),'Tuesday');
+ assert.deepEqual(await save(),beforeDay,'opening the additional facet form must not accept it');
+ await page.locator('#guided-submit').click();await ready();assert.equal(await message(),'Confirm the governing jurisdiction');
+ await run('inspect',{facet:'day'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: Tuesday/);
+ await run('withdraw',{facet:'day',value:'Tuesday'});assert.equal(await message(),'Confirm the governing jurisdiction');
+ await run('inspect',{facet:'amount'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: 75/);
  assert.deepEqual(errors,[]);
  console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet and joint-slot interpretation, withdrawal, next-form navigation, and mobile layout');
 }finally{await context.close();await browser.close();}

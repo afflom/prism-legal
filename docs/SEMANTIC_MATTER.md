@@ -123,6 +123,27 @@ jurisdiction, authority, then strategy assessment. Pending legal conclusions
 appear as lawyer review tasks. Pending passages are prioritized by their learned
 facets' connections to unresolved rule conditions; ties retain source order.
 A supported strategy cannot hide an unresolved assessment from another rule.
+
+After pending passages are reviewed, the journey checks their original quotations
+for additional learned facets that have not yet been interpreted. It presents
+one such aspect at a time, prioritizing unresolved rule conditions. Accepting one
+field does not hide the other fields learned from the same passage. A withdrawn
+interpretation remains represented, so it does not become an endless review task.
+Withdrawing the only supporting training removes its pending suggestion.
+
+The existing review operation applies to the exact displayed passage. It can
+therefore review equal values at distinct source locations without an ambiguous
+text selector. Its prepared form contains only the aspect and editable meaning.
+Changing an aspect with an empty meaning cannot reuse a different aspect's
+inference. Conflicting meanings require explicit interpretation. The focused
+node and facet are independent of workflow role: switching between client and
+lawyer does not silently change the source. A privileged aspect remains a lawyer
+review task; client and reader views do not prepare an unauthorized action.
+
+Review context names the resource and its original text line. Duplicate resource
+titles include their resource number. UTF-8 and CRLF do not shift those locations.
+Detailed byte citations remain available in the lawyer view. Attention checks
+reuse the current-reference closure across their facet scan.
 `MatterWorkspace` exposes 19 operations for
 creation, intake, review, assertions, source and rule revisions, strategy,
 proposals, restoration, additional interpretations, withdrawal, change impact,
@@ -131,7 +152,7 @@ unique visible wording rather than asking users to find internal IDs. Ambiguous
 selection refuses rather than choosing arbitrarily.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 28 acceptance vectors. Unused help and
+controls, errors, empty states, and 30 acceptance vectors. Unused help and
 transport details are collapsed. Facet inspection shows eight items per page;
 the lawyer view adds source locations. Control characters are rendered safely
 without altering retained source bytes. Long context is explicitly truncated
@@ -182,15 +203,15 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`3688c15bdc0fcaf3f5ad46166016f29aed79f9abf4393dbae2ec8bcf20e1b060`
+`72437fc926c7f93ba10376272d5b4cf7b26eb8c0522f2e02d3ac971585864931`
 and semantic ID
-`2a33b0eb0078896c5775fe03931a4671ceef96feff7b6b4cd9c2d74e1e6f3899`
+`75ed91c631e38c872dfd6ff074b6424b914822510e923b07f2fb4d1cec06d675`
 was emitted as build
-`1b25c523af8fa290c4abb28236078208396cf7781e1d84d6b8c70205ed636eb6`
+`172c345aebd4159da19c8617fe64006d567c78c04442f59fc585b084725e8d70`
 and passed LexLean verification with attestation
-`0fd60a11cc4e67d71505ae076d7bfc8d030f971a830c5e676a4b611192f61513`.
+`9bf3643cff2db3d961fdcd2ff6846f3c800db7222e2f468c9c0ce04a78fb02dd`.
 
-The generated native library passes 29 tests across `behavior.rs` and
+The generated native library passes 36 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
@@ -205,21 +226,22 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 28 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 30 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
 rule assessment/revision, proposal review, exception/correction propagation,
 inspection, save/reopen, failed restoration, learned multi-facet review, withdrawal,
-next-form navigation, and mobile layout.
+next-form navigation, source locations, additional-facet review, role consistency,
+and mobile layout.
 
 The source corpus includes a 70,831-byte restore request containing nine imported
 resources. It exceeds the old portable transport limit and returns the exact
 accepted journal. The previous 25-vector artifact passed direct and resident Hologram execution
 and all nine portable browser journeys, including actual file reopening of the
-larger matter. The current 28-vector artifact passes native, Wasm and application
-browser checks. Its development portable-browser run fails while reading a
-response through Playwright (`Network.getResponseBody: No data found for
+larger matter. The current 30-vector artifact passes native, Wasm and application
+browser checks. The intermediate 28-vector artifact's development portable-browser
+run failed while reading a response through Playwright (`Network.getResponseBody: No data found for
 resource`). Repeating the run and starting body capture earlier did not resolve
 it. That portable gate remains unverified; the required pinned-browser CI must
 resolve it without replacing the response-body assertion or changing retention

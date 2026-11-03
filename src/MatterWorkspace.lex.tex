@@ -62,9 +62,22 @@ definition{
 }
 
 definition{
+ name: reviewAdditional, parameters: [journal : String, session : MatterSession::Session, role : String, facet : String, interpretation : String], result: MatterJournal::JournalResult,
+ body: (let additional : MatterJourney::AdditionalReview := (MatterJourney::nextAdditionalReview session);
+ (match (project additional node) | Option.none => (failed journal session "no-pending-passage") | Option.some node =>
+ (let meaning : MatterLanguage::MeaningSuggestion := (project additional meaning);
+ (let selectedFacet : String := (if (prim equal facet "" : Bool) then (project meaning facet) else facet);
+ (if ((prim equal interpretation "" : Bool) && ((not (MatterLanguage::usableMeaning meaning)) || (not (prim equal selectedFacet (project meaning facet) : Bool)))) then (failed journal session "ambiguous-meaning") else
+ (commit journal session "annotate" role
+ (cons (MatterText::decimalLoop 20 (project node id)) (cons (MatterText::decimalLoop 20 (project node revision))
+ (cons selectedFacet (cons (if (prim equal interpretation "" : Bool) then (project meaning value) else interpretation) (nil String))))))))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
  name: reviewNext, parameters: [journal : String, session : MatterSession::Session, role : String, facet : String, interpretation : String], result: MatterJournal::JournalResult,
  body: (match (MatterJourney::nextReview session)
- | Option.none => (failed journal session "no-pending-passage")
+ | Option.none => (reviewAdditional journal session role facet interpretation)
  | Option.some node => (let meaning : MatterLanguage::MeaningSuggestion := (MatterLanguage::inferMeaning (project (project session matter) nodes) (project (project session matter) sources) (project node value));
  (let selectedFacet : String := (if (not (prim equal facet "" : Bool)) then facet else
  (match (project node origin) | Matter::Origin.Inferred => (project node facet) | Matter::Origin.Reviewed => (project node facet) | Matter::Origin.Extracted =>
@@ -264,6 +277,13 @@ definition{
  (match (Matter::findNode (project (project session matter) nodes) (project view node)) | Option.none => "" | Option.some node =>
  (if ((match (project node origin) | Matter::Origin.Inferred => true | Matter::Origin.Reviewed => false | Matter::Origin.Extracted => false) && (not (MatterSession::isLawyer role))) then "" else
  (prepareForm "review" role (cons (project view suggestion) (cons "" (nil String)))))) else
+ (if (prim equal stage "additional-interpretation" : Bool) then
+ (match (Matter::findNode (project (project session matter) nodes) (project view node)) | Option.none => "" | Option.some node =>
+ (if ((not (MatterSession::canWrite role)) || ((MatterSession::privileged (project view suggestion)) && (not (MatterSession::isLawyer role)))) then "" else
+ (let meaning : MatterLanguage::MeaningSuggestion := (MatterJourney::additionalCitationMeaning (project node citations) session);
+ (if (not (project meaning matched)) then "" else
+ (prepareForm "review" role (cons (project meaning facet)
+ (cons (if (project meaning ambiguous) then "" else (project meaning value)) (nil String)))))))) else
  (if (prim equal stage "question" : Bool) then
  (match (MatterSession::findRule (project session rules) (project view rule)) | Option.none => "" | Option.some rule =>
  (let exceptionConflict : String := (MatterInference::contestedFacet (project rule exceptions) (project (project session matter) nodes) (project admitted references));
@@ -281,8 +301,8 @@ definition{
  (if (MatterInference::competingMeaning (project (project session matter) nodes) (project admitted references) authority) then (prepareForm "inspect" role (cons "authority" (cons "1" (nil String)))) else (prepareForm "strategies" role (cons "1" (nil String)))))) else
  (match (MatterJourney::findFacet (project (project session matter) nodes) (project admitted references) "authority")
  | Option.none => (prepareForm "ingest" role (cons "" (cons "" (nil String))))
- | Option.some authority => (prepareForm "rule" role (cons (project authority value) (cons "" (cons "" (cons "" (cons "" (nil String)))))))))) else "")))))))))),
- executable: true, axioms: [propext]
+ | Option.some authority => (prepareForm "rule" role (cons (project authority value) (cons "" (cons "" (cons "" (cons "" (nil String)))))))))) else ""))))))))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{

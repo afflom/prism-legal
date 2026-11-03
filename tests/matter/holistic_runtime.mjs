@@ -55,8 +55,42 @@ joint=invoke('review',[joint,'client','amount','50']).response;
 joint=invoke('annotate',[joint,'client','amount','50','day','Monday']).response;
 result=invoke('overview',[joint,'client']);assert.match(result.details.join(' '),/amount: 75/);assert.match(result.details.join(' '),/day: Tuesday/);
 result=invoke('review',[joint,'client','amount','']);assert.equal(result.status,'ok');joint=result.response;
+assert.equal(result.message,'Review another aspect of this passage');
+assert.match(result.request,/^review\u001f/);assert.match(result.request,/Tuesday/);
+const pendingDay=joint;
+result=invoke('review',[joint,'client','day','Tuesday']);assert.equal(result.status,'ok');joint=result.response;
+assert.equal(result.message,'Confirm the governing jurisdiction');
+assert.notEqual(joint,pendingDay);
+result=invoke('withdraw',[joint,'client','day','Tuesday']);assert.equal(result.status,'ok');joint=result.response;
+assert.equal(result.message,'Confirm the governing jurisdiction');
 result=invoke('inspect',[joint,'client','amount','1']);assert.match(result.details.join(' '),/Current interpretation: 75/);
 assert.equal(invoke('restore',[joint]).response,joint);
+
+// A role change changes permission, never the focused source passage.
+let roleMatter=invoke('annotate',[pendingDay,'lawyer','amount','50','authority','Monday']).response;
+const clientFocus=invoke('overview',[roleMatter,'client']),lawyerFocus=invoke('overview',[roleMatter,'lawyer']);
+assert.equal(clientFocus.message,'Lawyer review: another aspect');assert.equal(clientFocus.request,'');
+assert.match(clientFocus.details.join(' '),/Records · line 2/);assert.match(lawyerFocus.details.join(' '),/Records · line 2/);
+assert.equal(clientFocus.response,roleMatter);assert.equal(lawyerFocus.response,roleMatter);
+result=invoke('review',[roleMatter,'client','','']);assert.equal(result.status,'error');assert.equal(result.response,roleMatter);
+result=invoke('review',[roleMatter,'lawyer','authority','Tuesday']);assert.equal(result.status,'ok');roleMatter=result.response;
+assert.match(invoke('inspect',[roleMatter,'lawyer','authority','1']).details.join(' '),/Current interpretation: Tuesday/);
+
+// Equal values on distinct passages remain separately reviewable through the focused action.
+let repeated=invoke('create',['','Repeated receipts']).response;
+repeated=invoke('ingest',[repeated,'client','Records','Amount: 50; day: Monday.\nAmount: 75; day: Tuesday.\nAmount: 75; day: Tuesday.']).response;
+repeated=invoke('goal',[repeated,'client','Review each receipt']).response;
+repeated=invoke('review',[repeated,'client','amount','50']).response;
+repeated=invoke('annotate',[repeated,'client','amount','50','day','Monday']).response;
+repeated=invoke('review',[repeated,'client','amount','75']).response;
+repeated=invoke('review',[repeated,'client','amount','75']).response;
+result=invoke('overview',[repeated,'client']);assert.match(result.details.join(' '),/Records · line 2/);
+result=invoke('review',[repeated,'client','different.aspect','']);assert.equal(result.status,'error');assert.equal(result.response,repeated);
+result=invoke('review',[repeated,'client','day','']);assert.equal(result.status,'ok');repeated=result.response;
+assert.match(result.details.join(' '),/Records · line 3/);
+result=invoke('review',[repeated,'client','day','']);assert.equal(result.status,'ok');repeated=result.response;
+assert.equal(result.message,'Confirm the governing jurisdiction');
+assert.equal(invoke('restore',[repeated]).response,repeated);
 
 for (const next of ['Payment: 50 USD.','Payment: 75 USD.']) {
 let conflicting=invoke('create',['','Conflicting interpretations']).response;

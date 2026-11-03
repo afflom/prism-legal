@@ -399,3 +399,117 @@ fn renamed_facets_show_both_removed_and_added_rule_connections() {
     assert!(impact.iter().any(|r| r.id == new_rule.id));
     assert!(!impact.iter().any(|r| r.id == original_rule.id), "older facet history must not create spurious current impact");
 }
+
+fn jointly_reviewed_amounts() -> Session {
+    let s = accepted(ingest(&initial("Dated receipts".into()), 0, Role::Client, "client".into(), "Records".into(),
+        b"Amount: 50; day: Monday.\nAmount: 75; day: Tuesday.".to_vec()).unwrap());
+    let s = assert_fact(&s, "goal", "Understand both fields");
+    let s = accepted(review(&s, s.matter.revision, Role::Client, "client".into(), Reference { id: 1, revision: 1 }, "amount".into(), "50".into(), true).unwrap());
+    let s = accepted(annotate(&s, s.matter.revision, Role::Client, "client".into(), node_ref(&s, "amount"), "day".into(), "Monday".into()).unwrap());
+    accepted(review(&s, s.matter.revision, Role::Client, "client".into(), Reference { id: 2, revision: 1 }, "amount".into(), "75".into(), true).unwrap())
+}
+
+#[test]
+fn reviewing_one_facet_keeps_other_learned_facets_in_the_journey() {
+    let s = jointly_reviewed_amounts();
+    let before = s.clone();
+    let view = overview(&s, Role::Client).unwrap();
+    assert_eq!(view.stage, "additional-interpretation");
+    assert_eq!(view.node, 2); assert_eq!(view.suggestion, "day");
+    assert!(view.context.iter().any(|text| text == "Records · line 2"));
+    assert!(view.context.iter().any(|text| text.contains("Tuesday")));
+    assert!(view.context.iter().any(|text| text == "Amount: 75; day: Tuesday."));
+    let prepared = nextStep(&s, Role::Client, &view).unwrap();
+    assert!(prepared.starts_with("review\u{1f}")); assert!(prepared.contains("Tuesday"));
+    assert_eq!(s, before, "preparing the review does not accept an interpretation");
+    let s = accepted(annotate(&s, s.matter.revision, Role::Client, "client".into(), Reference { id: 2, revision: 2 }, "day".into(), "Tuesday".into()).unwrap());
+    assert!(nextAdditionalReview(&s).unwrap().node.is_none());
+    assert_eq!(overview(&s, Role::Client).unwrap().stage, "jurisdiction");
+    let added = s.matter.nodes.iter().find(|n| n.facet == "day" && n.value == "Tuesday").unwrap();
+    let s = accepted(withdraw(&s, s.matter.revision, Role::Client, "client".into(), nodeReference(added)).unwrap());
+    assert!(nextAdditionalReview(&s).unwrap().node.is_none(), "withdrawal must not create a review loop");
+}
+
+#[test]
+fn additional_review_retracts_when_its_training_is_withdrawn() {
+    let s = jointly_reviewed_amounts();
+    assert_eq!(nextAdditionalReview(&s).unwrap().meaning.value, "Tuesday");
+    let training = s.matter.nodes.iter().find(|n| n.facet == "day").unwrap();
+    let s = accepted(withdraw(&s, s.matter.revision, Role::Client, "client".into(), nodeReference(training)).unwrap());
+    assert!(nextAdditionalReview(&s).unwrap().node.is_none());
+}
+
+#[test]
+fn additional_review_keeps_equal_values_on_separate_passages_distinct() {
+    let s = jointly_reviewed_amounts();
+    let s = accepted(ingest(&s, s.matter.revision, Role::Client, "client".into(), "Records".into(), b"Amount: 75; day: Tuesday.".to_vec()).unwrap());
+    let next = s.matter.nodes.iter().max_by_key(|n| n.id).unwrap();
+    let s = accepted(review(&s, s.matter.revision, Role::Client, "client".into(), nodeReference(next), "amount".into(), "75".into(), true).unwrap());
+    let focused = nextAdditionalReview(&s).unwrap();
+    assert_eq!(focused.node.as_ref().unwrap().id, 2);
+    assert!(overview(&s, Role::Client).unwrap().context.iter().any(|text| text == "Records · resource 1 · line 2"));
+    let chosen = focused.node.unwrap();
+    let s = accepted(annotate(&s, s.matter.revision, Role::Client, "client".into(), nodeReference(&chosen), "day".into(), focused.meaning.value).unwrap());
+    let following = nextAdditionalReview(&s).unwrap();
+    assert_ne!(following.node.as_ref().unwrap().id, chosen.id);
+    assert_eq!(following.node.as_ref().unwrap().citations[0].source, 2);
+    assert_eq!(following.meaning.value, "Tuesday");
+    assert!(overview(&s, Role::Client).unwrap().context.iter().any(|text| text == "Records · resource 2 · line 1"));
+}
+
+#[test]
+fn additional_review_preserves_ambiguity_instead_of_prefilling_an_answer() {
+    let s = jointly_reviewed_amounts();
+    let s = accepted(ingest(&s, s.matter.revision, Role::Client, "client".into(), "Competing record".into(), b"Amount: 75; day: Tuesday.".to_vec()).unwrap());
+    let latest = s.matter.nodes.iter().max_by_key(|n| n.id).unwrap();
+    let reference = Reference { id: latest.id, revision: latest.revision + 1 };
+    let s = accepted(review(&s, s.matter.revision, Role::Client, "client".into(), nodeReference(latest), "day".into(), "Tuesday".into(), true).unwrap());
+    let s = accepted(annotate(&s, s.matter.revision, Role::Client, "client".into(), reference, "day".into(), "not established".into()).unwrap());
+    let extra = nextAdditionalReview(&s).unwrap();
+    assert_eq!(extra.node.unwrap().id, 2); assert_eq!(extra.meaning.facet, "day");
+    assert!(extra.meaning.ambiguous);
+    let view = overview(&s, Role::Client).unwrap();
+    assert!(view.context.iter().any(|text| text.contains("Reviewed examples disagree")));
+    assert!(nextStep(&s, Role::Client, &view).unwrap().ends_with("3:day0:"), "disagreement requires an editable empty meaning");
+}
+
+#[test]
+fn additional_review_respects_privileged_facets_and_reader_workflows() {
+    let s = jointly_reviewed_amounts();
+    let s = accepted(annotate(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), Reference { id: 1, revision: 2 }, "authority".into(), "Monday".into()).unwrap());
+    assert_eq!(nextAdditionalReview(&s).unwrap().meaning.facet, "authority");
+    let client = overview(&s, Role::Client).unwrap();
+    let lawyer = overview(&s, Role::Lawyer).unwrap();
+    assert_eq!(client.node, lawyer.node, "changing role must not change the reviewed passage");
+    assert_eq!(client.suggestion, lawyer.suggestion);
+    assert_eq!(client.heading, "Lawyer review: another aspect");
+    assert_eq!(nextStep(&s, Role::Client, &client).unwrap(), "");
+    assert!(nextStep(&s, Role::Lawyer, &lawyer).unwrap().starts_with("review\u{1f}"));
+    let view = overview(&s, Role::Reader).unwrap();
+    assert_eq!(view.stage, "additional-interpretation");
+    assert_eq!(nextStep(&s, Role::Reader, &view).unwrap(), "", "reader views must not prepare a mutating workflow");
+}
+
+#[test]
+fn review_locations_follow_utf8_bytes_and_crlf_without_exposing_internal_ids() {
+    let s = accepted(ingest(&initial("Source locations".into()), 0, Role::Client, "client".into(), "Records".into(), "Zoë\r\nSecond passage".as_bytes().to_vec()).unwrap());
+    let view = select(&s, Role::Client, 2, 0).unwrap();
+    assert_eq!(view.explanation, "Second passage");
+    assert!(view.context.iter().any(|text| text == "Records · line 2"));
+    assert!(!view.context.iter().any(|text| text.contains("bytes")));
+}
+
+#[test]
+fn additional_facet_attention_prioritizes_unresolved_rule_conditions() {
+    let s = jointly_reviewed_amounts();
+    let s = assert_fact(&s, "jurisdiction", "Reviewed jurisdiction");
+    let s = accepted(ingest(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), "Governing provision".into(), b"Review the receipt date before acting.".to_vec()).unwrap());
+    let latest = s.matter.nodes.iter().max_by_key(|n| n.id).unwrap();
+    let s = accepted(review(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), nodeReference(latest), "authority".into(), "Reviewed date provision".into(), true).unwrap());
+    let s = accepted(annotate(&s, s.matter.revision, Role::Client, "client".into(), Reference { id: 1, revision: 2 }, "claimed.amount".into(), "50".into()).unwrap());
+    let rule = Rule { definition: Reference { id: 0, revision: 0 }, authority: node_ref(&s,"authority"), jurisdiction: node_ref(&s,"jurisdiction"), goal: node_ref(&s,"goal"),
+        premises: vec![Requirement { facet: "day".into(), value: "Tuesday".into(), question: "Confirm the receipt day".into() }], exceptions: vec![],
+        conclusionFacet: "receipt.review".into(), conclusionValue: "dated receipt reviewed".into(), action: "Review the dated receipt".into() };
+    let s = accepted(commitRule(&s, s.matter.revision, Role::Lawyer, "lawyer".into(), &rule).unwrap());
+    assert_eq!(nextAdditionalReview(&s).unwrap().meaning.facet, "day");
+}

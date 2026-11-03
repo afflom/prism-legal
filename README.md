@@ -9,7 +9,8 @@ No remote model, inference service, or model credentials are used.
 The compiled application lets a client or lawyer create a matter, import actual
 UTF-8 resources, review passages, record goals and jurisdiction, and connect
 reviewed authority to conditional strategies. Reviewed source wording teaches
-facet and meaning suggestions. A passage can support several interpretations;
+facet and meaning suggestions. A passage can support several interpretations. Further learned aspects stay
+visible as focused review steps, with the original resource and line identified;
 withdrawal preserves their history. Changes invalidate dependent conclusions
 and expose related facts and strategies. A saved matter file replays the complete accepted command history.
 The view offers the next useful form, with focused facet inspection and

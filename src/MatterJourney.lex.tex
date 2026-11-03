@@ -99,11 +99,45 @@ definition{
 }
 
 definition{
+ name: resourceName, parameters: [labels : (List MatterSession::ResourceLabel), source : Nat], result: String,
+ body: (match labels | List.nil => "" | List.cons label rest =>
+ (if ((project label source) =? source) then (project label title) else (resourceName rest source))),
+ executable: true, axioms: [], recursive_argument: labels
+}
+
+definition{
+ name: resourceNameCount, parameters: [labels : (List MatterSession::ResourceLabel), title : String], result: Nat,
+ body: (match labels | List.nil => 0 | List.cons label rest =>
+ ((if (prim equal (project label title) title : Bool) then 1 else 0) + (resourceNameCount rest title))),
+ executable: true, axioms: [], recursive_argument: labels
+}
+
+definition{
+ name: passageLine, parameters: [sources : (List Matter::Source), citation : Matter::Citation], result: String,
+ body: (match (Matter::findSource sources (project citation source)) | Option.none => "" | Option.some source =>
+ (match (Foundation.Bytes::sliceBytes (project source content) 0 (project citation start)) | Option.none => "" | Option.some prefix =>
+ (match (Foundation.Utf8::decode prefix) | Option.none => "" | Option.some text =>
+ (match (prim split_exact text "\n" (64 : UInt32) : (Option (List String))) | Option.none => "" | Option.some lines =>
+ (MatterText::concat " · line " (MatterText::decimalLoop 20 (MatterText::wordCount lines))))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: sourceHeadings, parameters: [citations : (List Matter::Citation), session : MatterSession::Session], result: MatterText::TextItems,
+ body: (match citations | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons citation rest =>
+ (let title : String := (resourceName (project session labels) (project citation source));
+ (let label : String := (if (prim equal title "" : Bool) then (MatterText::concat "Resource " (MatterText::decimalLoop 20 (project citation source))) else
+ (if (1 <? (resourceNameCount (project session labels) title)) then (MatterText::concat title (MatterText::concat " · resource " (MatterText::decimalLoop 20 (project citation source)))) else title));
+ (record MatterText::TextItems {values := (cons (MatterText::concat label (passageLine (project (project session matter) sources) citation)) (project (sourceHeadings rest session) values))})))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
+}
+
+definition{
  name: reviewView, parameters: [session : MatterSession::Session, node : Matter::Node, role : MatterSession::Role], result: JourneyView,
  body: (let network : MatterNetwork::NeuralModel := (MatterNetwork::train (project (project session matter) nodes) (project (project session matter) sources));
  (let activation : MatterNetwork::Activation := (MatterNetwork::infer network (project node value));
  (let meaning : MatterLanguage::MeaningSuggestion := (MatterLanguage::inferMeaning (project (project session matter) nodes) (project (project session matter) sources) (project node value));
- (let context : MatterText::TextItems := (if (MatterSession::isLawyer role) then (sourceContext (project node citations)) else (record MatterText::TextItems {values := (nil String)}));
+ (let context : MatterText::TextItems := (record MatterText::TextItems {values := (prim append (project (sourceHeadings (project node citations) session) values) (if (MatterSession::isLawyer role) then (project (sourceContext (project node citations)) values) else (nil String)) : (List String))});
  (view session "review" (match (project node origin) | Matter::Origin.Inferred => "Lawyer review: proposed conclusion" | Matter::Origin.Extracted => "Review this passage" | Matter::Origin.Reviewed => "Review this interpretation") (project node value) (project node id) 0
  (match (project node origin) | Matter::Origin.Inferred => (project node facet) | Matter::Origin.Reviewed => (project node facet) | Matter::Origin.Extracted => (if (MatterLanguage::usableMeaning meaning) then (project meaning facet) else (MatterNetwork::suggestedFacet activation)))
  (prim append (project (MatterLanguage::meaningContext (project (project session matter) nodes) (project (project session matter) nodes) (project (project session matter) sources) (project node value) (nil String) 8) values) (project context values) : (List String))))))),
@@ -130,6 +164,87 @@ definition{
  executable: true, axioms: [], recursive_argument: assessments
 }
 
+structure{
+ name: AdditionalReview, type_parameters: [], parameters: [],
+ fields: [{name: node, type: (Option Matter::Node)}, {name: meaning, type: MatterLanguage::MeaningSuggestion}, {name: relevance, type: Nat}]
+}
+
+definition{
+ name: representedInterpretation, parameters: [nodes : (List Matter::Node), citation : Matter::Citation, facet : String], result: Bool,
+ body: (match nodes | List.nil => false | List.cons node rest =>
+ (((prim equal (project node facet) facet : Bool) && (MatterInference::passagePresent (project node citations) citation)) || (representedInterpretation rest citation facet))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: additionalMeaningLoop, parameters: [remaining : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), citation : Matter::Citation, quotation : String, seen : (List String), selected : MatterLanguage::MeaningSuggestion, relevance : Nat], result: MatterLanguage::MeaningSuggestion,
+ body: (match remaining | List.nil => selected | List.cons node rest =>
+ (let facet : String := (project node facet);
+ (if ((MatterLanguage::hasFacet seen facet) || ((prim equal facet "rule" : Bool) ||
+ (representedInterpretation (project (project session matter) nodes) citation facet))) then
+ (additionalMeaningLoop rest session admitted citation quotation seen selected relevance) else
+ (let candidate : MatterLanguage::MeaningSuggestion := (MatterLanguage::facetMeaningLoop (project (project session matter) nodes) (project (project session matter) nodes) admitted quotation facet (MatterLanguage::noMeaning));
+ (let score : Nat := (questionRelevance (project session rules) facet (project (project session matter) nodes) admitted);
+ (let choose : Bool := ((project candidate matched) && ((not (project selected matched)) || (relevance <? score)));
+ (additionalMeaningLoop rest session admitted citation quotation (cons facet seen) (if choose then candidate else selected) (if choose then score else relevance)))))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: remaining
+}
+
+definition{
+ name: additionalCitationMeaningWith, parameters: [citations : (List Matter::Citation), session : MatterSession::Session, admitted : (List Matter::Reference)], result: MatterLanguage::MeaningSuggestion,
+ body: (match citations | List.nil => (MatterLanguage::noMeaning) | List.cons citation rest =>
+ (match (Foundation.Utf8::decode (project citation quote)) | Option.none => (additionalCitationMeaningWith rest session admitted) | Option.some quotation =>
+ (let meaning : MatterLanguage::MeaningSuggestion := (additionalMeaningLoop (project (project session matter) nodes) session admitted citation quotation (nil String) (MatterLanguage::noMeaning) 0);
+ (if (project meaning matched) then meaning else (additionalCitationMeaningWith rest session admitted))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
+}
+
+definition{
+ name: additionalCitationMeaning, parameters: [citations : (List Matter::Citation), session : MatterSession::Session], result: MatterLanguage::MeaningSuggestion,
+ body: (additionalCitationMeaningWith citations session (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: additionalReviewLoop, parameters: [remaining : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), selected : AdditionalReview], result: AdditionalReview,
+ body: (match remaining | List.nil => selected | List.cons node rest =>
+ (additionalReviewLoop rest session admitted
+ (if ((Matter::containsReference admitted (Matter::nodeReference node)) &&
+ (match (project node origin) | Matter::Origin.Reviewed => true | Matter::Origin.Extracted => false | Matter::Origin.Inferred => false)) then
+ (let meaning : MatterLanguage::MeaningSuggestion := (additionalCitationMeaningWith (project node citations) session admitted);
+ (let score : Nat := (questionRelevance (project session rules) (project meaning facet) (project (project session matter) nodes) admitted);
+ (if ((project meaning matched) && (match (project selected node) | Option.none => true | Option.some previous =>
+ (((project selected relevance) <? score) || ((score =? (project selected relevance)) && ((project node id) <? (project previous id)))))) then
+ (record AdditionalReview {node := (ctor Option.some [Matter::Node] node), meaning := meaning, relevance := score}) else selected))) else selected))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: remaining
+}
+
+definition{
+ name: nextAdditionalReview, parameters: [session : MatterSession::Session], result: AdditionalReview,
+ body: (additionalReviewLoop (project (project session matter) nodes) session
+ (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references)
+ (record AdditionalReview {node := (ctor Option.none [Matter::Node]), meaning := (MatterLanguage::noMeaning), relevance := 0})),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: passageQuotations, parameters: [citations : (List Matter::Citation)], result: MatterText::TextItems,
+ body: (match citations | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons citation rest =>
+ (record MatterText::TextItems {values := (cons (match (Foundation.Utf8::decode (project citation quote)) | Option.none => "" | Option.some text => text) (project (passageQuotations rest) values))})),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
+}
+
+definition{
+ name: additionalReviewView, parameters: [session : MatterSession::Session, role : MatterSession::Role, node : Matter::Node, meaning : MatterLanguage::MeaningSuggestion], result: JourneyView,
+ body: (view session "additional-interpretation"
+ (if ((MatterSession::privileged (project meaning facet)) && (not (MatterSession::isLawyer role))) then "Lawyer review: another aspect" else "Review another aspect of this passage")
+ (if ((MatterSession::privileged (project meaning facet)) && (not (MatterSession::isLawyer role))) then "A lawyer needs to review this aspect before it can be added." else "This passage may support another aspect of your matter. Review its meaning before adding it.") (project node id) 0 (project meaning facet)
+ (cons (if (project meaning ambiguous) then "Reviewed examples disagree. Enter the intended meaning; nothing has been added." else
+ (MatterText::concat "Suggested meaning: " (project meaning value)))
+ (prim append (project (sourceHeadings (project node citations) session) values) (project (if (MatterSession::isLawyer role) then (sourceContext (project node citations)) else (passageQuotations (project node citations))) values) : (List String)))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
 definition{
  name: overview, parameters: [session : MatterSession::Session, role : MatterSession::Role], result: JourneyView,
  body: (let matter : Matter::State := (project session matter);
@@ -139,11 +254,14 @@ definition{
  | Option.none => (view session "goal" "What would you like to achieve?" "Describe the outcome you want. This will guide which facts and possible actions need attention." 0 0 "" (nil String))
  | Option.some goal => (match (nextReview session)
  | Option.some node => (reviewView session node role)
+ | Option.none => (let additional : AdditionalReview := (nextAdditionalReview session);
+ (match (project additional node)
+ | Option.some node => (additionalReviewView session role node (project additional meaning))
  | Option.none => (match (findFacet (project matter nodes) (project admitted references) "jurisdiction")
  | Option.none => (view session "jurisdiction" "Confirm the governing jurisdiction" "Identify the jurisdiction before connecting the facts to legal authority." 0 0 "" (nil String))
  | Option.some jurisdiction => (match (attentionAssessment (project (MatterInference::assessAll (project session rules) (project matter nodes) (project matter sources)) values))
  | Option.none => (view session "authority" "Connect the matter to governing authority" "A lawyer can review the relevant source, its conditions and exceptions, and the action it may support." 0 0 "" (nil String))
- | Option.some assessment => (assessmentView session assessment)))))))),
+ | Option.some assessment => (assessmentView session assessment)))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
