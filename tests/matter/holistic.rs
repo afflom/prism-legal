@@ -592,3 +592,65 @@ fn inspection_locations_use_the_cited_historical_bytes_after_source_replacement(
     let new = s.matter.nodes.iter().max_by_key(|n|n.id).unwrap();
     assert_eq!(interpretationLocation(&s, new).unwrap(), "Records · line 2");
 }
+
+#[test]
+fn chronology_uses_valid_civil_dates_without_guessing_formats_or_missing_parts() {
+    for (text,key) in [("0001-01-01",10101),("2024-02-29",20240229),("2000-02-29",20000229),("9999-12-31",99991231)] {
+        assert_eq!(calendarDateKey(text.into()).unwrap(),Some(key),"{text}");
+    }
+    for text in ["1900-02-29","2023-02-29","2024-04-31","2024-06-31","2024-00-01","2024-13-01","2024-01-00","0000-01-01","2024-1-01","24-01-01","2024/01/01","2024-01-01 ","2024-01-01T00:00:00Z","early March","２０２４-01-01",""] {
+        assert_eq!(calendarDateKey(text.into()).unwrap(),None,"{text}");
+    }
+}
+
+#[test]
+fn chronology_reorders_corrections_and_retains_ambiguous_dates_for_review() {
+    let s=accepted(ingest(&initial("Dates".into()),0,Role::Client,"client".into(),"Notices".into(),
+        b"Later: 2024-03-01.\nEarlier: 2024-02-29.\nUncertain: early March.".to_vec()).unwrap());
+    let mut s=s;
+    for (id,value) in [(1,"2024-03-01"),(2,"2024-02-29"),(3,"early March")] {
+        s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),Reference{id,revision:1},"notice.date".into(),value.into(),true).unwrap());
+    }
+    let result=reviewed_chronology(&s,&["notice.date"]);
+    assert_eq!(result.dated.iter().map(|e|e.node.id).collect::<Vec<_>>(),vec![2,1]);
+    assert_eq!(result.unresolved.iter().map(|n|n.id).collect::<Vec<_>>(),vec![3]);
+    assert_eq!(result.dated[0].node.citations,findNode(&s.matter.nodes,2).unwrap().citations);
+    s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:2},"notice.date".into(),"2024-02-28".into(),true).unwrap());
+    assert_eq!(reviewed_chronology(&s,&["notice.date"]).dated.iter().map(|e|e.node.id).collect::<Vec<_>>(),vec![1,2]);
+    s=accepted(annotate(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:2,revision:2},"notice.date".into(),"2024-03-02".into()).unwrap());
+    let result=reviewed_chronology(&s,&["notice.date"]);
+    assert_eq!(result.dated.len(),1);assert_eq!(result.unresolved.len(),3);
+    let competing=s.matter.nodes.iter().find(|n|n.value=="2024-03-02").unwrap();
+    s=accepted(withdraw(&s,s.matter.revision,Role::Client,"client".into(),nodeReference(competing)).unwrap());
+    assert_eq!(reviewed_chronology(&s,&["notice.date"]).dated.len(),2);
+    s=accepted(reviseSource(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:1},b"Replacement notice".to_vec()).unwrap());
+    let result=reviewed_chronology(&s,&["notice.date"]);
+    assert!(result.dated.is_empty());assert!(result.unresolved.is_empty());
+}
+
+#[test]
+fn chronology_keeps_independent_equal_dates_and_excludes_unreviewed_or_withdrawn_values() {
+    let mut s=accepted(ingest(&initial("Equal dates".into()),0,Role::Client,"client".into(),"Notices".into(),b"First: 2024-02-29.\nSecond: 2024-02-29.\nUnreviewed: 2024-01-01.".to_vec()).unwrap());
+    for id in [2,1] {
+        s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),Reference{id,revision:1},"date".into(),"2024-02-29".into(),true).unwrap());
+    }
+    assert_eq!(reviewed_chronology(&s,&["date"]).dated.iter().map(|e|e.node.id).collect::<Vec<_>>(),vec![1,2]);
+    s=accepted(withdraw(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:2}).unwrap());
+    let result=reviewed_chronology(&s,&["date"]);assert_eq!(result.dated.len(),1);assert_eq!(result.dated[0].node.id,2);
+    assert!(reviewed_chronology(&s,&["unknown.aspect"]).dated.is_empty());
+}
+
+fn reviewed_chronology(session: &Session, facets: &[&str]) -> Chronology {
+    chronology(session, &current(&session.matter.nodes,&session.matter.sources).unwrap().references, &facets.iter().map(|s|s.to_string()).collect::<Vec<_>>()).unwrap()
+}
+
+#[test]
+fn chronology_combines_only_the_selected_date_aspects_without_duplicate_entries() {
+    let mut s=initial("Related dates".into());
+    for (facet,value) in [("notice.date","2024-03-01"),("response.date","2024-03-02"),("hearing.date","2024-04-01")] {
+        s=assert_fact(&s,facet,value);
+    }
+    let result=reviewed_chronology(&s,&["response.date","notice.date","notice.date"]);
+    assert_eq!(result.dated.iter().map(|e|e.node.facet.as_str()).collect::<Vec<_>>(),vec!["notice.date","response.date"]);
+    assert!(result.unresolved.is_empty());
+}

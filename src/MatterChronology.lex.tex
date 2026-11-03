@@ -1,0 +1,89 @@
+\begin{lexlean}{MatterChronology}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Matter}
+\importmodule{MatterSession}
+\importmodule{MatterInference}
+\importmodule{MatterJournal}
+\importmodule{MatterText}
+\importmodule{Foundation.Bytes}
+\importmodule{Foundation.Utf8}
+\title{Text application model}
+\begin{semanticmodule}
+structure{
+ name: ChronologyEntry, type_parameters: [], parameters: [],
+ fields: [{name: node, type: Matter::Node}, {name: order, type: Nat}]
+}
+
+structure{
+ name: ChronologyEntries, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List ChronologyEntry)}]
+}
+
+structure{
+ name: Chronology, type_parameters: [], parameters: [],
+ fields: [{name: dated, type: (List ChronologyEntry)}, {name: unresolved, type: (List Matter::Node)}]
+}
+
+definition{
+ name: leapYear, parameters: [year : Nat], result: Bool,
+ body: (((prim remainder year 4 0 : Nat) =? 0) && ((not ((prim remainder year 100 0 : Nat) =? 0)) || ((prim remainder year 400 0 : Nat) =? 0))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: calendarMonthDays, parameters: [year : Nat, month : Nat], result: Nat,
+ body: (if ((month =? 0) || (12 <? month)) then 0 else
+ (if (month =? 2) then (if (leapYear year) then 29 else 28) else
+ (if ((month =? 4) || ((month =? 6) || ((month =? 9) || (month =? 11)))) then 30 else 31))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: dateDigits, parameters: [bytes : Bytes, start : Nat, size : Nat], result: (Option Nat),
+ body: (match (Foundation.Bytes::sliceBytes bytes start size) | Option.none => (ctor Option.none [Nat]) | Option.some field => (MatterJournal::numberLoop size field 0 0)),
+ executable: true, axioms: []
+}
+
+definition{
+ name: calendarDateKey, parameters: [value : String], result: (Option Nat),
+ body: (let bytes : Bytes := (Foundation.Utf8::encode value);
+ (if (not ((Foundation.Bytes::byteLength bytes) =? 10)) then (ctor Option.none [Nat]) else
+ (if (not ((match (Foundation.Bytes::sliceBytes bytes 4 1) | Option.none => false | Option.some separator => (prim equal separator 0x2d : Bool)) &&
+ (match (Foundation.Bytes::sliceBytes bytes 7 1) | Option.none => false | Option.some separator => (prim equal separator 0x2d : Bool)))) then (ctor Option.none [Nat]) else
+ (match (dateDigits bytes 0 4) | Option.none => (ctor Option.none [Nat]) | Option.some year =>
+ (match (dateDigits bytes 5 2) | Option.none => (ctor Option.none [Nat]) | Option.some month =>
+ (match (dateDigits bytes 8 2) | Option.none => (ctor Option.none [Nat]) | Option.some day =>
+ (if ((0 <? year) && ((0 <? day) && (not ((calendarMonthDays year month) <? day)))) then
+ (ctor Option.some [Nat] ((prim multiply year 10000 : Nat) + ((prim multiply month 100 : Nat) + day))) else (ctor Option.none [Nat])))))))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: insertChronologyEntry, parameters: [entries : (List ChronologyEntry), entry : ChronologyEntry], result: ChronologyEntries,
+ body: (match entries | List.nil => (record ChronologyEntries {values := (cons entry (nil ChronologyEntry))}) | List.cons head rest =>
+ (record ChronologyEntries {values := (if (((project entry order) <? (project head order)) || (((project entry order) =? (project head order)) && ((project (project entry node) id) <? (project (project head node) id)))) then
+ (cons entry (cons head rest)) else (cons head (project (insertChronologyEntry rest entry) values)))})),
+ executable: true, axioms: [], recursive_argument: entries
+}
+
+definition{
+ name: chronologyLoop, parameters: [nodes : (List Matter::Node), allNodes : (List Matter::Node), admitted : (List Matter::Reference), facets : (List String)], result: Chronology,
+ body: (match nodes | List.nil => (record Chronology {dated := (nil ChronologyEntry), unresolved := (nil Matter::Node)}) | List.cons node rest =>
+ (let following : Chronology := (chronologyLoop rest allNodes admitted facets);
+ (if ((MatterText::wordPresent facets (project node facet)) && (Matter::containsReference admitted (Matter::nodeReference node))) then
+ (match (if (MatterInference::competingMeaning allNodes admitted node) then (ctor Option.none [Nat]) else (calendarDateKey (project node value)))
+ | Option.none => (record Chronology {dated := (project following dated), unresolved := (cons node (project following unresolved))})
+ | Option.some order => (record Chronology {dated := (project (insertChronologyEntry (project following dated) (record ChronologyEntry {node := node, order := order})) values), unresolved := (project following unresolved)}))
+ else following))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: chronology, parameters: [session : MatterSession::Session, admitted : (List Matter::Reference), facets : (List String)], result: Chronology,
+ body: (chronologyLoop (project (project session matter) nodes) (project (project session matter) nodes) admitted facets),
+ executable: true, axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}

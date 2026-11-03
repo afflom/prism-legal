@@ -86,5 +86,27 @@ try{
  assert.match(await page.locator('#result-details').textContent(),/Needs review: 80 — Source location: Records · earlier version 1 · line 2/);
 
  assert.deepEqual(errors,[]);
+ await page.reload();await ready();await run('create',{title:'Notice chronology'});
+ await run('ingest',{title:'Notices',content:'Notice dated 2024-03-01.\nNotice dated 2024-02-29.'});
+ await run('goal',{value:'Understand the sequence'});
+ await run('review',{facet:'notice.date',interpretation:'2024-03-01'});await run('review',{facet:'notice.date'});
+ const beforeTimeline=await save();await run('timeline',{facet:'notice.date'});assert.deepEqual(await save(),beforeTimeline);
+ assert.equal(await message(),'Chronology: notice.date');
+ assert.match(await page.locator('#result-details li').nth(1).textContent(),/^2024-02-29 — Notices · line 2/);
+ await run('edit',{facet:'notice.date','old-value':'2024-03-01','new-value':'2024-02-28',location:'Notices · line 1'});
+ await run('timeline',{facet:'notice.date'});assert.match(await page.locator('#result-details li').nth(1).textContent(),/^2024-02-28/);
+ await run('annotate',{'from-facet':'notice.date','from-value':'2024-02-29',facet:'notice.date',interpretation:'2024-03-02',location:'Notices · line 2'});
+ await run('timeline',{facet:'notice.date'});assert.match(await page.locator('#result-details li').nth(1).textContent(),/^Competing dates:/);
+ await run('withdraw',{facet:'notice.date',value:'2024-03-02',location:'Notices · line 2'});
+ await run('timeline',{facet:'notice.date'});assert.match(await page.locator('#result-details li').first().textContent(),/Current dates: 2; dates needing review: 0/);
+ await run('edit',{facet:'notice.date','old-value':'2024-02-29','new-value':'2023-02-29',location:'Notices · line 2'});
+ await run('timeline',{facet:'notice.date'});assert.match(await page.locator('#result-details li').nth(1).textContent(),/^Needs a valid YYYY-MM-DD date: 2023-02-29/);
+ await run('assertion',{facet:'response.date',value:'2024-03-04'});
+ await run('timeline',{facet:'notice.date\nresponse.date\nnotice.date\n'});
+ assert.match(await page.locator('#result-details li').first().textContent(),/Current dates: 2; dates needing review: 1/);
+ assert.match(await page.locator('#result-details').textContent(),/2024-03-04 \(response.date\) — Recorded directly/);
+
+ await page.setViewportSize({width:390,height:844});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));
+ assert.deepEqual(errors,[]);
  console.log('PASS: compiled local matter journey, exact resource import, rule-bound proposal review, exception/correction propagation, save/reopen/refusal, learned multi-facet and joint-slot interpretation, withdrawal, next-form navigation, and mobile layout');
 }finally{await context.close();await browser.close();}

@@ -76,6 +76,20 @@ It is assembled from the current matter, not a generated pleading or invented
 legal analysis. A draft's revision and dependency references determine its
 freshness. No default jurisdiction, authority, deadline, or remedy is supplied.
 
+`MatterChronology` orders current reviewed date interpretations from explicitly
+selected aspects. One aspect per line combines related dates without assuming
+which fields represent dates or repeating entries for duplicate selections.
+The date language is Gregorian `YYYY-MM-DD`, years 0001–9999, with actual month
+lengths and leap-year checks. Unknown formats, impossible dates, and competing
+interpretations remain visible for review ahead of the ordered entries.
+Independent passages with equal dates remain separate and retain their sources.
+
+The view includes each original quotation and resource location; when several
+aspects are selected it also names the aspect. Directly recorded assertions are
+labeled accordingly. Corrections reorder the chronology, withdrawal removes
+support, and source replacement excludes obsolete interpretations. The view is
+read-only and paginated; it computes neither legal deadlines nor missing dates.
+
 ## Relative changes and history
 
 `Matter.current` computes a least grounded closure starting from no admitted
@@ -144,8 +158,8 @@ Review context names the resource and its original text line. Duplicate resource
 titles include their resource number. UTF-8 and CRLF do not shift those locations.
 Detailed byte citations remain available in the lawyer view. Attention checks
 reuse the current-reference closure across their facet scan.
-`MatterWorkspace` exposes 19 operations for
-creation, intake, review, assertions, source and rule revisions, strategy,
+`MatterWorkspace` exposes 20 operations for
+creation, intake, review, assertions, chronology, source and rule revisions, strategy,
 proposals, restoration, additional interpretations, withdrawal, change impact,
 and paginated facet and strategy inspection. It selects objects by
 unique visible wording rather than asking users to find internal IDs. Ambiguous
@@ -159,8 +173,11 @@ Historical interpretations show their source revision and original line, using
 the retained source bytes rather than the replacement resource's text.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 34 acceptance vectors. Unused help and
-transport details are collapsed. Facet inspection shows eight items per page;
+controls, errors, empty states, and 40 acceptance vectors. Unused help and
+transport details are collapsed. Shorter field guidance and the neutral Continue
+action serve both review and read-only forms. Acceptance bytes are factored into
+closed byte aliases, preserving their exact values while reducing large inline
+compiler expressions. Facet inspection shows eight items per page;
 the lawyer view adds source locations. Control characters are rendered safely
 without altering retained source bytes. Long context is explicitly truncated
 for presentation while the journal preserves the original.
@@ -210,15 +227,15 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`618a5cd35c4b530c72c97e9305145d3d5503f8cd64ed57366cbb2e14d50d148f`
+`e626dbe99cd1458669c31a094faf4dbbc267990f04bb5a21059c672834e1c4d4`
 and semantic ID
-`18a110a63100701fbd00ed45a8ffa0bd69571de318281f805a39035e78fb0359`
+`7662d984f8c4d7075e2c625503941325745202e0b732e6f1e9c334f8be059077`
 was emitted as build
-`3a8379d133541259c528948a9f20eafce1a7409eccde733c920a99ac8601e3a5`
+`b0525b4eeed71581419d45b320d17d604581bcfd430f84bdb2c7f92b1d06aedd`
 and passed LexLean verification with attestation
-`3c24598ea4de130fd5b62ca54f19b54543af199a661162b490dee16cb5d5a3e1`.
+`91dbb7ebdda01a0c90da59a9f80022913502adab2541da3095f97d82dbf0f762`.
 
-The generated native library passes 40 tests across `behavior.rs` and
+The generated native library passes 44 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
@@ -233,19 +250,21 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 34 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 40 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
 rule assessment/revision, proposal review, exception/correction propagation,
 inspection, save/reopen, failed restoration, learned multi-facet review, withdrawal,
 next-form navigation, source locations, additional-facet review, role consistency,
-source-qualified corrections, historical source locations, and mobile layout.
+source-qualified corrections, historical source locations, learned date chronology,
+combined date aspects, and mobile layout.
 
 The source corpus includes a 70,831-byte restore request containing nine imported
 resources. It exceeds the old portable transport limit and returns the exact
-accepted journal. The current 34-vector artifact passes native, Wasm and
-application-browser checks. Its development portable-browser run fails while
+accepted journal. The current 40-vector artifact passes native, Wasm and
+application-browser checks. Its portable gate has not been rerun. The prior
+34-vector artifact's development portable-browser run failed while
 reading a response through Playwright (`Network.getResponseBody: No data found
 for resource`). A diagnostic run of the prior 30-vector artifact also failed;
 a second diagnostic run passed direct/resident execution and all nine portable

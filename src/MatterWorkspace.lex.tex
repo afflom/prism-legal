@@ -8,6 +8,7 @@
 \importmodule{MatterNetwork}
 \importmodule{MatterLanguage}
 \importmodule{MatterContext}
+\importmodule{MatterChronology}
 \importmodule{MatterJourney}
 \importmodule{MatterJournal}
 \importmodule{MatterText}
@@ -458,6 +459,52 @@ definition{
 }
 
 definition{
+ name: chronologyItem, parameters: [session : MatterSession::Session, node : Matter::Node, multiple : Bool], result: String,
+ body: (displayText (MatterText::concat (MatterText::concat (project node value) (if multiple then (MatterText::concat " (" (MatterText::concat (project node facet) ")")) else "")) (MatterText::concat " — "
+ (MatterText::concat (interpretationLocation session node) (if (Matter::hasCitations (project node citations)) then
+ (MatterText::concat " — " (prim join (project (MatterJourney::passageQuotations (project node citations)) values) "; " : String)) else ""))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: datedChronologyRows, parameters: [entries : (List MatterChronology::ChronologyEntry), session : MatterSession::Session, multiple : Bool], result: MatterText::TextItems,
+ body: (match entries | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons entry rest =>
+ (record MatterText::TextItems {values := (cons (chronologyItem session (project entry node) multiple) (project (datedChronologyRows rest session multiple) values))})),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: entries
+}
+
+definition{
+ name: unresolvedChronologyRows, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), multiple : Bool], result: MatterText::TextItems,
+ body: (match nodes | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons node rest =>
+ (record MatterText::TextItems {values := (cons (MatterText::concat
+ (if (MatterInference::competingMeaning (project (project session matter) nodes) admitted node) then "Competing dates: " else "Needs a valid YYYY-MM-DD date: ")
+ (chronologyItem session node multiple)) (project (unresolvedChronologyRows rest session admitted multiple) values))})),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
+}
+
+definition{
+ name: chronologyView, parameters: [operation : String, journal : String, session : MatterSession::Session, facet : String, page : String], result: Bytes,
+ body: (match (MatterJournal::natural page) | Option.none => (workspaceError operation "request" journal) | Option.some number =>
+ (if ((number =? 0) || (128 <? number)) then (workspaceError operation "request" journal) else
+ (match (prim split_exact facet "\n" (1024 : UInt32) : (Option (List String))) | Option.none => (workspaceError operation "request" journal) | Option.some names =>
+ (let facets : MatterText::TextItems := (MatterText::distinctWords names);
+ (let skip : Nat := (prim multiply (prim subtract number 1 : Nat) 8 : Nat);
+ (if ((MatterText::wordCount (project facets values)) =? 0) then
+ (MatterWire::reportState "ok" operation "Choose the aspects containing reviewed dates" 0 0 (nil String)
+ (project (itemPage (project (facetNames (project (project session matter) nodes)) values) skip 8) values) "" journal) else
+ (let admitted : (List Matter::Reference) := (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references);
+ (let chronology : MatterChronology::Chronology := (MatterChronology::chronology session admitted (project facets values));
+ (let dated : MatterText::TextItems := (datedChronologyRows (project chronology dated) session (1 <? (MatterText::wordCount (project facets values))));
+ (let unresolved : MatterText::TextItems := (unresolvedChronologyRows (project chronology unresolved) session admitted (1 <? (MatterText::wordCount (project facets values))));
+ (let items : MatterText::TextItems := (itemPage (prim append (project unresolved values) (project dated values) : (List String)) skip 8);
+ (MatterWire::reportState "ok" operation (MatterText::concat "Chronology: " (displayText (prim join (project facets values) ", " : String))) 0 0 (nil String)
+ (cons (MatterText::concat "Current dates: " (MatterText::concat (MatterText::decimalLoop 20 (MatterText::wordCount (project dated values)))
+ (MatterText::concat "; dates needing review: " (MatterText::decimalLoop 20 (MatterText::wordCount (project unresolved values))))))
+ (match (project items values) | List.nil => (cons "There are no entries on this page. Only current reviewed interpretations appear here." (nil String)) | List.cons first rest => (project items values))) "" journal)))))))))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
  name: existingFields, parameters: [operation : String, fields : (List String), journal : String], result: Bytes,
  body: (let restored : MatterSession::Outcome := (MatterJournal::replay journal);
  (if (not (prim equal (project restored code) "" : Bool)) then (workspaceError operation "journal" journal) else
@@ -466,10 +513,11 @@ definition{
  (if ((MatterText::wordCount fields) =? 1) then (workspaceView operation journal (MatterJourney::overview session (ctor MatterSession::Role.Client)) session (ctor MatterSession::Role.Client)) else (workspaceError operation "request" journal)) else
  (let role : String := (MatterJournal::fieldAt fields 1);
  (if (not ((prim equal role "client" : Bool) || (prim equal role "lawyer" : Bool))) then (workspaceError operation "role" journal) else (let audience : MatterSession::Role := (MatterJournal::roleField role);
+ (if ((prim equal operation "timeline" : Bool) && ((MatterText::wordCount fields) =? 4)) then (chronologyView operation journal session (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else
  (if (((prim equal operation "overview" : Bool) || (prim equal operation "raw" : Bool)) && ((MatterText::wordCount fields) =? 2)) then (workspaceView operation journal (MatterJourney::overview session audience) session audience) else
  (if (((prim equal operation "impact" : Bool) || (prim equal operation "strategies" : Bool)) && ((MatterText::wordCount fields) =? 3)) then (relatedContext operation journal session (MatterJournal::fieldAt fields 2)) else
  (if ((prim equal operation "strategy" : Bool) && ((MatterText::wordCount fields) =? 3)) then (strategyView operation journal session (MatterJournal::fieldAt fields 2)) else
- (if ((prim equal operation "inspect" : Bool) && ((MatterText::wordCount fields) =? 4)) then (inspectFacet operation journal session audience (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (finishChange operation journal (changeFields operation fields journal session role) audience)))))))))))),
+ (if ((prim equal operation "inspect" : Bool) && ((MatterText::wordCount fields) =? 4)) then (inspectFacet operation journal session audience (MatterJournal::fieldAt fields 2) (MatterJournal::fieldAt fields 3)) else (finishChange operation journal (changeFields operation fields journal session role) audience))))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 

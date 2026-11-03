@@ -146,6 +146,37 @@ result=invoke('edit',[located,'client','amount','80','85','Records · earlier ve
 assert.equal(result.status,'error');assert.equal(result.response,located);
 
 
+// Reviewed date meanings drive chronology; corrections and disputes change the view.
+let dated=invoke('create',['','Notice chronology']).response;
+for(const [operation,fields] of [
+ ['ingest',['client','Notices','Notice dated 2024-03-01.\nNotice dated 2024-02-29.']],
+ ['goal',['client','Understand the sequence']],
+ ['review',['client','notice.date','2024-03-01']],
+ ['review',['client','notice.date','']]]){
+ result=invoke(operation,[dated,...fields]);assert.equal(result.status,'ok');dated=result.response;
+}
+result=invoke('timeline',[dated,'client','notice.date','1']);assert.equal(result.status,'ok');assert.equal(result.response,dated);
+assert.equal(result.message,'Chronology: notice.date');assert.match(result.details[0],/Current dates: 2; dates needing review: 0/);
+assert.match(result.details[1],/^2024-02-29 — Notices · line 2 — Notice dated 2024-02-29/);
+assert.match(result.details[2],/^2024-03-01 — Notices · line 1/);
+assert.equal(invoke('timeline',[dated,'client','notice.date','0']).status,'error');
+assert.equal(invoke('timeline',[dated,'client','','1']).status,'ok');
+result=invoke('edit',[dated,'client','notice.date','2024-03-01','2024-02-28','Notices · line 1']);assert.equal(result.status,'ok');dated=result.response;
+assert.match(invoke('timeline',[dated,'client','notice.date','1']).details[1],/^2024-02-28/);
+result=invoke('annotate',[dated,'client','notice.date','2024-02-29','notice.date','2024-03-02','Notices · line 2']);assert.equal(result.status,'ok');dated=result.response;
+result=invoke('timeline',[dated,'client','notice.date','1']);assert.match(result.details[0],/Current dates: 1; dates needing review: 2/);
+assert.match(result.details[1],/^Competing dates:/);assert.match(result.details[2],/^Competing dates:/);
+result=invoke('withdraw',[dated,'client','notice.date','2024-03-02','Notices · line 2']);assert.equal(result.status,'ok');dated=result.response;
+assert.match(invoke('timeline',[dated,'client','notice.date','1']).details[0],/Current dates: 2; dates needing review: 0/);
+result=invoke('edit',[dated,'client','notice.date','2024-02-29','2023-02-29','Notices · line 2']);assert.equal(result.status,'ok');dated=result.response;
+result=invoke('timeline',[dated,'client','notice.date','1']);assert.match(result.details[1],/^Needs a valid YYYY-MM-DD date: 2023-02-29/);
+assert.equal(invoke('restore',[dated]).response,dated);
+result=invoke('assertion',[dated,'client','response.date','2024-03-04']);assert.equal(result.status,'ok');dated=result.response;
+result=invoke('timeline',[dated,'client','notice.date\nresponse.date\nnotice.date\n','1']);assert.equal(result.status,'ok');assert.equal(result.response,dated);
+assert.match(result.details[0],/Current dates: 2; dates needing review: 1/);
+assert.match(result.details.join(' '),/2024-03-04 \(response.date\) — Recorded directly/);
+
+
 // Exercise the admitted journal count in the actual Wasm guest, not a smaller proxy.
 const field=value=>Buffer.byteLength(value)+':'+value;
 const command=values=>values.map(field).join('');

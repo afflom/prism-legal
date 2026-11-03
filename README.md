@@ -16,7 +16,9 @@ and expose related facts and strategies. A saved matter file replays the complet
 The view offers the next useful form, with focused facet inspection and
 supporting source context available when needed. Source locations distinguish
 equal interpretations during correction or withdrawal and retain the original
-line and version after a resource changes.
+line and version after a resource changes. A chronology combines selected date
+aspects, orders valid dates, and keeps uncertain or conflicting dates visible
+for review.
 
 **This is an implemented local workspace, not a completed production legal
 service.** Its associative classifier learns words and ordered word pairs from
