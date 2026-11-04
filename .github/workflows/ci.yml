@@ -11,55 +11,52 @@ permissions:
   contents: read
 
 concurrency:
-  group: main-validation-${{ github.ref }}
-  cancel-in-progress: false
+  group: prism-legal-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   validate:
-    name: Compile and verify source models
+    name: Check source and CI policy
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 10
+    outputs:
+      application: ${{ steps.scope.outputs.application }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install the real compiler
-        uses: ./.github/actions/lexlean
-
-      - name: Run Zero-PII & Case-Sanitization Gate
-        run: ./bin/prism-legal sanitize
-
-      - name: Run Static, Schema & Model Sync Checks
-        run: |
-          ./bin/prism-legal api check
-          ./bin/prism-legal check
-
-      - name: Verify the matter model in Lean
-        run: |
-          lexlean --project holistic.lexlean.toml lock --check
-          lexlean --project holistic.lexlean.toml verify
-          python -m unittest discover -s tests -p 'test_*.py'
-
-      - name: Exercise legacy inference and conversion fixtures
-        run: |
-          ./bin/prism-legal engine
-          ./bin/prism-legal discover
-          ./bin/prism-legal convert
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Check model drift, sanitization and delivery policy
+        run: bash tools/ci/preflight.sh
+      - name: Determine whether application verification is needed
+        id: scope
+        run: python3 tools/ci/changed.py >> "$GITHUB_OUTPUT"
 
   matter:
     name: Build and exercise the modeled application
+    needs: validate
+    if: needs.validate.outputs.application == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
+      - name: Name the source-bound artifact
+        id: artifact
+        run: echo "name=$(python3 tools/ci/verified_view.py name)" >> "$GITHUB_OUTPUT"
       - uses: ./.github/actions/build-matter
+      - name: Retain the verified app for deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: verified-matter
+          if-no-files-found: error
+          overwrite: true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: matter-verification
+          overwrite: true
           path: |
             matter-sdk-build.json
             matter-sdk-image.json
-            matter-build.json
             matter-verification.json
             .prism/verified/
