@@ -1052,7 +1052,7 @@ fn repeated_goal_words_do_not_inflate_attention_and_ties_keep_source_order() {
     let s=assert_fact(&s,"goal","rent refund");
     assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,1);
     let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),node_ref(&s,"goal"),"goal".into(),"rent rent rent rent".into(),true).unwrap());
-    assert_eq!(goalFeatures(&s,&current(&s.matter.nodes,&s.matter.sources).unwrap().references).unwrap().values.len(),2,"one distinct word and one ordered pair");
+    assert_eq!(goalFeatureOverlap(&goalContext(&s,&current(&s.matter.nodes,&s.matter.sources).unwrap().references).unwrap(),&features("rent rent rent rent".into()).unwrap().values).unwrap(),2,"one distinct word and one ordered pair");
     let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),node_ref(&s,"goal"),"goal".into(),"rent".into(),true).unwrap());
     assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,1,"equal lexical scores preserve earliest passage");
 }
@@ -1289,4 +1289,136 @@ fn the_full_history_budget_preserves_every_correction_and_refuses_atomically() {
     let later=journal_fields(&["assert".into(),"0".into(),"client".into(),"client".into(),"goal".into(),"must not run".into()]);
     let stopped=replayCommands(&["malformed".into(),later],&empty).unwrap();
     assert_eq!(stopped.code,"command-encoding");assert_eq!(stopped.session,empty,"later valid commands cannot erase the first refusal");
+}
+
+#[test]
+fn multiple_goals_change_attention_when_a_later_goal_is_edited_or_withdrawn() {
+    let s=accepted(ingest(&initial("Several goals".into()),0,Role::Client,"client".into(),"Records".into(),b"repair invoice\nrent refund".to_vec()).unwrap());
+    let s=assert_fact(&s,"goal","Understand the dispute");let first=node_ref(&s,"goal");
+    let s=assert_fact(&s,"goal","rent refund");let later=node_ref(&s,"goal");
+    let s=assert_fact(&s,"goal","Keep records");
+    assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,2,"a later goal must contribute relevance");
+    for role in [Role::Client,Role::Lawyer,Role::Reader] {assert_eq!(overview(&s,role).unwrap().node,2);}
+    assert!(s.matter.nodes.iter().filter(|n|!n.citations.is_empty()).all(|n|!n.accepted));
+    let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),later,"goal".into(),"repair invoice".into(),true).unwrap());
+    assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,1);
+    assert_eq!(nodeReference(s.matter.nodes.iter().find(|n|n.id==first.id).unwrap()),first);
+    let s=accepted(withdraw(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:later.id,revision:2}).unwrap());
+    assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,1,"with no goal overlap retain source order");
+}
+
+#[test]
+fn multiple_goals_do_not_count_repeated_vocabulary_more_than_once() {
+    let s=accepted(ingest(&initial("Distinct goals".into()),0,Role::Client,"client".into(),"Records".into(),b"rent\nrepair".to_vec()).unwrap());
+    let s=assert_fact(&s,"goal","repair");assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,2);
+    let s=assert_fact(&s,"goal","rent");assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,1,"equal support from separate goals retains source order");
+    let s=assert_fact(&s,"goal","repair");let s=assert_fact(&s,"goal","repair repair repair");
+    assert_eq!(nextAttention(&s).unwrap().node.unwrap().id,1,"duplicating a goal cannot outvote another goal");
+}
+
+#[test]
+fn multiple_goals_guide_missing_aspects_and_withdrawal_restores_pending_precedence() {
+    let s=jointly_reviewed_amounts();
+    let s=accepted(ingest(&s,s.matter.revision,Role::Client,"client".into(),"Other".into(),b"Unrelated item".to_vec()).unwrap());
+    assert!(!nextAttention(&s).unwrap().additional);
+    let s=assert_fact(&s,"goal","Tuesday");let later=node_ref(&s,"goal");
+    let s=assert_fact(&s,"goal","Keep records");
+    let focused=nextAttention(&s).unwrap();assert!(focused.additional);assert_eq!(focused.meaning.facet,"day");assert_eq!(focused.meaning.value,"Tuesday");
+    assert_eq!(overview(&s,Role::Client).unwrap().node,focused.node.unwrap().id);
+    let s=accepted(withdraw(&s,s.matter.revision,Role::Client,"client".into(),later).unwrap());
+    assert!(!nextAttention(&s).unwrap().additional);
+}
+
+fn goal_overlap_for(session: &Session, text: &str) -> u64 {
+    let admitted=current(&session.matter.nodes,&session.matter.sources).unwrap().references;
+    goalFeatureOverlap(&goalContext(session,&admitted).unwrap(),&features(text.into()).unwrap().values).unwrap()
+}
+
+#[test]
+fn goal_context_preserves_goal_boundaries_and_counts_each_query_feature_once() {
+    let s=assert_fact(&assert_fact(&initial("Goal boundaries".into()),"goal","rent"),"goal","repair");
+    let s=assert_fact(&s,"goal","repair repair repair");
+    assert_eq!(goal_overlap_for(&s,"rent repair"),2,"separate goals do not supply the intervening ordered pair");
+    let mut permuted=s.clone();permuted.matter.nodes.reverse();assert_eq!(goal_overlap_for(&permuted,"rent repair"),2);
+    let s=assert_fact(&s,"goal","rent repair");assert_eq!(goal_overlap_for(&s,"rent repair"),3,"a pair must occur within a goal");
+    let context=goalContext(&s,&current(&s.matter.nodes,&s.matter.sources).unwrap().references).unwrap();
+    let mut query=features("rent repair".into()).unwrap().values;query.extend(query.clone());assert_eq!(goalFeatureOverlap(&context,&query).unwrap(),3);
+}
+
+#[test]
+fn goal_context_excludes_unreviewed_conflicted_withdrawn_and_replaced_source_meanings() {
+    let s=accepted(ingest(&initial("Source goals".into()),0,Role::Client,"client".into(),"Instructions".into(),b"rent refund".to_vec()).unwrap());
+    let s=assert_fact(&s,"goal","Understand");assert_eq!(goal_overlap_for(&s,"rent refund"),0);
+    let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:1},"goal".into(),"rent refund".into(),true).unwrap());
+    assert_eq!(goal_overlap_for(&s,"rent refund"),3);
+    let s=accepted(annotate(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:2},"goal".into(),"repair invoice".into()).unwrap());
+    assert_eq!(goal_overlap_for(&s,"rent refund repair invoice"),0,"conflicting meanings of the same instructions cannot guide attention");
+    let conflict=nodeReference(s.matter.nodes.iter().max_by_key(|n|n.id).unwrap());
+    let s=accepted(withdraw(&s,s.matter.revision,Role::Client,"client".into(),conflict).unwrap());assert_eq!(goal_overlap_for(&s,"rent refund"),3);
+    let s=accepted(reviseSource(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:1},b"Different instructions".to_vec()).unwrap());
+    assert_eq!(goal_overlap_for(&s,"rent refund"),0);
+}
+
+#[test]
+fn goal_context_reaches_the_last_goal_at_full_matter_capacity() {
+    let mut s=initial("Full goal context".into());
+    for index in 0..1024 {s=assert_fact(&s,"goal",&format!("goal {index}"));}
+    assert_eq!(s.matter.nodes.len(),1024);
+    for index in [0,31,32,511,512,1023] {assert_eq!(goal_overlap_for(&s,&format!("goal {index}")),3);}
+    assert_eq!(goal_overlap_for(&s,"goal missing"),1);
+    assert!(nextAttention(&s).unwrap().node.is_none());
+}
+
+#[test]
+fn adding_an_outcome_preserves_rule_goal_binding_and_selected_corrections() {
+    let original=strategy_journal();let binding=original.session.rules[0].goal.clone();
+    let fields=vec![original.journal.clone(),"client".into(),"Recover the rent".into()];
+    let added=changeFields("add-goal".into(),&fields,original.journal.clone(),&original.session,"client".into()).unwrap();
+    assert_eq!(added.code,"");assert_eq!(added.session.rules[0].goal,binding);
+    assert_eq!(goal_overlap_for(&added.session,"Recover the rent"),5);
+    assert!(current(&added.session.matter.nodes,&added.session.matter.sources).unwrap().references.contains(&binding));
+    let ambiguous=setContext(added.journal.clone(),&added.session,"client".into(),"goal".into(),"Choose for me".into()).unwrap();
+    assert!(!ambiguous.code.is_empty());assert_eq!(ambiguous.journal,added.journal);assert_eq!(ambiguous.session,added.session);
+    let edited=editLocatedValue(added.journal,&added.session,"client".into(),"goal".into(),"Recover the rent".into(),"Repair the home".into(),"".into()).unwrap();
+    assert_eq!(edited.code,"");assert!(current(&edited.session.matter.nodes,&edited.session.matter.sources).unwrap().references.contains(&binding));
+    assert_eq!(replay(edited.journal.clone()).unwrap().session,edited.session);
+    let changed=editLocatedValue(edited.journal,&edited.session,"client".into(),"goal".into(),"Respond".into(),"Negotiate".into(),"".into()).unwrap();
+    assert_eq!(changed.code,"");assert!(!current(&changed.session.matter.nodes,&changed.session.matter.sources).unwrap().references.contains(&binding));
+    assert_eq!(assess(&changed.session.rules[0],&changed.session.matter.nodes,&changed.session.matter.sources).unwrap().status,ReasoningStatus::Inactive);
+    assert_eq!(replay(changed.journal).unwrap().session,changed.session);
+    let denied=changeFields("add-goal".into(),&fields,original.journal.clone(),&original.session,"reader".into()).unwrap();
+    assert!(!denied.code.is_empty());assert_eq!(denied.journal,original.journal);assert_eq!(denied.session,original.session);
+}
+
+#[test]
+fn grouped_synapse_updates_preserve_weights_order_and_first_match() {
+    for count in [0,1,31,32,33,63,64,65,511,1024,2048] {
+        let original=(0..count).map(|i|Synapse{feature:format!("feature {i}"),weight:(i+1) as u64}).collect::<Vec<_>>();
+        for feature in ["feature 0","feature 31","feature 32","feature 511","feature 2047","new feature"] {
+            let mut expected=original.clone();
+            if let Some(existing)=expected.iter_mut().find(|s|s.feature==feature) { existing.weight+=1; }
+            else { expected.push(Synapse{feature:feature.into(),weight:1}); }
+            assert_eq!(strengthen(&original,feature.into()).unwrap().values,expected);
+        }
+    }
+    let original=vec![Synapse{feature:"same".into(),weight:2},Synapse{feature:"same".into(),weight:7}];
+    let updated=strengthen(&original,"same".into()).unwrap().values;
+    assert_eq!(updated[0].weight,3);assert_eq!(updated[1].weight,7);assert_eq!(original[0].weight,2);
+    let mut boundary=(0..65).map(|i|Synapse{feature:format!("feature {i}"),weight:1}).collect::<Vec<_>>();
+    boundary[31].feature="shared".into();boundary[32].feature="shared".into();
+    let updated=strengthen(&boundary,"shared".into()).unwrap().values;
+    assert_eq!(updated[31].weight,2);assert_eq!(updated[32].weight,1);
+}
+
+#[test]
+fn full_capacity_goal_vocabulary_replays_and_focuses_the_oldest_relevant_goal() {
+    let mut journal=initialJournal("All current goals".into());
+    append_journal_command(&mut journal,vec!["ingest".into(),"0".into(),"client".into(),"client".into(),"Records".into(),"ordinary passage\ntarget agreement".into()]);
+    for index in 0..1022 {
+        append_journal_command(&mut journal,vec!["assert".into(),(index+1).to_string(),"client".into(),"client".into(),"goal".into(),if index==0 {"target agreement".into()} else {format!("another outcome {index}")}]);
+    }
+    let restored=replay(journal).unwrap();assert_eq!(restored.code,"");
+    assert_eq!(restored.session.matter.nodes.len(),1024);
+    assert_eq!(overview(&restored.session,Role::Client).unwrap().node,2);
+    assert_eq!(restored.session.matter.nodes.iter().filter(|n|!n.accepted).count(),2);
 }

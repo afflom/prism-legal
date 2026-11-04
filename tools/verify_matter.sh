@@ -15,6 +15,7 @@ cargo test --locked --offline --manifest-path tests/matter/Cargo.toml \
   --config "patch.crates-io.prism-stdlib.path=\"$PWD/.toolchain/prismpm/stdlib/generated/package\""
 ln -s /opt/prismpm/oracles/node_modules tests/matter/node_modules
 node tests/matter/holistic_runtime.mjs "$matter_artifact/view/browser"
+node tests/matter/core_runtime.mjs "$matter_artifact"
 CHROMIUM_EXECUTABLE=/ms-playwright/chromium_headless_shell-cft-157.0.8099.0/chrome-headless-shell-linux64/chrome-headless-shell \
   node tests/matter/run_browser.mjs "$matter_artifact/view/browser"
 if ! "$prism_sdk" --project . --json verify > matter-verification.json; then

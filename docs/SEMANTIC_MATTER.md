@@ -221,9 +221,30 @@ higher-order runtime closures or changing the saved-file format.
 `MatterJourney` selects useful next context: intake, goal, one review task,
 jurisdiction, authority, then strategy assessment. The pending review and additional learned facets participate in a shared
 attention selection. Connections to unresolved conditions of current reviewed rules take
-priority. Distinct words and adjacent word pairs shared with the current goal
+priority. Distinct words and adjacent word pairs shared with any current goal
 break ties; remaining ties preserve source order and the existing pending-review
 precedence. No numeric tuning weights or remote inference service are used.
+All admitted, undisputed goals contribute to that shared context. Repeated
+vocabulary counts once; adding the same wording cannot outweigh another goal.
+Word pairs stay within their original goal, so two separate goals cannot create
+an invented phrase. Correcting, withdrawing, disputing or replacing a source
+removes that goal's old contribution immediately. Goal features retain the
+matter's bounded groups rather than constructing an unbounded flattened list.
+
+**Add another desired outcome** appends a goal without replacing an existing one.
+**Set the desired outcome** refuses to choose silently when several goals exist;
+**Correct an interpretation** selects the intended goal by its exact wording.
+Existing strategies remain bound to their particular goal revision. Adding or
+correcting another goal preserves that binding; changing the bound goal makes
+its dependent reasoning inactive. Saving and reopening retains those relations.
+
+Learned feature updates also preserve their original order and weights while
+processing bounded groups. A matter with 1,022 distinct goals and two pending passages exceeded the
+browser deadline with the initial guest allocator, despite native reference
+generation completing.
+The regression retains all 1,024 nodes and selects the oldest relevant goal;
+no vocabulary, goals, or acceptance expectations are truncated to reduce work.
+
 Goal matching is bounded literal vocabulary attention, not evidence that a
 legal condition is satisfied. Editing or withdrawing the goal recomputes focus;
 only current admitted context contributes. Selection never accepts a fact.
@@ -354,15 +375,13 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`fcd2d63657c2d627a9264011fc850c5e2d684ca6faabba5e4acf7a395121c4f7`
+`cb1a54eba44fb66a30af9a686ddefcf892fc3d5a410c02e79a9876e9eadf014b`
 and semantic ID
-`8bd70d2d610a59a6322d0cc664dad05bddc30e4351aa5f5fe10d64c7568aa68e`
-was emitted as build
-`82422b46ad58905c37db778478b312fc81dd262bb1bb92ac2989e5db2b3487ff`
-and passed LexLean verification with attestation
-`0dc0e747bbcb0950b0217ca33fedcc2bf35b1cc8b1154a43259ca4016c350594`.
+`24435175b9fe068b0cd2004f31abfeab25a09f2c2ac680838416ad3edfd01b37`
+passed LexLean verification with attestation
+`0327f9b2f0720ae407d7a3053b2d7bc0f6d897f67d6824a780bdd394461b1d92`.
 
-The generated native library passes 87 tests across `behavior.rs` and
+The generated native library passes 96 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
@@ -396,7 +415,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 118 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 131 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -445,7 +464,7 @@ resolve it. The required pinned-browser CI must
 pass without replacing the response-body assertion or changing retention
 buffers to hide the failure.
 
-The 118-vector source corpus also restores a fully reviewed 1,008-passage
+The earlier 118-vector source corpus also restored a fully reviewed 1,008-passage
 intake and a 2,048-command correction history, inspects the final correction,
 and refuses both another edit and a 2,049-command restore. The generated-browser
 journey opens both files, saves their exact bytes, corrects the last passage
@@ -454,7 +473,41 @@ by source location, and keeps the accepted file after each refusal. A local prob
 measured 10,991 ms for the 67,239-byte fully reviewed intake and 1,934 ms for
 the 134,971-byte correction history. Neither test nor browser command deadline
 was increased. These timings are observations on this machine, not latency
-guarantees. Full portable verification of the expanded corpus remains unestablished.
+guarantees. That revision did not establish full portable verification of the expanded corpus.
+
+The subsequent pinned [CI run 41676256220](https://github.com/afflom/prism-legal/actions/runs/41676256220)
+for commit `575b038768fd56027154e5c4e8a276ebe200d464` passed source verification,
+87 native tests, the Wasm-adapter corpus, and the generated application browser.
+Full verification failed in the actual Core-Wasm guest. Direct local execution
+reproduced the trap at stored vector index 110 (10,633 request bytes), with
+linear memory at the declared 256 MiB maximum. The guest's cumulative bump
+allocator retained dropped Rust temporaries; the browser adapter used a different
+allocator. This is a separate, concrete failure from the older development-browser
+response-body diagnostics. [PrismPM #507](https://github.com/UOR-Foundation/PrismPM/issues/507)
+is addressed by [PR #508](https://github.com/UOR-Foundation/PrismPM/pull/508),
+which reuses temporary allocations while preserving resident ABI buffers and
+original V1 generation. `core_runtime.mjs` now executes the actual
+archive guest independently of the browser adapter and is a required CI step.
+
+The current 131-vector corpus also restores 1,022 distinct goals and two pending
+passages at full node capacity, selecting the oldest relevant goal. Its actual
+Core-Wasm guest was regenerated from the compiled model with the final pinned
+Rust allocator and passed every source vector. The vocabulary case took 5,712 ms
+using 67,633,152 bytes; the fully reviewed 1,008-passage restore took 8,072 ms
+using 16,056,320 bytes. These are local observations with unchanged bounds.
+The initial coalescing free-list implementation failed to complete this corpus
+within 200 seconds; a 10-second profile concentrated samples in allocation and
+release searches. The final adapter uses the pinned toolchain's standard Wasm
+allocator, preserving the import-free binary and modeled memory/stack contract.
+This is generic SDK behavior; application learning and grouped feature updates
+remain LexLean definitions. The generated browser also restores the full goal
+file, retains its exact bytes, and prepares the selected source passage without
+accepting it. Its existing command deadline is unchanged.
+
+Full pinned-image results belong to the exact commit and artifact reported by
+[the application PR](https://github.com/afflom/prism-legal/pull/1) and its Actions
+checks. These local measurements and component checks do not constitute that
+full verification attestation.
 
 The source-pinned SDK carries explicit transport bounds from
 [PrismPM #496](https://github.com/UOR-Foundation/PrismPM/issues/496).

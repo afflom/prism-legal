@@ -46,8 +46,11 @@ inventory. The generic file-session capability is proposed upstream in
 [issue #491](https://github.com/UOR-Foundation/PrismPM/issues/491). The app uses
 that fix directly while it awaits upstream review. Its bounded portable session
 transport fix is tracked in [#496](https://github.com/UOR-Foundation/PrismPM/issues/496),
-with the carried dependency patch identified in verification evidence. Legal
-behavior stays here.
+with the carried dependency patch identified in verification evidence. Bounded
+reuse of temporary Core-Wasm allocations is proposed in
+[PrismPM #508](https://github.com/UOR-Foundation/PrismPM/pull/508), following
+[issue #507](https://github.com/UOR-Foundation/PrismPM/issues/507). Legal behavior
+stays here.
 LexLean is 0.4.0 (`e0b74b81e6f49c83596a957d232c8383a5db1a25`), with Lean 4.32.1.
 
 With that SDK's pinned toolchain installed:
@@ -72,6 +75,7 @@ choice, not authentication; journals are not encrypted or tamper-proof.
 ```sh
 python -m unittest discover -s tests -p 'test_*.py'
 node tests/matter/holistic_runtime.mjs .prism/build/<build-id>/view/browser
+node tests/matter/core_runtime.mjs .prism/build/<build-id>
 npm ci --prefix tests/matter
 CHROMIUM_EXECUTABLE=/path/to/chromium \
   node tests/matter/run_browser.mjs .prism/build/<build-id>/view/browser

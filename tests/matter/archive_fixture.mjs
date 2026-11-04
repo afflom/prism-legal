@@ -15,3 +15,11 @@ export function correctionHistory(commands=2048){
  for(let revision=1;revision<commands;revision++)journal+=fields([fields(['review',String(revision),'client','client','1',String(revision),'entry',`value ${revision}`,'true'])]);
  return journal;
 }
+
+export function goalCapacity(){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ let journal=fields(['prism-legal/journal/1','All current goals']);
+ journal+=fields([fields(['ingest','0','client','client','Records','ordinary passage\ntarget agreement'])]);
+ for(let index=0;index<1022;index++)journal+=fields([fields(['assert',String(index+1),'client','client','goal',index===0?'target agreement':`another outcome ${index}`])]);
+ return journal;
+}

@@ -94,12 +94,59 @@ definition{
 }
 
 definition{
- name: strengthen, parameters: [synapses : (List Synapse), feature : String], result: Synapses,
+ name: strengthenLinear, parameters: [synapses : (List Synapse), feature : String], result: Synapses,
  body: (match synapses | List.nil => (record Synapses {values := (cons (record Synapse {feature := feature, weight := 1}) (nil Synapse))})
  | List.cons synapse rest => (if (prim equal (project synapse feature) feature : Bool) then
  (record Synapses {values := (cons (record Synapse {feature := feature, weight := ((project synapse weight) + 1)}) rest)})
- else (let following : Synapses := (strengthen rest feature); (record Synapses {values := (cons synapse (project following values))})))),
+ else (let following : Synapses := (strengthenLinear rest feature); (record Synapses {values := (cons synapse (project following values))})))),
  executable: true, axioms: [], recursive_argument: synapses
+}
+
+structure{
+ name: SynapseChunkSplit, type_parameters: [], parameters: [],
+ fields: [{name: first, type: (List Synapse)}, {name: remaining, type: (List Synapse)}]
+}
+structure{
+ name: SynapseUpdate, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List Synapse)}, {name: matched, type: Bool}]
+}
+definition{
+ name: countSynapsesFrom, parameters: [synapses : (List Synapse), count : Nat], result: Nat,
+ body: (match synapses | List.nil => count | List.cons synapse rest => (countSynapsesFrom rest (count + 1))),
+ executable: true, axioms: [], recursive_argument: synapses
+}
+definition{
+ name: splitSynapseChunk, parameters: [fuel : Nat, synapses : (List Synapse)], result: SynapseChunkSplit,
+ body: (match fuel | Nat.zero => (record SynapseChunkSplit {first := (nil Synapse), remaining := synapses}) | Nat.succ remainingFuel =>
+ (match synapses | List.nil => (record SynapseChunkSplit {first := (nil Synapse), remaining := (nil Synapse)}) | List.cons synapse rest =>
+ (let following : SynapseChunkSplit := (splitSynapseChunk remainingFuel rest);
+ (record SynapseChunkSplit {first := (cons synapse (project following first)), remaining := (project following remaining)})))),
+ executable: true, axioms: [], recursive_argument: fuel
+}
+definition{
+ name: strengthenChunk, parameters: [synapses : (List Synapse), feature : String], result: SynapseUpdate,
+ body: (match synapses | List.nil => (record SynapseUpdate {values := (nil Synapse), matched := false}) | List.cons synapse rest =>
+ (if (prim equal (project synapse feature) feature : Bool) then
+ (record SynapseUpdate {values := (cons (record Synapse {feature := feature, weight := ((project synapse weight) + 1)}) rest), matched := true})
+ else (let following : SynapseUpdate := (strengthenChunk rest feature);
+ (record SynapseUpdate {values := (cons synapse (project following values)), matched := (project following matched)})))),
+ executable: true, axioms: [], recursive_argument: synapses
+}
+definition{
+ name: strengthenChunks, parameters: [fuel : Nat, synapses : (List Synapse), feature : String], result: Synapses,
+ body: (match fuel | Nat.zero => (strengthenLinear synapses feature) | Nat.succ remainingFuel =>
+ (match synapses | List.nil => (record Synapses {values := (cons (record Synapse {feature := feature, weight := 1}) (nil Synapse))}) | List.cons synapse rest =>
+ (let chunk : SynapseChunkSplit := (splitSynapseChunk 32 synapses);
+ (let updated : SynapseUpdate := (strengthenChunk (project chunk first) feature);
+ (if (project updated matched) then (record Synapses {values := (prim append (project updated values) (project chunk remaining) : (List Synapse))}) else
+ (let following : Synapses := (strengthenChunks remainingFuel (project chunk remaining) feature);
+ (record Synapses {values := (prim append (project chunk first) (project following values) : (List Synapse))}))))))),
+ executable: true, axioms: [], recursive_argument: fuel
+}
+definition{
+ name: strengthen, parameters: [synapses : (List Synapse), feature : String], result: Synapses,
+ body: (strengthenChunks (prim quotient ((countSynapsesFrom synapses 0) + 31) 32 0 : Nat) synapses feature),
+ executable: true, axioms: []
 }
 
 definition{
