@@ -1,0 +1,127 @@
+\begin{lexlean}{MatterReview}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{MatterWire}
+\importmodule{Foundation.Utf8}
+\importmodule{Foundation.Bytes}
+\importmodule{Matter}
+\importmodule{MatterText}
+\title{Text application model}
+\begin{semanticmodule}
+definition{
+  name: quoteCount, parameters: [nodes : (List Matter::Node), quotation : String], result: Nat,
+  body: (match nodes
+    | List.nil => 0
+    | List.cons node rest => ((if (prim equal (project node value) quotation : Bool) then 1 else 0) + (quoteCount rest quotation))),
+  recursive_argument: nodes,
+  executable: true
+}
+
+definition{
+  name: reviewQuoted, parameters: [nodes : (List Matter::Node), quotation : String, facet : String, interpretation : String], result: Matter::Nodes,
+  body: (match nodes
+    | List.nil => (record Matter::Nodes {nodes := (nil Matter::Node)})
+    | List.cons node rest => (let following : Matter::Nodes := (reviewQuoted rest quotation facet interpretation);
+      (record Matter::Nodes {nodes := (cons
+        (if (prim equal (project node value) quotation : Bool) then
+          (Matter::revise node facet (if (prim equal interpretation "" : Bool) then quotation else interpretation) true)
+        else node) (project following nodes))}))),
+  executable: true,
+  recursive_argument: nodes
+}
+
+definition{
+  name: applyReview, parameters: [nodes : (List Matter::Node), quotation : String, facet : String, interpretation : String], result: (Option Matter::Nodes),
+  body: (if (prim equal quotation "" : Bool) then
+    (if ((prim equal facet "" : Bool) && (prim equal interpretation "" : Bool)) then (ctor Option.some [Matter::Nodes] (record Matter::Nodes {nodes := nodes})) else (ctor Option.none [Matter::Nodes]))
+    else (if (((quoteCount nodes quotation) =? 1) && (not (prim equal facet "" : Bool))) then
+      (ctor Option.some [Matter::Nodes] (reviewQuoted nodes quotation facet interpretation))
+    else (ctor Option.none [Matter::Nodes]))),
+  executable: true
+}
+
+definition{
+  name: firstPending, parameters: [nodes : (List Matter::Node)], result: (Option Matter::Node),
+  body: (match nodes
+    | List.nil => (ctor Option.none [Matter::Node])
+    | List.cons node rest => (if (project node accepted) then (firstPending rest) else (ctor Option.some [Matter::Node] node))),
+  recursive_argument: nodes,
+  executable: true
+}
+
+definition{
+  name: nodeSummary, parameters: [node : Matter::Node], result: String,
+  body: (prim join (cons "Line " (cons (MatterText::decimal (project node id))
+    (cons " - " (cons (project node facet) (cons (if (project node accepted) then " (reviewed interpretation): " else " (suggestion to review): ")
+    (cons (project node value) (nil String))))))) "" : String),
+  executable: true,
+  axioms: [propext]
+}
+
+definition{
+  name: citationSummary, parameters: [citation : Matter::Citation], result: String,
+  body: (prim join (cons "Source " (cons (MatterText::decimal (project citation source))
+    (cons ", revision " (cons (MatterText::decimal (project citation revision))
+    (cons ", UTF-8 bytes " (cons (MatterText::decimal (project citation start))
+    (cons ".." (cons (MatterText::decimal ((project citation start) + (project citation size))) (nil String))))))))) "" : String),
+  executable: true,
+  axioms: [propext]
+}
+
+definition{
+  name: details, parameters: [nodes : (List Matter::Node), lawyer : Bool, focus : Nat], result: MatterText::TextItems,
+  body: (match nodes
+    | List.nil => (record MatterText::TextItems {values := (nil String)})
+    | List.cons node rest => (let following : MatterText::TextItems := (details rest lawyer focus);
+      (if (project node accepted) then
+        (if lawyer then (match (project node citations)
+          | List.nil => (record MatterText::TextItems {values := (cons (nodeSummary node) (project following values))})
+          | List.cons citation others => (record MatterText::TextItems {values := (cons (nodeSummary node) (cons (citationSummary citation) (project following values)))}))
+        else (record MatterText::TextItems {values := (cons (nodeSummary node) (project following values))}))
+      else (if (lawyer && ((project node id) =? focus)) then (match (project node citations)
+        | List.nil => following
+        | List.cons citation others => (record MatterText::TextItems {values := (cons (citationSummary citation) (project following values))}))
+      else following)))),
+  executable: true,
+  recursive_argument: nodes,
+  axioms: [propext]
+}
+
+definition{
+  name: present, parameters: [operation : String, nodes : (List Matter::Node), lawyer : Bool], result: Bytes,
+  body: (match (firstPending nodes)
+    | Option.none => (MatterWire::report "ok" operation "Your interpretation is recorded in this result. Review the governing law and supporting evidence before drawing legal conclusions." 0 0 (nil String) (project (details nodes lawyer 0) values) "")
+    | Option.some node => (MatterWire::report "ok" operation "Next: review this passage and its suggested facet." 1 3
+      (cons (MatterText::concat "Line " (MatterText::decimal (project node id)))
+        (cons (project node facet) (cons (project node value) (nil String))))
+      (project (details nodes lawyer (project node id)) values) "")),
+  axioms: [Classical.choice, Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: refusal, parameters: [operation : String, code : String, message : String], result: Bytes,
+  body: (MatterWire::report "error" operation message 0 0 (nil String) (nil String) code),
+  axioms: [Classical.choice, Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: evaluate, parameters: [operation : String, content : String, quotation : String, facet : String, interpretation : String, audience : String], result: Bytes,
+  body: (if ((128 <? (Foundation.Bytes::byteLength (Foundation.Utf8::encode facet))) || (8192 <? (Foundation.Bytes::byteLength (Foundation.Utf8::encode interpretation)))) then
+    (refusal operation "review-limit" "Use a facet of at most 128 UTF-8 bytes and an interpretation of at most 8192 bytes.") else
+    (if (not ((prim equal audience "client" : Bool) || (prim equal audience "lawyer" : Bool))) then (refusal operation "audience" "Choose the client or lawyer view.") else
+    (match (checked MatterText::IntakeModel (record Matter::Source {id := 1, revision := 1, content := (Foundation.Utf8::encode content)}) with [postcondition])
+      | Result.error failure => (refusal operation "grounding" "The extracted passages could not be checked against their source.")
+      | Result.ok extracted => (match extracted
+        | Option.none => (refusal operation "source" "Use UTF-8 text with at most 64 lines and 8192 bytes. Split a larger resource into clearly identified excerpts.")
+        | Option.some collection => (let nodes : (List Matter::Node) := (project collection nodes); (if ((Matter::nodeCount nodes) =? 0) then (refusal operation "empty" "Add the text of an intake resource to begin.") else
+          (match (applyReview nodes quotation facet interpretation)
+            | Option.none => (refusal operation "review" "Select one exact, unique source line and give it a facet. The interpretation may be left blank to retain the quotation.")
+            | Option.some reviewed => (present operation (project (MatterText::suggestions (project reviewed nodes) (project reviewed nodes)) nodes) (prim equal audience "lawyer" : Bool))))))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  executable: true
+}
+\end{semanticmodule}
+\end{lexlean}

@@ -1,0 +1,235 @@
+\begin{lexlean}{MatterText}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Foundation.Bytes}
+\importmodule{Foundation.Utf8}
+\importmodule{Matter}
+\title{Text application model}
+\begin{semanticmodule}
+definition{
+  name: concat, parameters: [left : String, right : String], result: String,
+  body: (prim join (cons left (cons right (nil String))) "" : String),
+  executable: true,
+  axioms: [propext]
+}
+
+definition{
+  name: decimalDigit, parameters: [digit : Nat], result: String,
+  body: (if (digit =? 0) then "0" else (if (digit =? 1) then "1" else (if (digit =? 2) then "2" else (if (digit =? 3) then "3" else (if (digit =? 4) then "4" else (if (digit =? 5) then "5" else (if (digit =? 6) then "6" else (if (digit =? 7) then "7" else (if (digit =? 8) then "8" else "9"))))))))),
+  executable: true
+}
+
+definition{
+  name: decimalLoop, parameters: [fuel : Nat, value : Nat], result: String,
+  body: (match fuel
+    | Nat.zero => ""
+    | Nat.succ remaining => (if (value <? 10) then (decimalDigit value) else
+      (concat (decimalLoop remaining (prim quotient value 10 0 : Nat)) (decimalDigit (prim remainder value 10 0 : Nat))))),
+  recursive_argument: fuel,
+  executable: true,
+  axioms: [propext]
+}
+
+definition{
+  name: decimal, parameters: [value : Nat], result: String,
+  body: (decimalLoop 10 value),
+  executable: true,
+  axioms: [propext]
+}
+
+definition{
+  name: extractLines, parameters: [lines : (List String), source : Matter::Source, offset : Nat, ordinal : Nat], result: Matter::Nodes,
+  body: (match lines
+    | List.nil => (record Matter::Nodes {nodes := (nil Matter::Node)})
+    | List.cons line rest => (let bytes : Bytes := (Foundation.Utf8::encode line);
+      (let size : Nat := (Foundation.Bytes::byteLength bytes);
+       (let following : Matter::Nodes := (extractLines rest source (offset + (size + 1)) (ordinal + 1));
+        (if (size =? 0) then following else (record Matter::Nodes {nodes := (cons (record Matter::Node {
+          id := ordinal, revision := 1, facet := "Unassigned", value := line,
+          origin := (ctor Matter::Origin.Extracted), accepted := false,
+          citations := (cons (record Matter::Citation {source := (project source id), revision := (project source revision), start := offset, size := size, quote := bytes}) (nil Matter::Citation)),
+          dependencies := (nil Matter::Reference)
+        }) (project following nodes))})))))),
+  executable: true,
+  recursive_argument: lines
+}
+
+definition{
+  name: extract, parameters: [source : Matter::Source], result: (Option Matter::Nodes),
+  body: (if (8192 <? (Foundation.Bytes::byteLength (project source content))) then (ctor Option.none [Matter::Nodes]) else
+    (match (Foundation.Utf8::decode (project source content))
+      | Option.none => (ctor Option.none [Matter::Nodes])
+      | Option.some text => (match (prim split_exact text "\n" (64 : UInt32) : (Option (List String)))
+        | Option.none => (ctor Option.none [Matter::Nodes])
+        | Option.some lines => (ctor Option.some [Matter::Nodes] (extractLines lines source 0 1))))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: wordPresent, parameters: [tokens : (List String), word : String], result: Bool,
+  body: (match tokens
+    | List.nil => false
+    | List.cons candidate rest => ((prim equal candidate word : Bool) || (wordPresent rest word))),
+  recursive_argument: tokens,
+  executable: true
+}
+
+structure{
+  name: TextItems, type_parameters: [], parameters: [],
+  fields: [{name: values, type: (List String)}]
+}
+
+definition{
+  name: distinctWords, parameters: [tokens : (List String)], result: TextItems,
+  body: (match tokens
+    | List.nil => (record TextItems {values := (nil String)})
+    | List.cons word rest => (let following : TextItems := (distinctWords rest);
+      (if ((prim equal word "" : Bool) || (wordPresent rest word)) then following else (record TextItems {values := (cons word (project following values))})))),
+  executable: true,
+  recursive_argument: tokens
+}
+
+definition{
+  name: words, parameters: [text : String], result: TextItems,
+  body: (match (prim split_exact text " " (256 : UInt32) : (Option (List String)))
+    | Option.none => (record TextItems {values := (nil String)})
+    | Option.some tokens => (distinctWords tokens)),
+  executable: true,
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: overlap, parameters: [left : (List String), right : (List String)], result: Nat,
+  body: (match left
+    | List.nil => 0
+    | List.cons word rest => ((if (wordPresent right word) then 1 else 0) + (overlap rest right))),
+  recursive_argument: left,
+  executable: true
+}
+
+definition{
+  name: wordCount, parameters: [tokens : (List String)], result: Nat,
+  body: (match tokens | List.nil => 0 | List.cons word rest => (1 + (wordCount rest))),
+  recursive_argument: tokens,
+  executable: true
+}
+
+structure{
+  name: Attention, type_parameters: [], parameters: [],
+  fields: [{name: facet, type: String}, {name: exemplar, type: Nat}, {name: shared, type: Nat}, {name: total, type: Nat}, {name: ambiguous, type: Bool}]
+}
+
+definition{
+  name: emptyAttention, parameters: [], result: Attention,
+  body: (record Attention {facet := "Unassigned", exemplar := 0, shared := 0, total := 1, ambiguous := false}),
+  executable: true
+}
+
+definition{
+  name: attend, parameters: [query : (List String), examples : (List Matter::Node), best : Attention], result: Attention,
+  body: (match examples
+    | List.nil => best
+    | List.cons example rest => (if (project example accepted) then
+      (let key : TextItems := (words (project example value));
+       (let shared : Nat := (overlap query (project key values));
+       (let total : Nat := (prim subtract ((wordCount query) + (wordCount (project key values))) shared : Nat);
+       (let candidateScore : Nat := (prim multiply shared (project best total) : Nat);
+       (let bestScore : Nat := (prim multiply (project best shared) total : Nat);
+       (attend query rest
+         (if (bestScore <? candidateScore) then
+           (record Attention {facet := (project example facet), exemplar := (project example id), shared := shared, total := total, ambiguous := false})
+         else (if ((0 <? shared) && ((candidateScore =? bestScore) && (not (prim equal (project example facet) (project best facet) : Bool)))) then
+           (record Attention {facet := (project best facet), exemplar := (project best exemplar), shared := (project best shared), total := (project best total), ambiguous := true})
+         else best))))))))
+      else (attend query rest best))),
+  recursive_argument: examples,
+  axioms: [Classical.choice, Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: inferredFacet, parameters: [attention : Attention], result: String,
+  body: (if ((project attention ambiguous) || ((project attention shared) =? 0)) then "Unassigned" else (project attention facet)),
+  executable: true
+}
+
+definition{
+  name: suggestions, parameters: [nodes : (List Matter::Node), examples : (List Matter::Node)], result: Matter::Nodes,
+  body: (match nodes
+    | List.nil => (record Matter::Nodes {nodes := (nil Matter::Node)})
+    | List.cons node rest => (let following : Matter::Nodes := (suggestions rest examples);
+      (record Matter::Nodes {nodes := (cons
+        (if (project node accepted) then node else
+          (let attention : Attention := (attend (project (words (project node value)) values) examples (emptyAttention));
+           (record Matter::Node {id := (project node id), revision := (project node revision), facet := (inferredFacet attention),
+             value := (project node value), origin := (ctor Matter::Origin.Extracted), accepted := false,
+             citations := (project node citations), dependencies := (project node dependencies)})))
+        (project following nodes))}))),
+  executable: true,
+  recursive_argument: nodes,
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+theorem{
+  name: noExamplesAbstains, parameters: [query : (List String)],
+  statement: ((inferredFacet (attend query (nil Matter::Node) (emptyAttention))) = "Unassigned"),
+  proof: reflexivity{},
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: groundedNodes, parameters: [source : Matter::Source, nodes : (List Matter::Node)], result: Bool,
+  body: (match nodes
+    | List.nil => true
+    | List.cons node rest => ((not (project node accepted)) &&
+      ((Matter::hasCitations (project node citations)) &&
+        ((Matter::citationsCurrent (cons source (nil Matter::Source)) (project node citations)) && (groundedNodes source rest))))),
+  recursive_argument: nodes,
+  executable: true
+}
+
+definition{
+  name: extractionCheck, parameters: [source : Matter::Source, result : (Option Matter::Nodes)], result: Bool,
+  body: (match result | Option.none => true | Option.some collection => (groundedNodes source (project collection nodes))),
+  executable: true
+}
+
+definition{
+  name: GroundedExtraction, parameters: [source : Matter::Source, result : (Option Matter::Nodes)], result: Prop,
+  body: ((extractionCheck source result) = true)
+}
+
+theorem{
+  name: booleanSelfImplication, parameters: [flag : Bool],
+  statement: ((flag = true) -> (flag = true)),
+  proof: cases{scrutinee: flag, branches: [
+    {constructor: "false", binders: [], proof: decide{}},
+    {constructor: "true", binders: [], proof: decide{}}
+  ]}
+}
+
+theorem{
+  name: extractionCheckSound, parameters: [source : Matter::Source, result : (Option Matter::Nodes)],
+  statement: (((extractionCheck source result) = true) -> (GroundedExtraction source result)),
+  proof: apply{theorem: booleanSelfImplication, arguments: [(extractionCheck source result)]}
+}
+
+contract{
+  name: IntakeContract,
+  input: {name: source, type: Matter::Source}, output: {name: result, type: (Option Matter::Nodes)},
+  postcondition: GroundedExtraction,
+  validators: [{predicate: postcondition, sound: extractionCheckSound, validator: extractionCheck}]
+}
+
+realization{
+  name: IntakeExtraction,
+  input: {name: source, type: Matter::Source}, output: (Option Matter::Nodes),
+  descriptor: deterministic{body: (extract source)}, executable: true,
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+model{name: IntakeModel, contract: {member: IntakeContract}, realization: {member: IntakeExtraction}, axioms: [Classical.choice, Quot.sound, propext]}
+\end{semanticmodule}
+\end{lexlean}

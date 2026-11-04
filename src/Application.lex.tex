@@ -64,7 +64,7 @@ definition{
   name: publication,
   parameters: [],
   result: GitHubPagesPublication,
-  body: (record GitHubPagesPublication {id := "prism-legal-github-pages", repository := "afflom/prism-legal", pagesUrl := "https://afflom.github.io/prism-legal/", workflowPath := ".github/workflows/pages.yml", ciWorkflowPath := ".github/workflows/ci.yml", artifactRoot := "view", uploadAction := "actions/upload-pages-artifact@v3", deployAction := "actions/deploy-pages@v4", githubActionsEnabled := true}),
+  body: (record GitHubPagesPublication {id := "prism-legal-github-pages", repository := "afflom/prism-legal", pagesUrl := "https://afflom.github.io/prism-legal/", workflowPath := ".github/workflows/pages.yml", ciWorkflowPath := ".github/workflows/ci.yml", artifactRoot := "matter-site", uploadAction := "actions/upload-pages-artifact@v3", deployAction := "actions/deploy-pages@v4", githubActionsEnabled := true}),
   axioms: []
 }
 

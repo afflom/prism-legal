@@ -1,0 +1,293 @@
+\begin{lexlean}{Matter}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Foundation.Bytes}
+\title{Text application model}
+\begin{semanticmodule}
+inductive{
+  name: Origin, type_parameters: [], parameters: [],
+  constructors: [{name: Extracted, fields: []}, {name: Reviewed, fields: []}, {name: Inferred, fields: []}]
+}
+
+structure{
+  name: Source, type_parameters: [], parameters: [],
+  fields: [{name: id, type: Nat}, {name: revision, type: Nat}, {name: content, type: Bytes}]
+}
+
+structure{
+  name: Citation, type_parameters: [], parameters: [],
+  fields: [{name: source, type: Nat}, {name: revision, type: Nat}, {name: start, type: Nat}, {name: size, type: Nat}, {name: quote, type: Bytes}]
+}
+
+structure{
+  name: Reference, type_parameters: [], parameters: [],
+  fields: [{name: id, type: Nat}, {name: revision, type: Nat}]
+}
+
+structure{
+  name: Node, type_parameters: [], parameters: [],
+  fields: [
+    {name: id, type: Nat}, {name: revision, type: Nat},
+    {name: facet, type: String}, {name: value, type: String},
+    {name: origin, type: Origin}, {name: accepted, type: Bool},
+    {name: citations, type: (List Citation)},
+    {name: dependencies, type: (List Reference)}
+  ]
+}
+
+definition{
+  name: matchesSource, parameters: [source : Source, citation : Citation], result: Bool,
+  body: (((project source id) =? (project citation source)) &&
+    (((project source revision) =? (project citation revision)) &&
+      ((0 <? (project citation size)) &&
+        (match (Foundation.Bytes::sliceBytes (project source content) (project citation start) (project citation size))
+          | Option.none => false
+          | Option.some actual => (prim equal actual (project citation quote) : Bool))))),
+  executable: true
+}
+
+definition{
+  name: findSource, parameters: [sources : (List Source), identifier : Nat], result: (Option Source),
+  body: (match sources
+    | List.nil => (ctor Option.none [Source])
+    | List.cons source rest => (if ((project source id) =? identifier) then (ctor Option.some [Source] source) else (findSource rest identifier))),
+  recursive_argument: sources,
+  executable: true
+}
+
+definition{
+  name: citationCurrent, parameters: [sources : (List Source), citation : Citation], result: Bool,
+  body: (match (findSource sources (project citation source))
+    | Option.none => false
+    | Option.some source => (matchesSource source citation)),
+  executable: true
+}
+
+definition{
+  name: citationsCurrent, parameters: [sources : (List Source), citations : (List Citation)], result: Bool,
+  body: (match citations
+    | List.nil => true
+    | List.cons citation rest => ((citationCurrent sources citation) && (citationsCurrent sources rest))),
+  recursive_argument: citations,
+  executable: true
+}
+
+definition{
+  name: findNode, parameters: [nodes : (List Node), identifier : Nat], result: (Option Node),
+  body: (match nodes
+    | List.nil => (ctor Option.none [Node])
+    | List.cons node rest => (if ((project node id) =? identifier) then (ctor Option.some [Node] node) else (findNode rest identifier))),
+  recursive_argument: nodes,
+  executable: true
+}
+
+definition{
+  name: nodeCount, parameters: [nodes : (List Node)], result: Nat,
+  body: (match nodes | List.nil => 0 | List.cons node rest => (1 + (nodeCount rest))),
+  recursive_argument: nodes,
+  executable: true
+}
+
+definition{
+  name: hasReferences, parameters: [references : (List Reference)], result: Bool,
+  body: (match references | List.nil => false | List.cons reference rest => true),
+  executable: true
+}
+
+definition{
+  name: hasCitations, parameters: [citations : (List Citation)], result: Bool,
+  body: (match citations | List.nil => false | List.cons citation rest => true),
+  executable: true
+}
+
+definition{
+  name: grounded, parameters: [node : Node], result: Bool,
+  body: (match (project node origin)
+    | Origin.Extracted => (hasCitations (project node citations))
+    | Origin.Reviewed => true
+    | Origin.Inferred => (hasReferences (project node dependencies))),
+  executable: true
+}
+
+definition{
+  name: referenceEq, parameters: [left : Reference, right : Reference], result: Bool,
+  body: (((project left id) =? (project right id)) && ((project left revision) =? (project right revision))),
+  executable: true
+}
+
+definition{
+  name: containsReference, parameters: [references : (List Reference), required : Reference], result: Bool,
+  body: (match references
+    | List.nil => false
+    | List.cons reference rest => ((referenceEq reference required) || (containsReference rest required))),
+  recursive_argument: references,
+  executable: true
+}
+
+definition{
+  name: allReferencesIn, parameters: [required : (List Reference), available : (List Reference)], result: Bool,
+  body: (match required
+    | List.nil => true
+    | List.cons reference rest => ((containsReference available reference) && (allReferencesIn rest available))),
+  recursive_argument: required,
+  executable: true
+}
+
+definition{
+  name: ready, parameters: [sources : (List Source), known : (List Reference), node : Node], result: Bool,
+  body: ((project node accepted) && ((grounded node) &&
+    ((citationsCurrent sources (project node citations)) && (allReferencesIn (project node dependencies) known)))),
+  executable: true
+}
+
+definition{
+  name: nodeReference, parameters: [node : Node], result: Reference,
+  body: (record Reference {id := (project node id), revision := (project node revision)}),
+  executable: true
+}
+
+structure{
+  name: Admission, type_parameters: [], parameters: [],
+  fields: [{name: references, type: (List Reference)}]
+}
+
+definition{
+  name: admitRound, parameters: [nodes : (List Node), sources : (List Source), known : (List Reference)], result: Admission,
+  body: (match nodes
+    | List.nil => (record Admission {references := (nil Reference)})
+    | List.cons node rest => (let following : Admission := (admitRound rest sources known);
+      (if (ready sources known node) then (record Admission {references := (cons (nodeReference node) (project following references))}) else following))),
+  executable: true,
+  recursive_argument: nodes
+}
+
+
+definition{
+  name: referencesEqual, parameters: [left : (List Reference), right : (List Reference)], result: Bool,
+  body: (match left | List.nil => (match right | List.nil => true | List.cons item rest => false)
+    | List.cons item rest => (match right | List.nil => false | List.cons other following => ((referenceEq item other) && (referencesEqual rest following)))),
+  executable: true, recursive_argument: left
+}
+
+definition{
+  name: closure, parameters: [fuel : Nat, nodes : (List Node), sources : (List Source), known : Admission], result: Admission,
+  body: (match fuel
+    | Nat.zero => known
+    | Nat.succ remaining => (let next : Admission := (admitRound nodes sources (project known references)); (if (referencesEqual (project known references) (project next references)) then next else (closure remaining nodes sources next)))),
+  recursive_argument: fuel,
+  executable: true
+}
+
+definition{
+  name: distinctNodes, parameters: [nodes : (List Node)], result: Bool,
+  body: (match nodes
+    | List.nil => true
+    | List.cons node rest => (match (findNode rest (project node id))
+      | Option.none => (distinctNodes rest)
+      | Option.some duplicate => false)),
+  recursive_argument: nodes,
+  executable: true
+}
+
+definition{
+  name: distinctSources, parameters: [sources : (List Source)], result: Bool,
+  body: (match sources
+    | List.nil => true
+    | List.cons source rest => (match (findSource rest (project source id))
+      | Option.none => (distinctSources rest)
+      | Option.some duplicate => false)),
+  recursive_argument: sources,
+  executable: true
+}
+
+definition{
+  name: current, parameters: [nodes : (List Node), sources : (List Source)], result: Admission,
+  body: (if ((distinctNodes nodes) && (distinctSources sources)) then
+    (closure (nodeCount nodes) nodes sources (record Admission {references := (nil Reference)})) else (record Admission {references := (nil Reference)})),
+  executable: true
+}
+
+definition{
+  name: revise, parameters: [node : Node, facet : String, value : String, accepted : Bool], result: Node,
+  body: (record Node {id := (project node id), revision := ((project node revision) + 1),
+    facet := facet, value := value, origin := (ctor Origin.Reviewed), accepted := accepted,
+    citations := (project node citations), dependencies := (project node dependencies)}),
+  executable: true
+}
+
+structure{
+  name: Nodes, type_parameters: [], parameters: [],
+  fields: [{name: nodes, type: (List Node)}]
+}
+
+definition{
+  name: replacementHead, parameters: [node : Node, updated : Node], result: Node,
+  body: (if ((project node id) =? (project updated id)) then updated else node),
+  executable: true
+}
+
+definition{
+  name: replace, parameters: [nodes : (List Node), updated : Node], result: Nodes,
+  body: (match nodes
+    | List.nil => (record Nodes {nodes := (nil Node)})
+    | List.cons node rest => (record Nodes {nodes :=
+      (cons (replacementHead node updated) (project (replace rest updated) nodes))})),
+  executable: true,
+  recursive_argument: nodes
+}
+
+definition{
+  name: edit, parameters: [nodes : (List Node), expected : Reference, facet : String, value : String, accepted : Bool], result: (Option Nodes),
+  body: (if (distinctNodes nodes) then (match (findNode nodes (project expected id))
+    | Option.none => (ctor Option.none [Nodes])
+    | Option.some node => (if ((project node revision) =? (project expected revision))
+      then (ctor Option.some [Nodes] (replace nodes (revise node facet value accepted)))
+      else (ctor Option.none [Nodes]))) else (ctor Option.none [Nodes])),
+  executable: true
+}
+
+structure{
+  name: Change, type_parameters: [], parameters: [],
+  fields: [{name: before, type: Node}, {name: after, type: Node}]
+}
+
+structure{
+  name: State, type_parameters: [], parameters: [],
+  fields: [{name: revision, type: Nat}, {name: sources, type: (List Source)}, {name: nodes, type: (List Node)}, {name: changes, type: (List Change)}]
+}
+
+definition{
+  name: commitEdit, parameters: [state : State, expectedRevision : Nat, expectedNode : Reference, facet : String, value : String, accepted : Bool], result: (Option State),
+  body: (if ((project state revision) =? expectedRevision) then
+    (match (findNode (project state nodes) (project expectedNode id))
+      | Option.none => (ctor Option.none [State])
+      | Option.some previous => (match (edit (project state nodes) expectedNode facet value accepted)
+        | Option.none => (ctor Option.none [State])
+        | Option.some updated => (ctor Option.some [State] (record State {
+          revision := ((project state revision) + 1), sources := (project state sources), nodes := (project updated nodes),
+          changes := (cons (record Change {before := previous, after := (revise previous facet value accepted)}) (project state changes))
+        }))))
+    else (ctor Option.none [State])),
+  executable: true
+}
+
+theorem{
+  name: correctionAdvancesRevision, parameters: [node : Node, facet : String, value : String, accepted : Bool],
+  statement: ((project (revise node facet value accepted) revision) = ((project node revision) + 1)),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: correctionPreservesProvenance, parameters: [node : Node, facet : String, value : String, accepted : Bool],
+  statement: ((project (revise node facet value accepted) citations) = (project node citations)),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: correctionPreservesDependencies, parameters: [node : Node, facet : String, value : String, accepted : Bool],
+  statement: ((project (revise node facet value accepted) dependencies) = (project node dependencies)),
+  proof: reflexivity{}
+}
+\end{semanticmodule}
+\end{lexlean}

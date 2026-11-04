@@ -1,0 +1,470 @@
+\begin{lexlean}{MatterSession}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Matter}
+\importmodule{MatterText}
+\importmodule{MatterCsv}
+\importmodule{MatterInference}
+\importmodule{Foundation.Bytes}
+\importmodule{Foundation.Utf8}
+\title{Text application model}
+\begin{semanticmodule}
+definition{
+ name: maximumNodeCount, parameters: [], result: Nat,
+ body: 1024,
+ executable: true, axioms: []
+}
+
+inductive{ name: Role, type_parameters: [], parameters: [], constructors: [{name: Client, fields: []}, {name: Lawyer, fields: []}, {name: Reader, fields: []}] }
+
+structure{
+ name: ResourceLabel, type_parameters: [], parameters: [],
+ fields: [{name: source, type: Nat}, {name: title, type: String}, {name: format, type: String}]
+}
+
+structure{
+ name: AuditEntry, type_parameters: [], parameters: [],
+ fields: [{name: revision, type: Nat}, {name: actor, type: String}, {name: operation, type: String}, {name: target, type: Nat}]
+}
+
+structure{
+ name: Session, type_parameters: [], parameters: [],
+ fields: [{name: matter, type: Matter::State}, {name: title, type: String}, {name: labels, type: (List ResourceLabel)}, {name: sourceHistory, type: (List Matter::Source)}, {name: rules, type: (List MatterInference::Rule)}, {name: audit, type: (List AuditEntry)}]
+}
+
+structure{
+ name: Outcome, type_parameters: [], parameters: [],
+ fields: [{name: code, type: String}, {name: session, type: Session}]
+}
+
+structure{
+ name: Sources, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List Matter::Source)}]
+}
+
+structure{
+ name: Rules, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List MatterInference::Rule)}]
+}
+
+definition{
+ name: initial, parameters: [title : String], result: Session,
+ body: (record Session {matter := (record Matter::State {revision := 0, sources := (nil Matter::Source), nodes := (nil Matter::Node), changes := (nil Matter::Change)}), title := title, labels := (nil ResourceLabel), sourceHistory := (nil Matter::Source), rules := (nil MatterInference::Rule), audit := (nil AuditEntry)}),
+ executable: true, axioms: []
+}
+
+definition{
+ name: refuse, parameters: [session : Session, code : String], result: Outcome,
+ body: (record Outcome {code := code, session := session}),
+ executable: true, axioms: []
+}
+
+definition{
+ name: canWrite, parameters: [role : Role], result: Bool,
+ body: (match role | Role.Reader => false | Role.Client => true | Role.Lawyer => true),
+ executable: true, axioms: []
+}
+
+definition{
+ name: isLawyer, parameters: [role : Role], result: Bool,
+ body: (match role | Role.Reader => false | Role.Client => false | Role.Lawyer => true),
+ executable: true, axioms: []
+}
+
+definition{
+ name: privileged, parameters: [facet : String], result: Bool,
+ body: ((prim equal facet "rule" : Bool) || ((prim equal facet "authority" : Bool) || (prim equal facet "legal-conclusion" : Bool))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: writable, parameters: [session : Session, expected : Nat, role : Role, actor : String], result: Bool,
+ body: ((canWrite role) && ((not (prim equal actor "" : Bool)) && ((project (project session matter) revision) =? expected))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: boundedText, parameters: [value : String, maximum : Nat], result: Bool,
+ body: ((0 <? (Foundation.Bytes::byteLength (Foundation.Utf8::encode value))) && (not (maximum <? (Foundation.Bytes::byteLength (Foundation.Utf8::encode value))))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: nextNode, parameters: [nodes : (List Matter::Node)], result: Nat,
+ body: (match nodes | List.nil => 1 | List.cons node rest => (let following : Nat := (nextNode rest); (if ((project node id) <? following) then following else ((project node id) + 1)))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: nextSource, parameters: [sources : (List Matter::Source)], result: Nat,
+ body: (match sources | List.nil => 1 | List.cons source rest => (let following : Nat := (nextSource rest); (if ((project source id) <? following) then following else ((project source id) + 1)))),
+ executable: true, axioms: [], recursive_argument: sources
+}
+
+definition{
+ name: sourceCount, parameters: [sources : (List Matter::Source)], result: Nat,
+ body: (match sources | List.nil => 0 | List.cons source rest => (1 + (sourceCount rest))),
+ executable: true, axioms: [], recursive_argument: sources
+}
+
+definition{
+ name: ruleCount, parameters: [rules : (List MatterInference::Rule)], result: Nat,
+ body: (match rules | List.nil => 0 | List.cons rule rest => (1 + (ruleCount rest))),
+ executable: true, axioms: [], recursive_argument: rules
+}
+
+definition{
+ name: reidentify, parameters: [nodes : (List Matter::Node), next : Nat], result: Matter::Nodes,
+ body: (match nodes | List.nil => (record Matter::Nodes {nodes := (nil Matter::Node)})
+ | List.cons node rest => (let following : Matter::Nodes := (reidentify rest (next + 1));
+ (record Matter::Nodes {nodes := (cons (record Matter::Node {id := next, revision := 1, facet := (project node facet), value := (project node value), origin := (project node origin), accepted := false, citations := (project node citations), dependencies := (nil Matter::Reference)}) (project following nodes))}))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: appendNodes, parameters: [left : (List Matter::Node), right : (List Matter::Node)], result: Matter::Nodes,
+ body: (match left | List.nil => (record Matter::Nodes {nodes := right}) | List.cons node rest => (let following : Matter::Nodes := (appendNodes rest right); (record Matter::Nodes {nodes := (cons node (project following nodes))}))),
+ executable: true, axioms: [], recursive_argument: left
+}
+
+definition{
+ name: replaceSource, parameters: [sources : (List Matter::Source), updated : Matter::Source], result: Sources,
+ body: (match sources | List.nil => (record Sources {values := (nil Matter::Source)}) | List.cons source rest => (let following : Sources := (replaceSource rest updated); (record Sources {values := (cons (if ((project source id) =? (project updated id)) then updated else source) (project following values))}))),
+ executable: true, axioms: [], recursive_argument: sources
+}
+
+definition{
+ name: findRule, parameters: [rules : (List MatterInference::Rule), identifier : Nat], result: (Option MatterInference::Rule),
+ body: (match rules | List.nil => (ctor Option.none [MatterInference::Rule]) | List.cons rule rest =>
+ (if ((project (project rule definition) id) =? identifier) then (ctor Option.some [MatterInference::Rule] rule) else (findRule rest identifier))),
+ executable: true, axioms: [], recursive_argument: rules
+}
+
+structure{
+ name: Reconciliation, type_parameters: [], parameters: [],
+ fields: [{name: nodes, type: (List Matter::Node)}, {name: changes, type: (List Matter::Change)}, {name: changed, type: Bool}]
+}
+
+definition{
+ name: proposalSupported, parameters: [node : Matter::Node, rules : (List MatterInference::Rule), matter : Matter::State], result: Bool,
+ body: (match (project node dependencies)
+ | List.nil => true
+ | List.cons reference rest => (match (findRule rules (project reference id))
+ | Option.none => true
+ | Option.some rule => (match (project (MatterInference::assess rule (project matter nodes) (project matter sources)) status)
+ | MatterInference::ReasoningStatus.Supported => true
+ | MatterInference::ReasoningStatus.Inactive => false
+ | MatterInference::ReasoningStatus.Missing => false
+ | MatterInference::ReasoningStatus.Excepted => false))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: reconcileNode, parameters: [node : Matter::Node, rules : (List MatterInference::Rule), matter : Matter::State, following : Reconciliation], result: Reconciliation,
+ body: (if ((project node accepted) && (not (proposalSupported node rules matter))) then
+ (let updated : Matter::Node := (Matter::revise node (project node facet) (project node value) false);
+ (record Reconciliation {nodes := (cons updated (project following nodes)), changes := (cons (record Matter::Change {before := node, after := updated}) (project following changes)), changed := true}))
+ else (record Reconciliation {nodes := (cons node (project following nodes)), changes := (project following changes), changed := (project following changed)})),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: reconcileNodes, parameters: [nodes : (List Matter::Node), rules : (List MatterInference::Rule), matter : Matter::State], result: Reconciliation,
+ body: (match nodes
+ | List.nil => (record Reconciliation {nodes := (nil Matter::Node), changes := (project matter changes), changed := false})
+ | List.cons node rest => (reconcileNode node rules matter (reconcileNodes rest rules matter))),
+ executable: true, axioms: [propext], recursive_argument: nodes
+}
+
+definition{
+ name: reconcileRounds, parameters: [fuel : Nat, rules : (List MatterInference::Rule), matter : Matter::State], result: Matter::State,
+ body: (match fuel | Nat.zero => matter | Nat.succ remaining =>
+ (let revised : Reconciliation := (reconcileNodes (project matter nodes) rules matter);
+ (if (project revised changed) then (reconcileRounds remaining rules (record Matter::State {revision := (project matter revision), sources := (project matter sources), nodes := (project revised nodes), changes := (project revised changes)})) else matter))),
+ executable: true, axioms: [propext], recursive_argument: fuel
+}
+
+definition{
+ name: reconcile, parameters: [rules : (List MatterInference::Rule), matter : Matter::State], result: Matter::State,
+ body: (match rules | List.nil => matter | List.cons rule rest => (reconcileRounds (Matter::nodeCount (project matter nodes)) rules matter)),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: changed, parameters: [session : Session, matter : Matter::State, actor : String, operation : String, target : Nat], result: Session,
+ body: (record Session {matter := (reconcile (project session rules) matter), title := (project session title), labels := (project session labels), sourceHistory := (project session sourceHistory), rules := (project session rules), audit := (cons (record AuditEntry {revision := (project matter revision), actor := actor, operation := operation, target := target}) (project session audit))}),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: resourceFormat, parameters: [labels : (List ResourceLabel), source : Nat], result: String,
+ body: (match labels | List.nil => "text" | List.cons label rest => (if ((project label source) =? source) then (project label format) else (resourceFormat rest source))),
+ executable: true, axioms: [], recursive_argument: labels
+}
+
+definition{
+ name: csvNode, parameters: [session : Session, node : Matter::Node], result: Bool,
+ body: (match (project node citations) | List.nil => false | List.cons citation rest => (prim equal (resourceFormat (project session labels) (project citation source)) "csv" : Bool)),
+ executable: true, axioms: []
+}
+
+definition{
+ name: ingestFormat, parameters: [session : Session, expected : Nat, role : Role, actor : String, title : String, content : Bytes, format : String], result: Outcome,
+ body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
+ (if (not ((prim equal format "text" : Bool) || (prim equal format "csv" : Bool))) then (refuse session "source-format") else
+ (if (not (boundedText title 256)) then (refuse session "source-title") else
+ (if (not ((sourceCount (project (project session matter) sources)) <? 32)) then (refuse session "source-limit") else
+ (let source : Matter::Source := (record Matter::Source {id := (nextSource (project (project session matter) sources)), revision := 1, content := content});
+ (match (if (prim equal format "csv" : Bool) then (checked MatterCsv::CsvIntakeModel source with [postcondition]) else (checked MatterText::IntakeModel source with [postcondition]))
+ | Result.error error => (refuse session "source-grounding")
+ | Result.ok extracted => (match extracted
+  | Option.none => (refuse session (if (prim equal format "csv" : Bool) then "csv-format-or-limit" else "source-format-or-limit"))
+  | Option.some collection => (if (((Matter::nodeCount (project collection nodes)) =? 0) || ((maximumNodeCount) <? ((Matter::nodeCount (project collection nodes)) + (Matter::nodeCount (project (project session matter) nodes))))) then (refuse session "source-empty-or-node-limit") else
+   (let appended : Matter::Nodes := (appendNodes (project (project session matter) nodes) (project (reidentify (project collection nodes) (nextNode (project (project session matter) nodes))) nodes));
+   (let matter : Matter::State := (record Matter::State {revision := (expected + 1), sources := (cons source (project (project session matter) sources)), nodes := (project appended nodes), changes := (project (project session matter) changes)});
+   (let updated : Session := (changed session matter actor "ingest" (project source id));
+   (record Outcome {code := "", session := (record Session {matter := (project updated matter), title := (project updated title), labels := (cons (record ResourceLabel {source := (project source id), title := title, format := format}) (project updated labels)), sourceHistory := (project updated sourceHistory), rules := (project updated rules), audit := (project updated audit)})})))))))))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: ingest, parameters: [session : Session, expected : Nat, role : Role, actor : String, title : String, content : Bytes], result: Outcome,
+ body: (ingestFormat session expected role actor title content "text"), executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: ingestCsv, parameters: [session : Session, expected : Nat, role : Role, actor : String, title : String, content : Bytes], result: Outcome,
+ body: (ingestFormat session expected role actor title content "csv"), executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: reviseSource, parameters: [session : Session, expected : Nat, role : Role, actor : String, reference : Matter::Reference, content : Bytes], result: Outcome,
+ body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
+ (match (Matter::findSource (project (project session matter) sources) (project reference id))
+ | Option.none => (refuse session "source-missing")
+ | Option.some previous => (if (not ((project previous revision) =? (project reference revision))) then (refuse session "source-conflict") else
+ (let source : Matter::Source := (record Matter::Source {id := (project previous id), revision := ((project previous revision) + 1), content := content});
+ (match (if (prim equal (resourceFormat (project session labels) (project source id)) "csv" : Bool) then (checked MatterCsv::CsvIntakeModel source with [postcondition]) else (checked MatterText::IntakeModel source with [postcondition]))
+ | Result.error error => (refuse session "source-grounding")
+ | Result.ok extracted => (match extracted
+  | Option.none => (refuse session (if (prim equal (resourceFormat (project session labels) (project source id)) "csv" : Bool) then "csv-format-or-limit" else "source-format-or-limit"))
+  | Option.some collection => (if (((Matter::nodeCount (project collection nodes)) =? 0) || ((maximumNodeCount) <? ((Matter::nodeCount (project collection nodes)) + (Matter::nodeCount (project (project session matter) nodes))))) then (refuse session "source-empty-or-node-limit") else
+   (let appended : Matter::Nodes := (appendNodes (project (project session matter) nodes) (project (reidentify (project collection nodes) (nextNode (project (project session matter) nodes))) nodes));
+   (let sources : Sources := (replaceSource (project (project session matter) sources) source);
+   (let matter : Matter::State := (record Matter::State {revision := (expected + 1), sources := (project sources values), nodes := (project appended nodes), changes := (project (project session matter) changes)});
+   (let updated : Session := (changed session matter actor "revise-source" (project source id));
+   (record Outcome {code := "", session := (record Session {matter := (project updated matter), title := (project updated title), labels := (project updated labels), sourceHistory := (cons previous (project updated sourceHistory)), rules := (project updated rules), audit := (project updated audit)})})))))))))))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: recordAssertion, parameters: [session : Session, expected : Nat, role : Role, actor : String, facet : String, value : String], result: Outcome,
+ body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
+ (if ((privileged facet) || (not ((boundedText facet 128) && (boundedText value 8192)))) then (refuse session "assertion-facet-or-value") else
+ (if (not ((Matter::nodeCount (project (project session matter) nodes)) <? (maximumNodeCount))) then (refuse session "node-limit") else
+ (let identifier : Nat := (nextNode (project (project session matter) nodes));
+ (let node : Matter::Node := (record Matter::Node {id := identifier, revision := 1, facet := facet, value := value, origin := (ctor Matter::Origin.Reviewed), accepted := true, citations := (nil Matter::Citation), dependencies := (nil Matter::Reference)});
+ (let matter : Matter::State := (record Matter::State {revision := (expected + 1), sources := (project (project session matter) sources), nodes := (cons node (project (project session matter) nodes)), changes := (project (project session matter) changes)});
+ (record Outcome {code := "", session := (changed session matter actor "assert" identifier)}))))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: ruleReviewSupported, parameters: [session : Session, node : Matter::Node], result: Bool,
+ body: (match (project node dependencies) | List.nil => true | List.cons dependency rest =>
+ (match (findRule (project session rules) (project dependency id)) | Option.none => true | Option.some rule =>
+ (match (project (MatterInference::assess rule (project (project session matter) nodes) (project (project session matter) sources)) status)
+ | MatterInference::ReasoningStatus.Supported => true | MatterInference::ReasoningStatus.Inactive => false | MatterInference::ReasoningStatus.Missing => false | MatterInference::ReasoningStatus.Excepted => false))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: conclusionMatches, parameters: [session : Session, node : Matter::Node, facet : String, value : String], result: Bool,
+ body: (match (project node dependencies) | List.nil => true | List.cons dependency rest =>
+ (match (findRule (project session rules) (project dependency id)) | Option.none => true | Option.some rule =>
+ ((prim equal facet (project rule conclusionFacet) : Bool) && (prim equal value (project rule conclusionValue) : Bool)))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: reviewDependenciesCurrent, parameters: [matter : Matter::State, dependencies : (List Matter::Reference)], result: Bool,
+ body: (match dependencies | List.nil => true | List.cons reference rest =>
+ (Matter::allReferencesIn dependencies (project (Matter::current (project matter nodes) (project matter sources)) references))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: review, parameters: [session : Session, expected : Nat, role : Role, actor : String, reference : Matter::Reference, facet : String, value : String, accepted : Bool], result: Outcome,
+ body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
+ (match (Matter::findNode (project (project session matter) nodes) (project reference id))
+ | Option.none => (refuse session "node-missing")
+ | Option.some previous => (if ((prim equal facet "rule" : Bool) || (prim equal (project previous facet) "rule" : Bool)) then (refuse session "use-rule-review") else
+ (if (((privileged facet) || ((privileged (project previous facet)) || (match (project previous dependencies) | List.nil => false | List.cons dependency remaining => (match (findRule (project session rules) (project dependency id)) | Option.none => false | Option.some linkedRule => true)))) && (not (isLawyer role))) then (refuse session "lawyer-review-required") else
+ (if (not ((boundedText facet 128) && (boundedText value 8192))) then (refuse session "review-facet-or-value") else
+ (if (accepted && (not ((conclusionMatches session previous facet value) && ((ruleReviewSupported session previous) && ((Matter::citationsCurrent (project (project session matter) sources) (project previous citations)) && (reviewDependenciesCurrent (project session matter) (project previous dependencies))))))) then (refuse session "support-is-stale") else
+ (match (Matter::commitEdit (project session matter) expected reference facet value accepted)
+ | Option.none => (refuse session "node-conflict")
+ | Option.some matter => (record Outcome {code := "", session := (changed session matter actor "review" (project reference id))})))))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: annotate, parameters: [session : Session, expected : Nat, role : Role, actor : String, reference : Matter::Reference, facet : String, value : String], result: Outcome,
+ body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
+ (if ((prim equal facet "rule" : Bool) || ((privileged facet) && (not (isLawyer role)))) then (refuse session "lawyer-review-required") else
+ (if (not ((boundedText facet 128) && (boundedText value 8192))) then (refuse session "review-facet-or-value") else
+ (if (not ((Matter::nodeCount (project (project session matter) nodes)) <? (maximumNodeCount))) then (refuse session "node-limit") else
+ (match (Matter::findNode (project (project session matter) nodes) (project reference id))
+ | Option.none => (refuse session "node-missing")
+ | Option.some previous => (if (not ((Matter::referenceEq reference (Matter::nodeReference previous)) && ((Matter::hasCitations (project previous citations)) && (Matter::containsReference (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references) reference)))) then (refuse session "support-is-stale") else
+ (let identifier : Nat := (nextNode (project (project session matter) nodes));
+ (let node : Matter::Node := (record Matter::Node {id := identifier, revision := 1, facet := facet, value := value, origin := (ctor Matter::Origin.Reviewed), accepted := true, citations := (project previous citations), dependencies := (nil Matter::Reference)});
+ (let matter : Matter::State := (record Matter::State {revision := (expected + 1), sources := (project (project session matter) sources), nodes := (cons node (project (project session matter) nodes)), changes := (project (project session matter) changes)});
+ (record Outcome {code := "", session := (changed session matter actor "annotate" identifier)})))))))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: withdraw, parameters: [session : Session, expected : Nat, role : Role, actor : String, reference : Matter::Reference], result: Outcome,
+ body: (match (Matter::findNode (project (project session matter) nodes) (project reference id))
+ | Option.none => (refuse session "node-missing") | Option.some node =>
+ (let outcome : Outcome := (review session expected role actor reference (project node facet) (project node value) false);
+ (if (not (prim equal (project outcome code) "" : Bool)) then outcome else
+ (let updated : Session := (project outcome session);
+ (record Outcome {code := "", session := (record Session {matter := (project updated matter), title := (project updated title), labels := (project updated labels), sourceHistory := (project updated sourceHistory), rules := (project updated rules), audit :=
+ (cons (record AuditEntry {revision := (project (project updated matter) revision), actor := actor, operation := "withdraw", target := (project reference id)}) (match (project updated audit) | List.nil => (nil AuditEntry) | List.cons entry rest => rest))})}))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: isWithdrawn, parameters: [audit : (List AuditEntry), node : Matter::Node], result: Bool,
+ body: (match audit | List.nil => false | List.cons entry rest =>
+ (if (((project entry target) =? (project node id)) && ((not (prim equal (project entry operation) "ingest" : Bool)) && (not (prim equal (project entry operation) "revise-source" : Bool)))) then (prim equal (project entry operation) "withdraw" : Bool) else (isWithdrawn rest node))),
+ executable: true, axioms: [], recursive_argument: audit
+}
+
+definition{
+ name: requirementsValid, parameters: [items : (List MatterInference::Requirement), fuel : Nat], result: Bool,
+ body: (match items | List.nil => true | List.cons item rest =>
+ (match fuel | Nat.zero => false | Nat.succ remaining =>
+ ((boundedText (project item facet) 128) && ((boundedText (project item value) 8192) && ((boundedText (project item question) 512) && (requirementsValid rest remaining)))))),
+ executable: true, axioms: [], recursive_argument: items
+}
+
+definition{
+ name: bindRule, parameters: [rule : MatterInference::Rule, reference : Matter::Reference], result: MatterInference::Rule,
+ body: (record MatterInference::Rule {definition := reference, authority := (project rule authority), jurisdiction := (project rule jurisdiction), goal := (project rule goal), premises := (project rule premises), exceptions := (project rule exceptions), conclusionFacet := (project rule conclusionFacet), conclusionValue := (project rule conclusionValue), action := (project rule action)}),
+ executable: true, axioms: []
+}
+
+definition{
+ name: putRule, parameters: [rules : (List MatterInference::Rule), updated : MatterInference::Rule], result: Rules,
+ body: (match rules | List.nil => (record Rules {values := (cons updated (nil MatterInference::Rule))})
+ | List.cons rule rest => (if ((project (project rule definition) id) =? (project (project updated definition) id)) then (record Rules {values := (cons updated rest)})
+ else (let following : Rules := (putRule rest updated); (record Rules {values := (cons rule (project following values))})))),
+ executable: true, axioms: [], recursive_argument: rules
+}
+
+definition{
+ name: ruleTarget, parameters: [session : Session, reference : Matter::Reference], result: (Option Matter::Reference),
+ body: (if ((project reference id) =? 0) then
+ (if ((project reference revision) =? 0) then (ctor Option.some [Matter::Reference] (record Matter::Reference {id := (nextNode (project (project session matter) nodes)), revision := 1})) else (ctor Option.none [Matter::Reference]))
+ else (match (findRule (project session rules) (project reference id))
+ | Option.none => (ctor Option.none [Matter::Reference])
+ | Option.some previous => (if (Matter::referenceEq reference (project previous definition)) then (ctor Option.some [Matter::Reference] (record Matter::Reference {id := (project reference id), revision := ((project reference revision) + 1)})) else (ctor Option.none [Matter::Reference])))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: commitRule, parameters: [session : Session, expected : Nat, role : Role, actor : String, rule : MatterInference::Rule], result: Outcome,
+ body: (if (not ((writable session expected role actor) && (isLawyer role))) then (refuse session "rule-conflict-or-permission") else
+ (if (not ((requirementsValid (project rule premises) 64) && ((requirementsValid (project rule exceptions) 64) && ((boundedText (project rule conclusionFacet) 128) && ((boundedText (project rule conclusionValue) 8192) && (boundedText (project rule action) 8192)))))) then (refuse session "rule-content") else
+ (if (((project (project rule definition) id) =? 0) && ((not ((ruleCount (project session rules)) <? 128)) || (not ((Matter::nodeCount (project (project session matter) nodes)) <? (maximumNodeCount))))) then (refuse session "rule-limit") else
+ (match (ruleTarget session (project rule definition))
+ | Option.none => (refuse session "rule-revision")
+ | Option.some reference => (let updated : MatterInference::Rule := (bindRule rule reference);
+ (let node : Matter::Node := (record Matter::Node {id := (project reference id), revision := (project reference revision), facet := "rule", value := (MatterInference::ruleBinding updated), origin := (ctor Matter::Origin.Reviewed), accepted := true, citations := (nil Matter::Citation), dependencies := (cons (project updated authority) (cons (project updated jurisdiction) (cons (project updated goal) (nil Matter::Reference))))});
+ (let nodes : Matter::Nodes := (if ((project (project rule definition) id) =? 0) then (record Matter::Nodes {nodes := (cons node (project (project session matter) nodes))}) else (Matter::replace (project (project session matter) nodes) node));
+ (let admitted : Matter::Admission := (Matter::current (project nodes nodes) (project (project session matter) sources));
+ (if (not (MatterInference::ruleReady updated (project nodes nodes) (project admitted references))) then (refuse session "rule-support") else
+ (let changes : (List Matter::Change) := (match (Matter::findNode (project (project session matter) nodes) (project reference id)) | Option.none => (project (project session matter) changes) | Option.some before => (cons (record Matter::Change {before := before, after := node}) (project (project session matter) changes)));
+ (let matter : Matter::State := (record Matter::State {revision := (expected + 1), sources := (project (project session matter) sources), nodes := (project nodes nodes), changes := changes});
+ (let changedSession : Session := (changed session matter actor "review-rule" (project reference id));
+ (let rules : Rules := (putRule (project session rules) updated);
+ (record Outcome {code := "", session := (record Session {matter := (project changedSession matter), title := (project changedSession title), labels := (project changedSession labels), sourceHistory := (project changedSession sourceHistory), rules := (project rules values), audit := (project changedSession audit)})})))))))))))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: propose, parameters: [session : Session, expected : Nat, role : Role, actor : String, ruleReference : Matter::Reference], result: Outcome,
+ body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
+ (if (not ((Matter::nodeCount (project (project session matter) nodes)) <? (maximumNodeCount))) then (refuse session "node-limit") else
+ (match (findRule (project session rules) (project ruleReference id))
+ | Option.none => (refuse session "rule-missing")
+ | Option.some rule => (if (not (Matter::referenceEq (project rule definition) ruleReference)) then (refuse session "rule-conflict") else
+ (match (MatterInference::proposal (MatterInference::assess rule (project (project session matter) nodes) (project (project session matter) sources)) (nextNode (project (project session matter) nodes)))
+ | Option.none => (refuse session "rule-not-supported")
+ | Option.some node => (let matter : Matter::State := (record Matter::State {revision := (expected + 1), sources := (project (project session matter) sources), nodes := (cons node (project (project session matter) nodes)), changes := (project (project session matter) changes)});
+ (record Outcome {code := "", session := (changed session matter actor "propose" (project node id))}))))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: preferredProposal, parameters: [node : Matter::Node, following : (Option Matter::Node)], result: (Option Matter::Node),
+ body: (match following | Option.none => (ctor Option.some [Matter::Node] node) | Option.some previous =>
+ (if (project node accepted) then
+ (if (project previous accepted) then (if ((project node id) <? (project previous id)) then (ctor Option.some [Matter::Node] node) else following) else (ctor Option.some [Matter::Node] node)) else
+ (if (project previous accepted) then following else (if ((project node id) <? (project previous id)) then (ctor Option.some [Matter::Node] node) else following)))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: considerCurrentProposal, parameters: [node : Matter::Node, admitted : (List Matter::Reference), audit : (List AuditEntry), assessment : MatterInference::Assessment, following : (Option Matter::Node)], result: (Option Matter::Node),
+ body: (if ((prim equal (project node facet) (project assessment conclusionFacet) : Bool) &&
+ ((prim equal (project node value) (project assessment conclusionValue) : Bool) &&
+ ((Matter::allReferencesIn (project node dependencies) (project assessment dependencies)) &&
+ ((Matter::allReferencesIn (project assessment dependencies) (project node dependencies)) &&
+ ((Matter::containsReference admitted (Matter::nodeReference node)) ||
+ ((not (project node accepted)) && ((not (isWithdrawn audit node)) &&
+ ((match (project node origin) | Matter::Origin.Inferred => true | Matter::Origin.Extracted => false | Matter::Origin.Reviewed => false) &&
+ (Matter::allReferencesIn (project node dependencies) admitted))))))))) then (preferredProposal node following) else following),
+ executable: true, axioms: []
+}
+
+definition{
+ name: matchingCurrentProposal, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), audit : (List AuditEntry), assessment : MatterInference::Assessment], result: (Option Matter::Node),
+ body: (match nodes | List.nil => (ctor Option.none [Matter::Node]) | List.cons node rest =>
+ (considerCurrentProposal node admitted audit assessment (matchingCurrentProposal rest admitted audit assessment))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: currentProposal, parameters: [session : Session, assessment : MatterInference::Assessment], result: (Option Matter::Node),
+ body: (match (project assessment status)
+ | MatterInference::ReasoningStatus.Inactive => (ctor Option.none [Matter::Node])
+ | MatterInference::ReasoningStatus.Missing => (ctor Option.none [Matter::Node])
+ | MatterInference::ReasoningStatus.Excepted => (ctor Option.none [Matter::Node])
+ | MatterInference::ReasoningStatus.Supported => (matchingCurrentProposal (project (project session matter) nodes) (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references) (project session audit) assessment)),
+ executable: true, axioms: []
+}
+
+definition{
+ name: proposeCurrent, parameters: [session : Session, expected : Nat, role : Role, actor : String, ruleReference : Matter::Reference], result: Outcome,
+ body: (if (not (writable session expected role actor)) then (refuse session "edit-conflict-or-permission") else
+ (match (findRule (project session rules) (project ruleReference id)) | Option.none => (refuse session "rule-missing") | Option.some rule =>
+ (if (not (Matter::referenceEq (project rule definition) ruleReference)) then (refuse session "rule-conflict") else
+ (match (currentProposal session (MatterInference::assess rule (project (project session matter) nodes) (project (project session matter) sources)))
+ | Option.some existing => (refuse session "proposal-already-current")
+ | Option.none => (propose session expected role actor ruleReference))))),
+ executable: true, axioms: [propext]
+}
+
+theorem{
+ name: refusalPreservesCompleteSession, parameters: [session : Session, code : String],
+ statement: ((project (refuse session code) session) = session),
+ proof: reflexivity{}
+}
+
+\end{semanticmodule}
+\end{lexlean}

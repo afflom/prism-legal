@@ -9223,7 +9223,7 @@
     "pagesUrl": "https://afflom.github.io/prism-legal/",
     "workflowPath": ".github/workflows/pages.yml",
     "ciWorkflowPath": ".github/workflows/ci.yml",
-    "artifactRoot": "view",
+    "artifactRoot": "matter-site",
     "uploadAction": "actions/upload-pages-artifact@v3",
     "deployAction": "actions/deploy-pages@v4",
     "githubActionsEnabled": true

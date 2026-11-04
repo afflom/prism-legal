@@ -1,82 +1,102 @@
-# PrismLegal — Open-Source Public-Benefit Legal Platform
+# PrismLegal
 
-**Repository:** `https://github.com/afflom/prism-legal` · **Live GitHub Pages Deployment:** `https://afflom.github.io/prism-legal/`
+PrismLegal is a local legal matter workspace authored in LexLean and compiled
+by PrismPM. Its evidence and inference discipline follows
+[afflom/rule30](https://github.com/afflom/rule30): source material, reviewed
+interpretations, rules, and conclusions remain distinguishable and connected.
+No remote model, inference service, or model credentials are used.
 
-**PrismLegal (`prism-legal`)** is a free, open-source, local-first legal preparation and trial engineering service built with **PrismPM v0.4.0** and verified in the **Lean 4** kernel via **LexLean v0.4.0** with certified **Rust** inference and rule-discovery crates.
+The compiled application lets a client or lawyer create a matter, import actual
+UTF-8 text and CSV resources, review passages and cells, record goals and jurisdiction, and connect
+reviewed authority to conditional strategies. Reviewed source wording teaches
+facet and meaning suggestions. CSV headings suggest editable aspects; exact cell quotations and table locations
+remain available through review and replacement. A passage can support several interpretations. Further learned aspects stay
+visible as focused review steps, with the original resource and line identified;
+withdrawal preserves their history. Reviewed rule requirements and vocabulary shared with all current goals guide attention across new passages and learned missing aspects. Attention uses the same learned facet and literal meaning offered for review; disputed meanings cannot create goal relevance. It compiles current extraction and conflict context once per pending scan, so a large partially reviewed intake can reopen and continue. Changes invalidate dependent conclusions
+and expose related facts and strategies. Strategy inspection leads to its own proposal review; repeated requests do not create duplicate proposals from the same current support. A saved matter file replays the complete accepted command history, including review of a full intake. Its 2,048-command budget preserves earlier corrections; reaching it leaves inspection and saving available.
+The view offers the next useful form, with focused facet inspection and
+supporting source context available when needed. Source locations distinguish
+equal interpretations during correction or withdrawal and retain the original
+line and version after a resource changes. Identical directly recorded entries
+have copyable entry locations, so correcting or withdrawing one preserves the
+others and their strategy bindings. Resource replacement can also use
+these locations to distinguish duplicate filenames. Source inspection opens the complete CSV row or the text page containing a passage, including retained earlier versions. From a selected current passage, users can open its review form without changing the automatic attention order. A chronology combines selected date
+aspects, orders valid dates, and keeps uncertain or conflicting dates visible
+for review. It shows eight entries at a time with complete counts, and a compact
+selection heading keeps broad chronologies readable.
 
-It empowers **clients, self-represented (*pro se*) litigants, legal aid clinics, solo practitioners, and trial counsel** to organize timelines, ingest multi-modal evidence (PDFs, images, spreadsheets, correspondence), build exhibit-backed statutory proof matrices, rehearse testimony, generate court filing artifacts, and run live hearings across 6 legal practice domains—100% locally in the browser (`localStorage`) with portable `.prismlegal.json` and Markdown Trial Brief exports.
+**This is an implemented local workspace, not a completed production legal
+service.** Its associative classifier learns words and ordered word pairs from
+current reviewed examples. It abstains without support or on conflicting best
+matches. It is not a general pretrained language model. Legal inference uses
+explicit, lawyer-reviewed conditions; it does not invent law, search authorities,
+read PDFs/images/audio, or provide authenticated collaboration. See
+[the implementation and verification boundary](docs/SEMANTIC_MATTER.md).
 
----
+## Source and build
 
-## GitHub Actions Pages Deployment & Continuous Verification
+`holistic.lexlean.toml`, selected by `prismpm.toml`, compiles
+`src/HolisticApp.lex.tex` and the `Matter*.lex.tex` modules. They own state,
+intake, learning, inference, journal replay, journeys, UI copy, design, resource
+bounds, and acceptance vectors. Product behavior is not handwritten in a second
+application runtime. Rust and JavaScript under `tests/matter/` are test harnesses.
 
-PrismLegal is configured for **GitHub Actions deployment to GitHub Pages** (`src/Application.lex.tex` → `GitHubPagesPublication`):
+[toolchain/prismpm.json](toolchain/prismpm.json) pins the SDK source fix.
+CI constructs its verification image and sealed tool inventory from that exact
+source using the SDK’s own image recipe. It does not patch an older installed
+inventory. The workflow reuses scoped BuildKit cache layers while preserving
+the exact source closure and complete application verification. Bounded retries
+for temporary SDK download failures and the cache transport are proposed in
+[PrismPM #523](https://github.com/UOR-Foundation/PrismPM/pull/523).
+The generic file-session capability is proposed upstream in
+[PrismPM #495](https://github.com/UOR-Foundation/PrismPM/pull/495), following
+[issue #491](https://github.com/UOR-Foundation/PrismPM/issues/491). The app uses
+that fix directly while it awaits upstream review. Its bounded portable session
+transport fix is tracked in [#496](https://github.com/UOR-Foundation/PrismPM/issues/496),
+with the carried dependency patch identified in verification evidence. Bounded
+reuse of temporary Core-Wasm allocations is proposed in
+[PrismPM #508](https://github.com/UOR-Foundation/PrismPM/pull/508), following
+[issue #507](https://github.com/UOR-Foundation/PrismPM/issues/507). Legal behavior
+stays here.
+LexLean is 0.4.0 (`e0b74b81e6f49c83596a957d232c8383a5db1a25`), with Lean 4.32.1.
 
-- **[`.github/workflows/pages.yml`](.github/workflows/pages.yml)** — Runs `./bin/prism-legal check` and `./bin/prism-legal view render --out view`, packages `./view` via `actions/upload-pages-artifact@v3`, deploys to GitHub Pages via `actions/deploy-pages@v4`, and runs a live post-deploy verification job confirming HTTP 200 across `index.html`, `client.html`, `lawyer.html`, `courtroom.html`, and `register.json` as well as verifying that the deployed `register.json` embeds `"commit": "$GITHUB_SHA"`.
-- **[`.github/workflows/ci.yml`](.github/workflows/ci.yml)** — Runs the full static, schema, sanitization, and Lean 4 kernel verification gate on every push and pull request.
+With that SDK's pinned toolchain installed:
 
----
+```sh
+lexlean --project holistic.lexlean.toml lock --check
+lexlean --project holistic.lexlean.toml verify
+prismpm --project . check
+prismpm --project . build
+prismpm --project . verify
+```
 
-## Real Client-Side Multi-Modal Evidence Intake & 22-Head Neuromorphic Inference
+Builds emit Rust, a native CLI, Core-Wasm, a browser view, and a Hologram archive
+under `.prism/build/<build-id>/`. Serve `view/browser/` over HTTP to use the app.
+Use **Save matter** to download the journal and **Open matter** to restore it.
+No ambient browser storage or server stores the matter. A download is not proof
+that the user retained the file. Client/lawyer selection is a local workflow
+choice, not authentication; journals are not encrypted or tamper-proof.
 
-All evidence parsing, cryptographic hashing, and legal extrapolation run **100% client-side in the browser** with zero server uploads and zero simulated features:
+## Validation and publication
 
-- **Binary PDF Parsing & FlateDecode Stream Decompression (`extractPdfStructureAndTextInBrowser`)**: Inspects `%PDF-1.x` headers, page counts (`/Type /Page`), `/Info` and XMP metadata, and decompresses `/FlateDecode` streams via the browser's native `DecompressionStream('deflate')` / `'deflate-raw'` API to extract `BT ... ET` (`Tj` / `TJ`) text operators, dates, dollar figures, and statutory citations.
-- **Image Forensics, EXIF Extraction & Visual Thumbnails (`extractPngChunksMetadata`, `extractJpegExifMetadata`, `renderImagePreviewThumbnail`)**: Parses PNG `IHDR` dimensions/bit-depth, `pHYs` DPI, and `tEXt`/`iTXt` embedded OCR text; parses JPEG `SOF0`/`SOF2` dimensions and `APP1` EXIF TIFF IFD tags (`CameraMake`, `CameraModel`, `DateTimeOriginal`, `ImageDescription`, `UserComment`); and renders visual thumbnail previews via HTML5 `<canvas>` alongside WebCrypto **SHA-256** chain-of-custody digests.
-- **Office, Tabular & Correspondence Parsing**: Decompresses ZIP-based XML containers (`.docx`, `.xlsx`, `.odt`) in-browser, strips `.rtf` control words, parses `.eml` RFC-822 headers (`From`, `To`, `Subject`, `Date`), and computes numeric column sums on `.csv`/`.tsv` financial ledgers.
-- **22-Head Neuromorphic Attention & Legal Meta-Theory (`IntakeClassifier.lex.tex`)**: Following the discrete cellular-automata and neuromorphic classifier pattern of `afflom/rule30`, 22 schema-element attention heads with 8-token n-gram feature hashing (`D = 64`), Rule-30 chaotic reservoir mixing, and integer ReLU scoring classify intake text and uploaded evidence across Hohfeldian jural relations, Toulmin argumentation warrants, Wigmorean evidentiary inference chains, FRE admissibility foundations (`FRE 901`, `FRE 803(6)`, `FRE 106`, `FRE 1006`), statutory calculators, and procedural filing deadlines—emitting **zero defaults** when intake is blank.
+```sh
+python -m unittest discover -s tests -p 'test_*.py'
+node tests/matter/holistic_runtime.mjs .prism/build/<build-id>/view/browser
+node tests/matter/core_runtime.mjs .prism/build/<build-id>
+npm ci --prefix tests/matter
+CHROMIUM_EXECUTABLE=/path/to/chromium \
+  node tests/matter/run_browser.mjs .prism/build/<build-id>/view/browser
+```
 
----
+Native test instructions and evidence boundaries are in
+[docs/SEMANTIC_MATTER.md](docs/SEMANTIC_MATTER.md). A successful build, kernel
+proof, or development-browser run is not a full PrismPM verification attestation.
+CI runs the pinned SDK verification pipeline without a static fallback. Pages
+publishes only the emitted `matter-site/` after that gate passes.
 
-## Progressive-Disclosure User Journeys & Live Browser Portal
-
-The complete client-side User Portal is statically generated into `view/`, `site/`, and `docs/`:
-
-- **[`view/index.html`](view/index.html)** — **Service Home & Matter Launcher**: Unified production header with instant active-matter switching (`#global-matter-select`), Guided Case Intake Assistant with real multi-modal evidence dropzone, role-based onboarding for Clients and Attorneys, **"My Saved Legal Matters"** workspace (`localStorage` + `.prismlegal.json` import/export—starting clean with 0 pre-saved matters until the user explicitly creates, edits, or imports a matter), and **Reference Example Matters** across all 6 legal domains (`👁️ Preview Example` or `📋 Save a Copy`).
-- **[`view/client.html`](view/client.html)** — **5-Step Guided Client Journey** (each step includes a contextual **`📘 See Example From a Sample Case: How to Complete This Step ▾`** pedagogical drawer):
-  1. **Step 1 (Case Summary & Relief Goals)**: Formal pleading caption masthead, multi-modal evidence dropzone, and concrete court orders requested.
-  2. **Step 2 (Chronological Timeline & Exhibits)**: Date-anchored timeline and exhibit register with visual thumbnails, **Visual Details, Page Callouts & Trial Intent** (`VisualEvidence.lex.tex`), and local WebCrypto **SHA-256** document integrity verification.
-  3. **Step 3 (Cross-Examination Preparation)**: Practice calm, exhibit-backed responses to anticipated hostile questions with **FRE 106 Rule of Completeness** context.
-  4. **Step 4 (Direct Testimony Rehearsal)**: Rehearse chapter-by-chapter direct examination Q&As (`DirectExam.lex.tex`) with **⭐ Key Highlight** cues, **🚫 Skip Unless Opened on Cross** warnings, and **📎 Move to Admit** prompts.
-  5. **Step 5 (Filing Deadlines, Court Artifacts & Export)**: Compute rules-based filing deadlines, generate court-ready markdown artifacts (Declaration, Exhibit Index, Pre-Hearing Statement, Proposed Order), log questions for counsel, and export a `.prismlegal.json` package.
-- **[`view/lawyer.html`](view/lawyer.html)** — **5-Step Attorney Case Workbench**:
-  1. **Step 1 (Intake & Case Theory)**: Formal court caption masthead, representation scope (Full-Scope, Limited-Scope / Unbundled per ABA Model Rule 1.2(c), Legal Aid Clinic, or Pro Se Coaching), and multi-modal discovery intake.
-  2. **Step 2 (Statutory Proof Matrix & Refusal Guard)**: Map every claim to governing statutes, Hohfeldian jural relations, and backing exhibits, automatically compiling **Controlled-English Proposed Court Findings** (`Conversion.lex.tex`) or triggering the **Evidentiary Refusal Guard** when proof is missing, alongside controlling **Statutory Rule Exceptions** (`RuleDiscovery.lex.tex`).
-  3. **Step 3 (Hearing Clock, Witness Roster & Exam Scripts)**: Regulate stage-by-stage hearing time budgets (`Hearing.lex.tex`), witness allocations, Direct Examination scripts with admission cues, and Cross-Examination / FRE 106 redirect cards.
-  4. **Step 4 (Master Exhibit Register & Statutory Calculators)**: Manage evidentiary foundations (`FRE 901`, `FRE 803(6)`), visual thumbnails, EXIF/PDF forensics, SHA-256 chain-of-custody digests, and focused tabbed statutory calculators (Family Support Guidelines § 305, Veterans 38 C.F.R. §§ 4.25 & 4.16 TDIU, and Housing/Civil Rent Abatement & Diminution).
-  5. **Step 5 (Consistency Audit, Priority Schedule, Filing Center & Trial Brief)**: Run an automated 6-point evidentiary readiness audit, review the priority-ranked examination schedule, generate court filings, respond to client questions, and download the compiled Markdown Trial Brief.
-- **[`view/courtroom.html`](view/courtroom.html)** — **High-Legibility Live Hearing Companion**:
-  1. **Mode 1 (Instant Cross-Exam Responder)**: 1-click access to calm witness responses, trap warnings, supporting exhibits, and FRE 106 completeness context.
-  2. **Mode 2 (Direct Testimony Checklist)**: Live check-off script with 1-click filters (`All Questions`, `⭐ Key Highlights`, `📎 Exhibit Admissions`, `Hide Stricken`) and inline `📎 Mark Admitted` buttons that update the exhibit record in real time.
-  3. **Mode 3 (Live Exhibit Admission Tracker)**: Track `Stipulated`, `Ready to Offer`, `Offered at Hearing`, and `Admitted` status with visual exhibit previews and page/paragraph callouts at the podium.
-
----
-
-## Mechanized Verification & CLI Reference
-
-Every layer of PrismLegal is declaratively specified in literate Lean 4 (`src/*.lex.tex`), validated against PrismPM TOML/JSON schemas (`model/*.toml`, `schemas/*.schema.json`), and compiled into certified Rust artifacts (`production/`):
-
-| Command | Description |
-| :--- | :--- |
-| `./bin/prism-legal brief` | Print executive summary of the platform and reference benchmark |
-| `./bin/prism-legal portal status` | Verify `M:N` Client-Lawyer-Firm-Court-Framework non-conflation |
-| `./bin/prism-legal portal serve --port 8780` | Serve the multi-page User Portal locally at `http://127.0.0.1:8780` |
-| `./bin/prism-legal view render --out view` | Render the complete static portal and `register.json` into `view/` |
-| `./bin/prism-legal convert` | Compile 16 S-expression propositions & refusal guards to Controlled Legal English |
-| `./bin/prism-legal engine [--rust]` | Run stratified Horn forward-chaining inference (Python & certified Rust parity) |
-| `./bin/prism-legal discover [--rust]` | Run bounded Depth<=3 rule-discovery & trap-pruning synthesizer |
-| `./bin/prism-legal exam` | Inspect the 6-chapter, 36-Q&A Direct Examination script & visual annotations |
-| `./bin/prism-legal visual` | Inspect handwritten diary transcriptions, visual forensics, & 30-exhibit intent |
-| `./bin/prism-legal audit` | Run all 16 structural & strategic traps (`TRAP-01`..`TRAP-16`) |
-| `./bin/prism-legal sanitize` | Run automated Zero-PII & Case-Sanitization audit across the repository |
-| `./bin/prism-legal api sync` | Regenerate all `src/*.lex.tex`, `model/*.toml`, `.github/workflows/`, `view/`, `site/`, and `docs/` |
-| `./bin/prism-legal api check` | Verify zero drift across all 22 mechanized models, workflows, and sanitization gate |
-| `./bin/prism-legal check` | Run all static, schema, workflow, and sanitization checks |
-| `./bin/prism-legal verify` | Compile and run the 21-module Lean 4 kernel verification executable |
-| `./bin/prism-legal api production` | Emit certified Rust production crates via the LexLean API |
-
----
-
-## Public-Benefit Charter & Zero-PII Production Guarantee
-
-PrismLegal models legal matters using synthetic fictional domains (`Alderbrook`, `pinecrest`, ` Birchwood`, `Cedarhurst`, `Maplewood`, `ironwood`), statutory dockets (`2030-FAM-9010`, `2030-ADM-9020`, `2030-COM-9030`, `2030-EMP-9040`, `2030-CON-9050`, `2030-HSG-9060`), and cryptographic vault URIs (`vault://exhibits/...`). An automated sanitization gate (`./bin/prism-legal sanitize`) enforces zero personal data, zero simulated features, and zero placeholder content across every file in the repository.
+The prior Text/3 excerpt application remains selectable with
+`matter.prismpm.toml`. The older portal in `view/`, `site/`, and `docs/*.html`
+and its generators remain migration references; they are not the new runtime or
+the new Pages artifact. `bin/prism-legal api check` and `check` continue checking
+those legacy model-generated artifacts for drift. No deployment is implied by
+the draft implementation PR.

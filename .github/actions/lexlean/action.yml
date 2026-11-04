@@ -1,0 +1,26 @@
+name: Pinned LexLean toolchain
+description: Install the compiler and Lean kernel; never substitute static checks.
+runs:
+  using: composite
+  steps:
+    - name: Install LexLean 0.4.0
+      shell: bash
+      run: |
+        rustup toolchain install 1.97.1 --profile minimal
+        cargo +1.97.1 install --locked lexlean --version 0.4.0
+        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+    - name: Install pinned Lean launcher and kernel
+      shell: bash
+      env:
+        ELAN_HOME: ${{ runner.temp }}/prism-elan
+      run: |
+        curl --proto '=https' --tlsv1.2 --fail --location --silent --show-error \
+          https://github.com/leanprover/elan/releases/download/v4.2.3/elan-x86_64-unknown-linux-gnu.tar.gz \
+          --output "$RUNNER_TEMP/elan.tar.gz"
+        echo "df0b2b3a439961ffcbb3985214365ffe40f49bc871df04dff268c7d8e21ca8b2  $RUNNER_TEMP/elan.tar.gz" | sha256sum --check --strict
+        mkdir -p "$RUNNER_TEMP/elan-install"
+        tar -xzf "$RUNNER_TEMP/elan.tar.gz" -C "$RUNNER_TEMP/elan-install"
+        "$RUNNER_TEMP/elan-install/elan-init" -y --no-modify-path --default-toolchain none
+        "$ELAN_HOME/bin/elan" toolchain install leanprover/lean4:v4.32.1
+        echo "ELAN_HOME=$ELAN_HOME" >> "$GITHUB_ENV"
+        echo "$ELAN_HOME/bin" >> "$GITHUB_PATH"

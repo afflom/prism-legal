@@ -1,0 +1,234 @@
+\begin{lexlean}{MatterNetwork}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Matter}
+\importmodule{MatterText}
+\importmodule{MatterInference}
+\importmodule{Foundation.Bytes}
+\importmodule{Foundation.Utf8}
+\title{Text application model}
+\begin{semanticmodule}
+structure{
+ name: Synapse, type_parameters: [], parameters: [],
+ fields: [{name: feature, type: String}, {name: weight, type: Nat}]
+}
+
+structure{
+ name: Synapses, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List Synapse)}]
+}
+
+structure{
+ name: Neuron, type_parameters: [], parameters: [],
+ fields: [{name: facet, type: String}, {name: observations, type: Nat}, {name: synapses, type: (List Synapse)}, {name: dependencies, type: (List Matter::Reference)}]
+}
+
+structure{
+ name: NeuralModel, type_parameters: [], parameters: [],
+ fields: [{name: neurons, type: (List Neuron)}]
+}
+
+structure{
+ name: Activation, type_parameters: [], parameters: [],
+ fields: [{name: facet, type: String}, {name: excitation, type: Nat}, {name: observations, type: Nat}, {name: ambiguous, type: Bool}, {name: dependencies, type: (List Matter::Reference)}]
+}
+
+definition{
+ name: foldByte, parameters: [value : Bytes], result: Bytes,
+ body: (if (prim equal value 0x0d : Bool) then 0x20 else (if (prim equal value 0x0a : Bool) then 0x20 else (if (prim equal value 0x09 : Bool) then 0x20 else (if (prim equal value 0x41 : Bool) then 0x61 else (if (prim equal value 0x42 : Bool) then 0x62 else (if (prim equal value 0x43 : Bool) then 0x63 else (if (prim equal value 0x44 : Bool) then 0x64 else (if (prim equal value 0x45 : Bool) then 0x65 else (if (prim equal value 0x46 : Bool) then 0x66 else (if (prim equal value 0x47 : Bool) then 0x67 else (if (prim equal value 0x48 : Bool) then 0x68 else (if (prim equal value 0x49 : Bool) then 0x69 else (if (prim equal value 0x4a : Bool) then 0x6a else (if (prim equal value 0x4b : Bool) then 0x6b else (if (prim equal value 0x4c : Bool) then 0x6c else (if (prim equal value 0x4d : Bool) then 0x6d else (if (prim equal value 0x4e : Bool) then 0x6e else (if (prim equal value 0x4f : Bool) then 0x6f else (if (prim equal value 0x50 : Bool) then 0x70 else (if (prim equal value 0x51 : Bool) then 0x71 else (if (prim equal value 0x52 : Bool) then 0x72 else (if (prim equal value 0x53 : Bool) then 0x73 else (if (prim equal value 0x54 : Bool) then 0x74 else (if (prim equal value 0x55 : Bool) then 0x75 else (if (prim equal value 0x56 : Bool) then 0x76 else (if (prim equal value 0x57 : Bool) then 0x77 else (if (prim equal value 0x58 : Bool) then 0x78 else (if (prim equal value 0x59 : Bool) then 0x79 else (if (prim equal value 0x5a : Bool) then 0x7a else value))))))))))))))))))))))))))))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: foldLoop, parameters: [fuel : Nat, input : Bytes, offset : Nat, output : Bytes], result: Bytes,
+ body: (match fuel | Nat.zero => output | Nat.succ remaining =>
+ (match (Foundation.Bytes::sliceBytes input offset 1) | Option.none => output | Option.some value => (foldLoop remaining input (offset + 1) (prim append output (foldByte value) : Bytes)))),
+ executable: true, axioms: [], recursive_argument: fuel
+}
+
+definition{
+ name: normalize, parameters: [value : String], result: String,
+ body: (let bytes : Bytes := (Foundation.Utf8::encode value);
+ (match (Foundation.Utf8::decode (foldLoop (Foundation.Bytes::byteLength bytes) bytes 0 0x)) | Option.none => "" | Option.some text => text)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: unigrams, parameters: [tokens : (List String)], result: MatterText::TextItems,
+ body: (match tokens | List.nil => (record MatterText::TextItems {values := (nil String)})
+ | List.cons token rest => (let following : MatterText::TextItems := (unigrams rest);
+ (record MatterText::TextItems {values := (cons (MatterText::concat "word:" (MatterInference::frame token)) (project following values))}))),
+ executable: true, axioms: [propext], recursive_argument: tokens
+}
+
+definition{
+ name: pairs, parameters: [tokens : (List String)], result: MatterText::TextItems,
+ body: (match tokens | List.nil => (record MatterText::TextItems {values := (nil String)})
+ | List.cons left rest => (let following : MatterText::TextItems := (pairs rest);
+ (match rest | List.nil => following | List.cons right others => (record MatterText::TextItems {values := (cons (prim join (cons "pair:" (cons (MatterInference::frame left) (cons (MatterInference::frame right) (nil String)))) "" : String) (project following values))})))),
+ executable: true, axioms: [propext], recursive_argument: tokens
+}
+
+definition{
+ name: appendFeatures, parameters: [left : (List String), right : (List String)], result: MatterText::TextItems,
+ body: (match left | List.nil => (record MatterText::TextItems {values := right}) | List.cons token rest =>
+ (let following : MatterText::TextItems := (appendFeatures rest right); (record MatterText::TextItems {values := (cons token (project following values))}))),
+ executable: true, axioms: [], recursive_argument: left
+}
+
+definition{
+ name: nonemptyTokens, parameters: [tokens : (List String)], result: MatterText::TextItems,
+ body: (match tokens | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons token rest =>
+ (let following : MatterText::TextItems := (nonemptyTokens rest); (if (prim equal token "" : Bool) then following else (record MatterText::TextItems {values := (cons token (project following values))})))),
+ executable: true, axioms: [], recursive_argument: tokens
+}
+
+definition{
+ name: features, parameters: [text : String], result: MatterText::TextItems,
+ body: (match (prim split_exact (normalize text) " " (256 : UInt32) : (Option (List String)))
+ | Option.none => (record MatterText::TextItems {values := (nil String)})
+ | Option.some raw => (let tokens : MatterText::TextItems := (nonemptyTokens raw);
+ (MatterText::distinctWords (project (appendFeatures (project (unigrams (project tokens values)) values) (project (pairs (project tokens values)) values)) values)))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: strengthenLinear, parameters: [synapses : (List Synapse), feature : String], result: Synapses,
+ body: (match synapses | List.nil => (record Synapses {values := (cons (record Synapse {feature := feature, weight := 1}) (nil Synapse))})
+ | List.cons synapse rest => (if (prim equal (project synapse feature) feature : Bool) then
+ (record Synapses {values := (cons (record Synapse {feature := feature, weight := ((project synapse weight) + 1)}) rest)})
+ else (let following : Synapses := (strengthenLinear rest feature); (record Synapses {values := (cons synapse (project following values))})))),
+ executable: true, axioms: [], recursive_argument: synapses
+}
+
+structure{
+ name: SynapseChunkSplit, type_parameters: [], parameters: [],
+ fields: [{name: first, type: (List Synapse)}, {name: remaining, type: (List Synapse)}]
+}
+structure{
+ name: SynapseUpdate, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List Synapse)}, {name: matched, type: Bool}]
+}
+definition{
+ name: countSynapsesFrom, parameters: [synapses : (List Synapse), count : Nat], result: Nat,
+ body: (match synapses | List.nil => count | List.cons synapse rest => (countSynapsesFrom rest (count + 1))),
+ executable: true, axioms: [], recursive_argument: synapses
+}
+definition{
+ name: splitSynapseChunk, parameters: [fuel : Nat, synapses : (List Synapse)], result: SynapseChunkSplit,
+ body: (match fuel | Nat.zero => (record SynapseChunkSplit {first := (nil Synapse), remaining := synapses}) | Nat.succ remainingFuel =>
+ (match synapses | List.nil => (record SynapseChunkSplit {first := (nil Synapse), remaining := (nil Synapse)}) | List.cons synapse rest =>
+ (let following : SynapseChunkSplit := (splitSynapseChunk remainingFuel rest);
+ (record SynapseChunkSplit {first := (cons synapse (project following first)), remaining := (project following remaining)})))),
+ executable: true, axioms: [], recursive_argument: fuel
+}
+definition{
+ name: strengthenChunk, parameters: [synapses : (List Synapse), feature : String], result: SynapseUpdate,
+ body: (match synapses | List.nil => (record SynapseUpdate {values := (nil Synapse), matched := false}) | List.cons synapse rest =>
+ (if (prim equal (project synapse feature) feature : Bool) then
+ (record SynapseUpdate {values := (cons (record Synapse {feature := feature, weight := ((project synapse weight) + 1)}) rest), matched := true})
+ else (let following : SynapseUpdate := (strengthenChunk rest feature);
+ (record SynapseUpdate {values := (cons synapse (project following values)), matched := (project following matched)})))),
+ executable: true, axioms: [], recursive_argument: synapses
+}
+definition{
+ name: strengthenChunks, parameters: [fuel : Nat, synapses : (List Synapse), feature : String], result: Synapses,
+ body: (match fuel | Nat.zero => (strengthenLinear synapses feature) | Nat.succ remainingFuel =>
+ (match synapses | List.nil => (record Synapses {values := (cons (record Synapse {feature := feature, weight := 1}) (nil Synapse))}) | List.cons synapse rest =>
+ (let chunk : SynapseChunkSplit := (splitSynapseChunk 32 synapses);
+ (let updated : SynapseUpdate := (strengthenChunk (project chunk first) feature);
+ (if (project updated matched) then (record Synapses {values := (prim append (project updated values) (project chunk remaining) : (List Synapse))}) else
+ (let following : Synapses := (strengthenChunks remainingFuel (project chunk remaining) feature);
+ (record Synapses {values := (prim append (project chunk first) (project following values) : (List Synapse))}))))))),
+ executable: true, axioms: [], recursive_argument: fuel
+}
+definition{
+ name: strengthen, parameters: [synapses : (List Synapse), feature : String], result: Synapses,
+ body: (strengthenChunks (prim quotient ((countSynapsesFrom synapses 0) + 31) 32 0 : Nat) synapses feature),
+ executable: true, axioms: []
+}
+
+definition{
+ name: learnFeatures, parameters: [activeFeatures : (List String), synapses : Synapses], result: Synapses,
+ body: (match activeFeatures | List.nil => synapses | List.cons feature rest => (learnFeatures rest (strengthen (project synapses values) feature))),
+ executable: true, axioms: [], recursive_argument: activeFeatures
+}
+
+definition{
+ name: learnExample, parameters: [neurons : (List Neuron), node : Matter::Node, activeFeatures : (List String)], result: NeuralModel,
+ body: (match neurons
+ | List.nil => (record NeuralModel {neurons := (cons (record Neuron {facet := (project node facet), observations := 1, synapses := (project (learnFeatures activeFeatures (record Synapses {values := (nil Synapse)})) values), dependencies := (cons (Matter::nodeReference node) (nil Matter::Reference))}) (nil Neuron))})
+ | List.cons neuron rest => (if (prim equal (project neuron facet) (project node facet) : Bool) then
+ (record NeuralModel {neurons := (cons (record Neuron {facet := (project neuron facet), observations := ((project neuron observations) + 1), synapses := (project (learnFeatures activeFeatures (record Synapses {values := (project neuron synapses)})) values), dependencies := (cons (Matter::nodeReference node) (project neuron dependencies))}) rest)})
+ else (let following : NeuralModel := (learnExample rest node activeFeatures); (record NeuralModel {neurons := (cons neuron (project following neurons))})))),
+ executable: true, axioms: [], recursive_argument: neurons
+}
+
+definition{
+ name: quotationFeatures, parameters: [citations : (List Matter::Citation)], result: MatterText::TextItems,
+ body: (match citations | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons citation rest =>
+ (appendFeatures (project (match (Foundation.Utf8::decode (project citation quote)) | Option.none => (record MatterText::TextItems {values := (nil String)}) | Option.some text => (features text)) values) (project (quotationFeatures rest) values))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: citations
+}
+
+definition{
+ name: observationFeatures, parameters: [node : Matter::Node], result: MatterText::TextItems,
+ body: (MatterText::distinctWords (project (appendFeatures (project (features (project node value)) values) (project (quotationFeatures (project node citations)) values)) values)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: trainLoop, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), network : NeuralModel], result: NeuralModel,
+ body: (match nodes | List.nil => network | List.cons node rest =>
+ (if ((Matter::containsReference admitted (Matter::nodeReference node)) && (not (prim equal (project node facet) "rule" : Bool))) then
+ (trainLoop rest admitted (learnExample (project network neurons) node (project (observationFeatures node) values))) else (trainLoop rest admitted network))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
+}
+
+definition{
+ name: train, parameters: [nodes : (List Matter::Node), sources : (List Matter::Source)], result: NeuralModel,
+ body: (trainLoop nodes (project (Matter::current nodes sources) references) (record NeuralModel {neurons := (nil Neuron)})),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: excite, parameters: [synapses : (List Synapse), query : (List String)], result: Nat,
+ body: (match synapses | List.nil => 0 | List.cons synapse rest =>
+ ((if (MatterText::wordPresent query (project synapse feature)) then (project synapse weight) else 0) + (excite rest query))),
+ executable: true, axioms: [], recursive_argument: synapses
+}
+
+definition{
+ name: activate, parameters: [neurons : (List Neuron), query : (List String), best : Activation], result: Activation,
+ body: (match neurons | List.nil => best | List.cons neuron rest =>
+ (let strength : Nat := (excite (project neuron synapses) query);
+ (let proposed : Nat := (prim multiply strength (project best observations) : Nat);
+ (let previous : Nat := (prim multiply (project best excitation) (project neuron observations) : Nat);
+ (activate rest query
+ (if (previous <? proposed) then (record Activation {facet := (project neuron facet), excitation := strength, observations := (project neuron observations), ambiguous := false, dependencies := (project neuron dependencies)}) else
+ (if ((0 <? strength) && ((proposed =? previous) && (not (prim equal (project neuron facet) (project best facet) : Bool)))) then
+ (record Activation {facet := (project best facet), excitation := (project best excitation), observations := (project best observations), ambiguous := true, dependencies := (project best dependencies)}) else best))))))),
+ executable: true, axioms: [], recursive_argument: neurons
+}
+
+definition{
+ name: infer, parameters: [network : NeuralModel, text : String], result: Activation,
+ body: (activate (project network neurons) (project (features text) values) (record Activation {facet := "", excitation := 0, observations := 1, ambiguous := false, dependencies := (nil Matter::Reference)})),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: suggestedFacet, parameters: [activation : Activation], result: String,
+ body: (if (((project activation excitation) =? 0) || (project activation ambiguous)) then "" else (project activation facet)),
+ executable: true, axioms: []
+}
+
+theorem{
+ name: noTrainingCannotInventFacet, parameters: [text : String],
+ statement: ((suggestedFacet (infer (record NeuralModel {neurons := (nil Neuron)}) text)) = ""),
+ proof: reflexivity{}, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+\end{semanticmodule}
+\end{lexlean}

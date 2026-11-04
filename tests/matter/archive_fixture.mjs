@@ -1,0 +1,67 @@
+// A real journal at the intake boundary, with an incomplete review history.
+export function reviewedArchive(count=64){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ let journal=fields(['prism-legal/journal/1','Archive review']),revision=0;
+ for(let index=0;index<16;index++)journal+=fields([fields(['ingest',String(revision++),'client','client',`Resource ${index+1}`,Array(63).fill('entry').join('\n')])]);
+ journal+=fields([fields(['assert',String(revision++),'client','client','goal','Understand the archive'])]);
+ for(let identifier=1;identifier<=count;identifier++)journal+=fields([fields(['review',String(revision++),'client','client',String(identifier),'1','entry','entry','true'])]);
+ return journal;
+}
+
+export function correctionHistory(commands=2048){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ let journal=fields(['prism-legal/journal/1','Retained corrections']);
+ journal+=fields([fields(['ingest','0','client','client','Record','original'])]);
+ for(let revision=1;revision<commands;revision++)journal+=fields([fields(['review',String(revision),'client','client','1',String(revision),'entry',`value ${revision}`,'true'])]);
+ return journal;
+}
+
+export function goalCapacity(){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ let journal=fields(['prism-legal/journal/1','All current goals']);
+ journal+=fields([fields(['ingest','0','client','client','Records','ordinary passage\ntarget agreement'])]);
+ for(let index=0;index<1022;index++)journal+=fields([fields(['assert',String(index+1),'client','client','goal',index===0?'target agreement':`another outcome ${index}`])]);
+ return journal;
+}
+
+export function directEntryCapacity(){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ let journal=fields(['prism-legal/journal/1','Repeated entries']);
+ for(let index=0;index<1024;index++)journal+=fields([fields(['assert',String(index),'client','client','goal',index===0||index===1023?'Repeated outcome':'Other outcome'])]);
+ return journal;
+}
+
+export function chronologyCapacity(unresolved=0){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ let journal=fields(['prism-legal/journal/1','Full chronology']);
+ for(let index=0;index<1024;index++)journal+=fields([fields(['assert',String(index),'client','client','event.date',index<unresolved?'Date not yet known':`2026-11-${String(1+index%28).padStart(2,'0')}`])]);
+ return journal;
+}
+
+export function sourceImpactCapacity(){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ const header=Array.from({length:16},(_,index)=>`column ${index}`).join(',');
+ const row=Array(16).fill('entry').join(',');
+ let journal=fields(['prism-legal/journal/1','Complete source impact']);
+ journal+=fields([fields(['ingest-csv','0','client','client','Table',header+'\n'+Array(63).fill(row).join('\n')])]);
+ journal+=fields([fields(['source','1','client','client','1','1','column 0\nchanged'])]);
+ return journal;
+}
+
+export function strategyCapacity(excepted=false){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ let journal=fields(['prism-legal/journal/1','Complete strategy context']),revision=0;
+ const command=(operation,role,...values)=>{journal+=fields([fields([operation,String(revision++),role,role,...values])]);};
+ command('ingest','client','Notice','notice received');
+ command('review','client','1','1','notice.receipt','received','true');
+ command('assert','client','goal','Respond');command('assert','client','jurisdiction','Reviewed jurisdiction');
+ command('ingest','lawyer','Governing source','A received notice permits a response unless withdrawn.');
+ command('review','lawyer','4','1','authority','Reviewed source','true');
+ for(let index=0;index<891;index++)command('assert','client','unrelated','Retained context');
+ for(let index=0;index<128;index++){
+  const action=`Reviewed response option ${index}`;
+  command('rule','lawyer','0','0','4','2','3','1','2','1',fields(['notice.receipt','received','Was the notice received?']),fields(['notice.withdrawal','withdrawn','Was the notice withdrawn?']),'legal-conclusion',action,action);
+ }
+ if(excepted)command('assert','client','notice.withdrawal','withdrawn');
+ return journal;
+}

@@ -1,0 +1,59 @@
+\begin{lexlean}{MatterBatch}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Matter}
+\title{Text application model}
+\begin{semanticmodule}
+structure{
+ name: NodeChunk, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List Matter::Node)}]
+}
+structure{
+ name: NodeChunks, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List NodeChunk)}]
+}
+structure{
+ name: NodeChunkSplit, type_parameters: [], parameters: [],
+ fields: [{name: first, type: (List Matter::Node)}, {name: remaining, type: (List Matter::Node)}]
+}
+definition{
+ name: splitNodeChunk, parameters: [fuel : Nat, nodes : (List Matter::Node)], result: NodeChunkSplit,
+ body: (match fuel | Nat.zero => (record NodeChunkSplit {first := (nil Matter::Node), remaining := nodes}) | Nat.succ restFuel =>
+ (match nodes | List.nil => (record NodeChunkSplit {first := (nil Matter::Node), remaining := (nil Matter::Node)}) | List.cons node rest =>
+ (let following : NodeChunkSplit := (splitNodeChunk restFuel rest);
+ (record NodeChunkSplit {first := (cons node (project following first)), remaining := (project following remaining)})))),
+ executable: true, axioms: [], recursive_argument: fuel
+}
+definition{
+ name: nodeChunksLoop, parameters: [fuel : Nat, nodes : (List Matter::Node)], result: NodeChunks,
+ body: (match fuel | Nat.zero => (record NodeChunks {values := (nil NodeChunk)}) | Nat.succ restFuel =>
+ (match nodes | List.nil => (record NodeChunks {values := (nil NodeChunk)}) | List.cons node rest =>
+ (let chunk : NodeChunkSplit := (splitNodeChunk 32 nodes);
+ (let following : NodeChunks := (nodeChunksLoop restFuel (project chunk remaining));
+ (record NodeChunks {values := (cons (record NodeChunk {values := (project chunk first)}) (project following values))}))))),
+ executable: true, axioms: [], recursive_argument: fuel
+}
+definition{
+ name: nodeChunks, parameters: [nodes : (List Matter::Node)], result: NodeChunks,
+ body: (nodeChunksLoop (prim quotient ((Matter::nodeCount nodes) + 31) 32 0 : Nat) nodes),
+ executable: true, axioms: []
+}
+definition{
+ name: nodePage, parameters: [nodes : (List Matter::Node), skip : Nat, fuel : Nat], result: NodeChunk,
+ body: (match nodes | List.nil => (record NodeChunk {values := (nil Matter::Node)}) | List.cons node rest =>
+ (match fuel | Nat.zero => (record NodeChunk {values := (nil Matter::Node)}) | Nat.succ remainingFuel =>
+ (match skip | Nat.succ remainingSkip => (nodePage rest remainingSkip fuel) | Nat.zero =>
+ (record NodeChunk {values := (cons node (project (nodePage rest 0 remainingFuel) values))})))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+definition{
+ name: referencePage, parameters: [references : (List Matter::Reference), skip : Nat, fuel : Nat], result: Matter::Admission,
+ body: (match references | List.nil => (record Matter::Admission {references := (nil Matter::Reference)}) | List.cons reference rest =>
+ (match fuel | Nat.zero => (record Matter::Admission {references := (nil Matter::Reference)}) | Nat.succ remainingFuel =>
+ (match skip | Nat.succ remainingSkip => (referencePage rest remainingSkip fuel) | Nat.zero =>
+ (record Matter::Admission {references := (cons reference (project (referencePage rest 0 remainingFuel) references))})))),
+ executable: true, axioms: [], recursive_argument: references
+}
+\end{semanticmodule}
+\end{lexlean}

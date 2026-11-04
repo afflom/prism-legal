@@ -1,0 +1,94 @@
+\begin{lexlean}{MatterWire}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{MatterText}
+\importmodule{Foundation.Bytes}
+\importmodule{Foundation.Utf8}
+\title{Text application model}
+\begin{semanticmodule}
+definition{
+  name: escapeByte, parameters: [value : Bytes], result: Bytes,
+  body: (if (prim equal value 0x00 : Bool) then 0x5c7530303030 else (if (prim equal value 0x01 : Bool) then 0x5c7530303031 else (if (prim equal value 0x02 : Bool) then 0x5c7530303032 else (if (prim equal value 0x03 : Bool) then 0x5c7530303033 else (if (prim equal value 0x04 : Bool) then 0x5c7530303034 else (if (prim equal value 0x05 : Bool) then 0x5c7530303035 else (if (prim equal value 0x06 : Bool) then 0x5c7530303036 else (if (prim equal value 0x07 : Bool) then 0x5c7530303037 else (if (prim equal value 0x08 : Bool) then 0x5c62 else (if (prim equal value 0x09 : Bool) then 0x5c74 else (if (prim equal value 0x0a : Bool) then 0x5c6e else (if (prim equal value 0x0b : Bool) then 0x5c7530303062 else (if (prim equal value 0x0c : Bool) then 0x5c66 else (if (prim equal value 0x0d : Bool) then 0x5c72 else (if (prim equal value 0x0e : Bool) then 0x5c7530303065 else (if (prim equal value 0x0f : Bool) then 0x5c7530303066 else (if (prim equal value 0x10 : Bool) then 0x5c7530303130 else (if (prim equal value 0x11 : Bool) then 0x5c7530303131 else (if (prim equal value 0x12 : Bool) then 0x5c7530303132 else (if (prim equal value 0x13 : Bool) then 0x5c7530303133 else (if (prim equal value 0x14 : Bool) then 0x5c7530303134 else (if (prim equal value 0x15 : Bool) then 0x5c7530303135 else (if (prim equal value 0x16 : Bool) then 0x5c7530303136 else (if (prim equal value 0x17 : Bool) then 0x5c7530303137 else (if (prim equal value 0x18 : Bool) then 0x5c7530303138 else (if (prim equal value 0x19 : Bool) then 0x5c7530303139 else (if (prim equal value 0x1a : Bool) then 0x5c7530303161 else (if (prim equal value 0x1b : Bool) then 0x5c7530303162 else (if (prim equal value 0x1c : Bool) then 0x5c7530303163 else (if (prim equal value 0x1d : Bool) then 0x5c7530303164 else (if (prim equal value 0x1e : Bool) then 0x5c7530303165 else (if (prim equal value 0x1f : Bool) then 0x5c7530303166 else (if (prim equal value 0x22 : Bool) then 0x5c22 else (if (prim equal value 0x5c : Bool) then 0x5c5c else value)))))))))))))))))))))))))))))))))),
+  executable: true
+}
+
+definition{
+  name: escapeLoop, parameters: [fuel : Nat, value : Bytes, offset : Nat, escaped : Bytes], result: Bytes,
+  body: (match fuel
+    | Nat.zero => escaped
+    | Nat.succ remaining => (match (Foundation.Bytes::sliceBytes value offset 1)
+      | Option.none => escaped
+      | Option.some byte => (escapeLoop remaining value (offset + 1) (prim append escaped (escapeByte byte) : Bytes)))),
+  recursive_argument: fuel,
+  executable: true
+}
+
+definition{
+  name: quote, parameters: [value : String], result: String,
+  body: (let bytes : Bytes := (Foundation.Utf8::encode value);
+    (match (Foundation.Utf8::decode (escapeLoop (Foundation.Bytes::byteLength bytes) bytes 0 0x))
+      | Option.none => "\"\""
+      | Option.some escaped => (MatterText::concat "\"" (MatterText::concat escaped "\"")))),
+  axioms: [Classical.choice, Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: quoteItems, parameters: [values : (List String)], result: MatterText::TextItems,
+  body: (match values
+    | List.nil => (record MatterText::TextItems {values := (nil String)})
+    | List.cons value rest => (let following : MatterText::TextItems := (quoteItems rest);
+      (record MatterText::TextItems {values := (cons (quote value) (project following values))}))),
+  executable: true,
+  recursive_argument: values,
+  axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+  name: array, parameters: [values : (List String)], result: String,
+  body: (MatterText::concat "[" (MatterText::concat (prim join (project (quoteItems values) values) "," : String) "]")),
+  axioms: [Classical.choice, Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: report, parameters: [status : String, operation : String, message : String, rows : Nat, columns : Nat, cells : (List String), details : (List String), error : String], result: Bytes,
+  body: (Foundation.Utf8::encode (prim join
+    (cons "{\"version\":1,\"status\":" (cons (quote status)
+    (cons ",\"operation\":" (cons (quote operation)
+    (cons ",\"message\":" (cons (quote message)
+    (cons ",\"rows\":" (cons (MatterText::decimal rows)
+    (cons ",\"columns\":" (cons (MatterText::decimal columns)
+    (cons ",\"cells\":" (cons (array cells)
+    (cons ",\"details\":" (cons (array details)
+    (cons ",\"request\":\"\",\"response\":\"\",\"error\":" (cons (quote error)
+    (cons "}" (nil String)))))))))))))))))) "" : String)),
+  axioms: [Classical.choice, Quot.sound, propext],
+  executable: true
+}
+
+definition{
+  name: reportState, parameters: [status : String, operation : String, message : String, rows : Nat, columns : Nat, cells : (List String), details : (List String), error : String, state : String], result: Bytes,
+  body: (Foundation.Utf8::encode (prim join
+    (cons "{\"version\":1,\"status\":" (cons (quote status)
+    (cons ",\"operation\":" (cons (quote operation)
+    (cons ",\"message\":" (cons (quote message)
+    (cons ",\"rows\":" (cons (MatterText::decimal rows)
+    (cons ",\"columns\":" (cons (MatterText::decimal columns)
+    (cons ",\"cells\":" (cons (array cells)
+    (cons ",\"details\":" (cons (array details)
+    (cons ",\"request\":\"\",\"response\":" (cons (quote state) (cons ",\"error\":" (cons (quote error)
+    (cons "}" (nil String)))))))))))))))))))) "" : String)),
+  axioms: [Classical.choice, Quot.sound, propext],
+  executable: true
+}
+
+definition{
+ name: reportNext, parameters: [status : String, operation : String, message : String, rows : Nat, columns : Nat, cells : (List String), details : (List String), error : String, state : String, next : String], result: Bytes,
+ body: (Foundation.Utf8::encode (prim join (cons "{\"version\":1,\"status\":" (cons (quote status) (cons ",\"operation\":" (cons (quote operation) (cons ",\"message\":" (cons (quote message) (cons ",\"rows\":" (cons (MatterText::decimal rows) (cons ",\"columns\":" (cons (MatterText::decimal columns) (cons ",\"cells\":" (cons (array cells) (cons ",\"details\":" (cons (array details) (cons ",\"request\":" (cons (quote next) (cons ",\"response\":" (cons (quote state) (cons ",\"error\":" (cons (quote error) (cons "}" (nil String)))))))))))))))))))))) "" : String)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+\end{semanticmodule}
+\end{lexlean}

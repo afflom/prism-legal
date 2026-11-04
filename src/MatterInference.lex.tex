@@ -1,0 +1,224 @@
+\begin{lexlean}{MatterInference}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Matter}
+\importmodule{MatterText}
+\importmodule{Foundation.Utf8}
+\importmodule{Foundation.Bytes}
+\title{Text application model}
+\begin{semanticmodule}
+structure{
+ name: Requirement, type_parameters: [], parameters: [],
+ fields: [{name: facet, type: String}, {name: value, type: String}, {name: question, type: String}]
+}
+
+structure{
+ name: Rule, type_parameters: [], parameters: [],
+ fields: [{name: definition, type: Matter::Reference}, {name: authority, type: Matter::Reference}, {name: jurisdiction, type: Matter::Reference}, {name: goal, type: Matter::Reference}, {name: premises, type: (List Requirement)}, {name: exceptions, type: (List Requirement)}, {name: conclusionFacet, type: String}, {name: conclusionValue, type: String}, {name: action, type: String}]
+}
+
+inductive{ name: ReasoningStatus, type_parameters: [], parameters: [], constructors: [{name: Inactive, fields: []}, {name: Missing, fields: []}, {name: Excepted, fields: []}, {name: Supported, fields: []}] }
+
+structure{
+ name: Evidence, type_parameters: [], parameters: [],
+ fields: [{name: references, type: (List Matter::Reference)}, {name: questions, type: (List String)}]
+}
+
+structure{
+ name: Assessment, type_parameters: [], parameters: [],
+ fields: [{name: rule, type: Matter::Reference}, {name: status, type: ReasoningStatus}, {name: conclusionFacet, type: String}, {name: conclusionValue, type: String}, {name: action, type: String}, {name: dependencies, type: (List Matter::Reference)}, {name: questions, type: (List String)}, {name: exceptions, type: (List Matter::Reference)}]
+}
+
+structure{
+ name: Assessments, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List Assessment)}]
+}
+
+definition{
+ name: frame, parameters: [text : String], result: String,
+ body: (prim join (cons (MatterText::decimalLoop 20 (Foundation.Bytes::byteLength (Foundation.Utf8::encode text))) (cons ":" (cons text (nil String)))) "" : String),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: referenceBinding, parameters: [reference : Matter::Reference], result: String,
+ body: (prim join (cons (frame (MatterText::decimalLoop 20 (project reference id))) (cons (frame (MatterText::decimalLoop 20 (project reference revision))) (nil String))) "" : String),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: requirementsBinding, parameters: [items : (List Requirement)], result: String,
+ body: (match items | List.nil => "" | List.cons item rest => (prim join (cons (frame (project item facet)) (cons (frame (project item value)) (cons (frame (project item question)) (cons (requirementsBinding rest) (nil String))))) "" : String)),
+ executable: true, axioms: [propext], recursive_argument: items
+}
+
+definition{
+ name: ruleBinding, parameters: [rule : Rule], result: String,
+ body: (prim join (cons "prism-legal/rule/1" (cons (referenceBinding (project rule authority)) (cons (referenceBinding (project rule jurisdiction)) (cons (referenceBinding (project rule goal)) (cons (frame (requirementsBinding (project rule premises))) (cons (frame (requirementsBinding (project rule exceptions))) (cons (frame (project rule conclusionFacet)) (cons (frame (project rule conclusionValue)) (cons (frame (project rule action)) (nil String)))))))))) "" : String),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: samePassage, parameters: [left : Matter::Citation, right : Matter::Citation], result: Bool,
+ body: (((project left source) =? (project right source)) && (((project left revision) =? (project right revision)) && (((project left start) =? (project right start)) && (((project left size) =? (project right size)) && (prim equal (project left quote) (project right quote) : Bool))))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: passagePresent, parameters: [citations : (List Matter::Citation), citation : Matter::Citation], result: Bool,
+ body: (match citations | List.nil => false | List.cons head rest => ((samePassage head citation) || (passagePresent rest citation))),
+ executable: true, axioms: [], recursive_argument: citations
+}
+
+definition{
+ name: sharedPassage, parameters: [left : (List Matter::Citation), right : (List Matter::Citation)], result: Bool,
+ body: (match left | List.nil => false | List.cons citation rest => ((passagePresent right citation) || (sharedPassage rest right))),
+ executable: true, axioms: [], recursive_argument: left
+}
+
+definition{
+ name: competingMeaning, parameters: [nodes : (List Matter::Node), admitted : (List Matter::Reference), candidate : Matter::Node], result: Bool,
+ body: (match nodes | List.nil => false | List.cons node rest =>
+ (((prim equal (project node facet) (project candidate facet) : Bool) && ((not (prim equal (project node value) (project candidate value) : Bool)) && ((sharedPassage (project node citations) (project candidate citations)) && (Matter::containsReference admitted (Matter::nodeReference node))))) || (competingMeaning rest admitted candidate))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: contestedLoop, parameters: [remaining : (List Matter::Node), nodes : (List Matter::Node), admitted : (List Matter::Reference), requirement : Requirement], result: Bool,
+ body: (match remaining | List.nil => false | List.cons node rest =>
+ (((prim equal (project node facet) (project requirement facet) : Bool) && ((prim equal (project node value) (project requirement value) : Bool) && ((Matter::containsReference admitted (Matter::nodeReference node)) && (competingMeaning nodes admitted node)))) || (contestedLoop rest nodes admitted requirement))),
+ executable: true, axioms: [], recursive_argument: remaining
+}
+
+definition{
+ name: contestedFacet, parameters: [requirements : (List Requirement), nodes : (List Matter::Node), admitted : (List Matter::Reference)], result: String,
+ body: (match requirements | List.nil => "" | List.cons requirement rest =>
+ (if (contestedLoop nodes nodes admitted requirement) then (project requirement facet) else (contestedFacet rest nodes admitted))),
+ executable: true, axioms: [], recursive_argument: requirements
+}
+
+definition{
+ name: competingQuestion, parameters: [facet : String], result: String,
+ body: (MatterText::concat "Resolve competing interpretations of the same source passage for " (MatterText::concat facet ". Correct, separate or withdraw an interpretation before relying on it.")),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: presentReference, parameters: [reference : Matter::Reference, nodes : (List Matter::Node), admitted : (List Matter::Reference), facet : String], result: Bool,
+ body: (match (Matter::findNode nodes (project reference id))
+ | Option.none => false
+ | Option.some node => ((Matter::containsReference admitted reference) && ((Matter::referenceEq reference (Matter::nodeReference node)) && ((prim equal (project node facet) facet : Bool) && (not (competingMeaning nodes admitted node)))))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: ruleReady, parameters: [rule : Rule, nodes : (List Matter::Node), admitted : (List Matter::Reference)], result: Bool,
+ body: ((presentReference (project rule definition) nodes admitted "rule") &&
+ ((presentReference (project rule authority) nodes admitted "authority") &&
+ ((presentReference (project rule jurisdiction) nodes admitted "jurisdiction") &&
+ ((presentReference (project rule goal) nodes admitted "goal") &&
+ (match (Matter::findNode nodes (project (project rule definition) id))
+  | Option.none => false
+  | Option.some node => ((prim equal (project node value) (ruleBinding rule) : Bool) &&
+    (match (Matter::findNode nodes (project (project rule authority) id))
+     | Option.none => false | Option.some authority => (Matter::hasCitations (project authority citations))))))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: supportLoop, parameters: [requirement : Requirement, remaining : (List Matter::Node), nodes : (List Matter::Node), admitted : (List Matter::Reference)], result: (Option Matter::Reference),
+ body: (match remaining | List.nil => (ctor Option.none [Matter::Reference]) | List.cons node rest =>
+ (if ((prim equal (project node facet) (project requirement facet) : Bool) && ((prim equal (project node value) (project requirement value) : Bool) && ((Matter::containsReference admitted (Matter::nodeReference node)) && (not (competingMeaning nodes admitted node))))) then
+ (ctor Option.some [Matter::Reference] (Matter::nodeReference node)) else (supportLoop requirement rest nodes admitted))),
+ executable: true, axioms: [], recursive_argument: remaining
+}
+
+definition{
+ name: support, parameters: [requirement : Requirement, nodes : (List Matter::Node), admitted : (List Matter::Reference)], result: (Option Matter::Reference),
+ body: (supportLoop requirement nodes nodes admitted),
+ executable: true, axioms: []
+}
+
+definition{
+ name: gather, parameters: [requirements : (List Requirement), nodes : (List Matter::Node), admitted : (List Matter::Reference)], result: Evidence,
+ body: (match requirements
+ | List.nil => (record Evidence {references := (nil Matter::Reference), questions := (nil String)})
+ | List.cons requirement rest => (let following : Evidence := (gather rest nodes admitted);
+   (match (support requirement nodes admitted)
+    | Option.none => (record Evidence {references := (project following references), questions := (cons (if (contestedLoop nodes nodes admitted requirement) then (competingQuestion (project requirement facet)) else (project requirement question)) (project following questions))})
+    | Option.some reference => (record Evidence {references := (cons reference (project following references)), questions := (project following questions)})))),
+ executable: true, axioms: [propext], recursive_argument: requirements
+}
+
+definition{
+ name: hasQuestions, parameters: [questions : (List String)], result: Bool,
+ body: (match questions | List.nil => false | List.cons question rest => true),
+ executable: true, axioms: []
+}
+
+definition{
+ name: assessCurrent, parameters: [rule : Rule, nodes : (List Matter::Node), admitted : Matter::Admission], result: Assessment,
+ body: (let required : Evidence := (gather (project rule premises) nodes (project admitted references));
+ (let excluded : Evidence := (gather (project rule exceptions) nodes (project admitted references));
+ (let excludedConflict : String := (contestedFacet (project rule exceptions) nodes (project admitted references));
+ (let contested : String := (if (prim equal excludedConflict "" : Bool) then (contestedFacet (project rule premises) nodes (project admitted references)) else excludedConflict);
+ (record Assessment {
+ rule := (project rule definition),
+ status := (if (not (ruleReady rule nodes (project admitted references))) then (ctor ReasoningStatus.Inactive) else
+  (if (Matter::hasReferences (project excluded references)) then (ctor ReasoningStatus.Excepted) else
+   (if ((hasQuestions (project required questions)) || (not (prim equal contested "" : Bool))) then (ctor ReasoningStatus.Missing) else (ctor ReasoningStatus.Supported)))),
+ conclusionFacet := (project rule conclusionFacet), conclusionValue := (project rule conclusionValue), action := (project rule action),
+ dependencies := (cons (project rule definition) (cons (project rule authority) (cons (project rule jurisdiction) (cons (project rule goal) (project required references))))),
+ questions := (if (prim equal contested "" : Bool) then (project required questions) else (cons (competingQuestion contested) (nil String))), exceptions := (project excluded references)
+ }))))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: assess, parameters: [rule : Rule, nodes : (List Matter::Node), sources : (List Matter::Source)], result: Assessment,
+ body: (assessCurrent rule nodes (Matter::current nodes sources)),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: assessAllCurrent, parameters: [rules : (List Rule), nodes : (List Matter::Node), admitted : Matter::Admission], result: Assessments,
+ body: (match rules | List.nil => (record Assessments {values := (nil Assessment)})
+ | List.cons rule rest => (let following : Assessments := (assessAllCurrent rest nodes admitted);
+ (record Assessments {values := (cons (assessCurrent rule nodes admitted) (project following values))}))),
+ executable: true, axioms: [propext], recursive_argument: rules
+}
+
+definition{
+ name: assessAll, parameters: [rules : (List Rule), nodes : (List Matter::Node), sources : (List Matter::Source)], result: Assessments,
+ body: (match rules | List.nil => (record Assessments {values := (nil Assessment)}) | List.cons first rest =>
+ (assessAllCurrent rules nodes (Matter::current nodes sources))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: proposal, parameters: [assessment : Assessment, identifier : Nat], result: (Option Matter::Node),
+ body: (match (project assessment status)
+ | ReasoningStatus.Supported => (ctor Option.some [Matter::Node] (record Matter::Node {
+ id := identifier, revision := 1, facet := (project assessment conclusionFacet), value := (project assessment conclusionValue), origin := (ctor Matter::Origin.Inferred), accepted := false,
+ citations := (nil Matter::Citation), dependencies := (project assessment dependencies)}))
+ | ReasoningStatus.Inactive => (ctor Option.none [Matter::Node])
+ | ReasoningStatus.Missing => (ctor Option.none [Matter::Node])
+ | ReasoningStatus.Excepted => (ctor Option.none [Matter::Node])),
+ executable: true, axioms: []
+}
+
+theorem{
+ name: proposalsRequireReview, parameters: [status : ReasoningStatus, rule : Matter::Reference, facet : String, value : String, action : String, dependencies : (List Matter::Reference), questions : (List String), exceptions : (List Matter::Reference), identifier : Nat],
+ statement: ((match (proposal (record Assessment {rule := rule, status := status, conclusionFacet := facet, conclusionValue := value, action := action, dependencies := dependencies, questions := questions, exceptions := exceptions}) identifier)
+ | Option.none => true | Option.some node => (not (project node accepted))) = true),
+ proof: cases{scrutinee: status, branches: [
+  {constructor: Inactive, binders: [], proof: reflexivity{}},
+  {constructor: Missing, binders: [], proof: reflexivity{}},
+  {constructor: Excepted, binders: [], proof: reflexivity{}},
+  {constructor: Supported, binders: [], proof: reflexivity{}}
+ ]}
+}
+
+\end{semanticmodule}
+\end{lexlean}

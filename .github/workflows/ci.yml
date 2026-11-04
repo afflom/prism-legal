@@ -12,16 +12,19 @@ permissions:
 
 concurrency:
   group: main-validation-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   validate:
-    name: Sanitize, Check & Render Portal
+    name: Compile and verify source models
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install the real compiler
+        uses: ./.github/actions/lexlean
 
       - name: Run Zero-PII & Case-Sanitization Gate
         run: ./bin/prism-legal sanitize
@@ -31,8 +34,32 @@ jobs:
           ./bin/prism-legal api check
           ./bin/prism-legal check
 
-      - name: Verify Inference & Discovery Engines
+      - name: Verify the matter model in Lean
+        run: |
+          lexlean --project holistic.lexlean.toml lock --check
+          lexlean --project holistic.lexlean.toml verify
+          python -m unittest discover -s tests -p 'test_*.py'
+
+      - name: Exercise legacy inference and conversion fixtures
         run: |
           ./bin/prism-legal engine
           ./bin/prism-legal discover
           ./bin/prism-legal convert
+
+  matter:
+    name: Build and exercise the modeled application
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/build-matter
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: matter-verification
+          path: |
+            matter-sdk-build.json
+            matter-sdk-image.json
+            matter-build.json
+            matter-verification.json
+            .prism/verified/

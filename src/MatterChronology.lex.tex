@@ -1,0 +1,156 @@
+\begin{lexlean}{MatterChronology}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{prism.arch@1.0.0}
+\importmodule{Matter}
+\importmodule{MatterSession}
+\importmodule{MatterInference}
+\importmodule{MatterJournal}
+\importmodule{MatterText}
+\importmodule{MatterBatch}
+\importmodule{Foundation.Bytes}
+\importmodule{Foundation.Utf8}
+\title{Text application model}
+\begin{semanticmodule}
+structure{
+ name: ChronologyEntry, type_parameters: [], parameters: [],
+ fields: [{name: node, type: Matter::Node}, {name: order, type: Nat}]
+}
+
+structure{
+ name: ChronologyEntries, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List ChronologyEntry)}]
+}
+
+structure{
+ name: Chronology, type_parameters: [], parameters: [],
+ fields: [{name: dated, type: (List ChronologyEntry)}, {name: unresolved, type: (List Matter::Node)}]
+}
+
+structure{
+ name: ChronologyMerge, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List ChronologyEntry)}, {name: left, type: (List ChronologyEntry)}, {name: right, type: (List ChronologyEntry)}]
+}
+
+definition{
+ name: chronologyEntryCount, parameters: [entries : (List ChronologyEntry)], result: Nat,
+ body: (match entries | List.nil => 0 | List.cons entry rest => (1 + (chronologyEntryCount rest))),
+ executable: true, axioms: [], recursive_argument: entries
+}
+
+definition{
+ name: chronologyBefore, parameters: [left : ChronologyEntry, right : ChronologyEntry], result: Bool,
+ body: (((project left order) <? (project right order)) || (((project left order) =? (project right order)) && (not ((project (project right node) id) <? (project (project left node) id))))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: chronologyMergeDepth, parameters: [fuel : Nat, count : Nat], result: Nat,
+ body: (match fuel | Nat.zero => 0 | Nat.succ remaining =>
+ (if (not (1 <? count)) then 0 else (1 + (chronologyMergeDepth remaining (prim quotient (count + 1) 2 0 : Nat))))),
+ executable: true, axioms: [], recursive_argument: fuel
+}
+
+definition{
+ name: mergeChronologyLevel, parameters: [depth : Nat, left : (List ChronologyEntry), right : (List ChronologyEntry)], result: ChronologyMerge,
+ body: (match depth | Nat.zero =>
+ (match left | List.nil => (record ChronologyMerge {values := right, left := (nil ChronologyEntry), right := (nil ChronologyEntry)}) | List.cons firstLeft restLeft =>
+ (match right | List.nil => (record ChronologyMerge {values := left, left := (nil ChronologyEntry), right := (nil ChronologyEntry)}) | List.cons firstRight restRight =>
+ (if (chronologyBefore firstLeft firstRight) then
+ (record ChronologyMerge {values := (cons firstLeft (nil ChronologyEntry)), left := restLeft, right := right}) else
+ (record ChronologyMerge {values := (cons firstRight (nil ChronologyEntry)), left := left, right := restRight}))))
+ | Nat.succ remaining =>
+ (match left | List.nil => (record ChronologyMerge {values := right, left := (nil ChronologyEntry), right := (nil ChronologyEntry)}) | List.cons firstLeft restLeft =>
+ (match right | List.nil => (record ChronologyMerge {values := left, left := (nil ChronologyEntry), right := (nil ChronologyEntry)}) | List.cons firstRight restRight =>
+ (let earlier : ChronologyMerge := (mergeChronologyLevel remaining left right);
+ (let later : ChronologyMerge := (mergeChronologyLevel remaining (project earlier left) (project earlier right));
+ (record ChronologyMerge {values := (prim append (project earlier values) (project later values) : (List ChronologyEntry)), left := (project later left), right := (project later right)})))))),
+ executable: true, axioms: [], recursive_argument: depth
+}
+
+definition{
+ name: mergeChronology, parameters: [left : (List ChronologyEntry), right : (List ChronologyEntry)], result: ChronologyEntries,
+ body: (let count : Nat := ((chronologyEntryCount left) + (chronologyEntryCount right));
+ (record ChronologyEntries {values := (project (mergeChronologyLevel (chronologyMergeDepth count count) left right) values)})),
+ executable: true, axioms: []
+}
+
+definition{
+ name: chronologyEntryPage, parameters: [entries : (List ChronologyEntry), skip : Nat, fuel : Nat], result: ChronologyEntries,
+ body: (match entries | List.nil => (record ChronologyEntries {values := (nil ChronologyEntry)}) | List.cons entry rest =>
+ (match fuel | Nat.zero => (record ChronologyEntries {values := (nil ChronologyEntry)}) | Nat.succ remainingFuel =>
+ (match skip | Nat.succ remainingSkip => (chronologyEntryPage rest remainingSkip fuel) | Nat.zero =>
+ (record ChronologyEntries {values := (cons entry (project (chronologyEntryPage rest 0 remainingFuel) values))})))),
+ executable: true, axioms: [], recursive_argument: entries
+}
+
+definition{
+ name: leapYear, parameters: [year : Nat], result: Bool,
+ body: (((prim remainder year 4 0 : Nat) =? 0) && ((not ((prim remainder year 100 0 : Nat) =? 0)) || ((prim remainder year 400 0 : Nat) =? 0))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: calendarMonthDays, parameters: [year : Nat, month : Nat], result: Nat,
+ body: (if ((month =? 0) || (12 <? month)) then 0 else
+ (if (month =? 2) then (if (leapYear year) then 29 else 28) else
+ (if ((month =? 4) || ((month =? 6) || ((month =? 9) || (month =? 11)))) then 30 else 31))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: dateDigits, parameters: [bytes : Bytes, start : Nat, size : Nat], result: (Option Nat),
+ body: (match (Foundation.Bytes::sliceBytes bytes start size) | Option.none => (ctor Option.none [Nat]) | Option.some field => (MatterJournal::numberLoop size field 0 0)),
+ executable: true, axioms: []
+}
+
+definition{
+ name: calendarDateKey, parameters: [value : String], result: (Option Nat),
+ body: (let bytes : Bytes := (Foundation.Utf8::encode value);
+ (if (not ((Foundation.Bytes::byteLength bytes) =? 10)) then (ctor Option.none [Nat]) else
+ (if (not ((match (Foundation.Bytes::sliceBytes bytes 4 1) | Option.none => false | Option.some separator => (prim equal separator 0x2d : Bool)) &&
+ (match (Foundation.Bytes::sliceBytes bytes 7 1) | Option.none => false | Option.some separator => (prim equal separator 0x2d : Bool)))) then (ctor Option.none [Nat]) else
+ (match (dateDigits bytes 0 4) | Option.none => (ctor Option.none [Nat]) | Option.some year =>
+ (match (dateDigits bytes 5 2) | Option.none => (ctor Option.none [Nat]) | Option.some month =>
+ (match (dateDigits bytes 8 2) | Option.none => (ctor Option.none [Nat]) | Option.some day =>
+ (if ((0 <? year) && ((0 <? day) && (not ((calendarMonthDays year month) <? day)))) then
+ (ctor Option.some [Nat] ((prim multiply year 10000 : Nat) + ((prim multiply month 100 : Nat) + day))) else (ctor Option.none [Nat])))))))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: insertChronologyEntry, parameters: [entries : (List ChronologyEntry), entry : ChronologyEntry], result: ChronologyEntries,
+ body: (match entries | List.nil => (record ChronologyEntries {values := (cons entry (nil ChronologyEntry))}) | List.cons head rest =>
+ (record ChronologyEntries {values := (if (((project entry order) <? (project head order)) || (((project entry order) =? (project head order)) && ((project (project entry node) id) <? (project (project head node) id)))) then
+ (cons entry (cons head rest)) else (cons head (project (insertChronologyEntry rest entry) values)))})),
+ executable: true, axioms: [], recursive_argument: entries
+}
+
+definition{
+ name: chronologyLoop, parameters: [nodes : (List Matter::Node), allNodes : (List Matter::Node), admitted : (List Matter::Reference), facets : (List String)], result: Chronology,
+ body: (match nodes | List.nil => (record Chronology {dated := (nil ChronologyEntry), unresolved := (nil Matter::Node)}) | List.cons node rest =>
+ (let following : Chronology := (chronologyLoop rest allNodes admitted facets);
+ (if ((MatterText::wordPresent facets (project node facet)) && (Matter::containsReference admitted (Matter::nodeReference node))) then
+ (match (if (MatterInference::competingMeaning allNodes admitted node) then (ctor Option.none [Nat]) else (calendarDateKey (project node value)))
+ | Option.none => (record Chronology {dated := (project following dated), unresolved := (cons node (project following unresolved))})
+ | Option.some order => (record Chronology {dated := (project (insertChronologyEntry (project following dated) (record ChronologyEntry {node := node, order := order})) values), unresolved := (project following unresolved)}))
+ else following))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: chronologyChunks, parameters: [chunks : (List MatterBatch::NodeChunk), allNodes : (List Matter::Node), admitted : (List Matter::Reference), facets : (List String)], result: Chronology,
+ body: (match chunks | List.nil => (record Chronology {dated := (nil ChronologyEntry), unresolved := (nil Matter::Node)}) | List.cons chunk rest =>
+ (let selected : Chronology := (chronologyLoop (project chunk values) allNodes admitted facets);
+ (let following : Chronology := (chronologyChunks rest allNodes admitted facets);
+ (record Chronology {dated := (project (mergeChronology (project selected dated) (project following dated)) values), unresolved := (prim append (project selected unresolved) (project following unresolved) : (List Matter::Node))})))),
+ executable: true, axioms: [], recursive_argument: chunks
+}
+
+definition{
+ name: chronology, parameters: [session : MatterSession::Session, admitted : (List Matter::Reference), facets : (List String)], result: Chronology,
+ body: (chronologyChunks (project (MatterBatch::nodeChunks (project (project session matter) nodes)) values) (project (project session matter) nodes) admitted facets),
+ executable: true, axioms: []
+}
+\end{semanticmodule}
+\end{lexlean}
