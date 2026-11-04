@@ -1,4 +1,4 @@
-import {reviewedArchive,correctionHistory,goalCapacity} from './archive_fixture.mjs';
+import {reviewedArchive,correctionHistory,goalCapacity,directEntryCapacity} from './archive_fixture.mjs';
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -204,6 +204,20 @@ try{
  await run('withdraw',{facet:'goal',value:'rent refund rent refund'});assert.match(await page.locator('#result-details').textContent(),/Records · line 1/);
  const goalHistory=await save();await page.reload();await ready();await page.locator('#open-session').setInputFiles({name:'goals.prismlegal',mimeType:'application/octet-stream',buffer:goalHistory});await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();assert.deepEqual(await save(),goalHistory);
  assert.match(await page.locator('#result-details').textContent(),/Records · line 1/);await page.locator('#next-form').click();assert.equal(await page.locator('#field-location').inputValue(),'Records · line 1');assert.deepEqual(await save(),goalHistory);
+ // Repeated directly recorded wording has copyable, distinct entry locations.
+ await page.reload();await ready();await run('create',{title:'Repeated goals'});await run('goal',{value:'Respond'});await run('add-goal',{value:'Respond'});
+ await run('inspect',{facet:'goal',page:'1'});
+ const directRows=(await page.locator('#result-details li').allTextContents()).filter(row=>row.startsWith('Current interpretation: Respond'));
+ assert.equal(directRows.length,2);const directLocations=directRows.map(row=>row.split(' — Source location: ')[1]);
+ assert(directLocations.every(location=>location.startsWith('Recorded directly · entry ')));assert.notEqual(directLocations[0],directLocations[1]);
+ const repeatedGoals=await save();await run('edit',{facet:'goal','old-value':'Respond','new-value':'Negotiate',location:'Recorded directly'});
+ assert.equal(await page.locator('#result-error').isVisible(),true);assert.deepEqual(await save(),repeatedGoals);
+ await run('edit',{facet:'goal','old-value':'Respond','new-value':'Negotiate',location:directLocations[0]});assert.equal(await page.locator('#result-error').isVisible(),false);
+ await run('inspect',{facet:'goal',page:'1'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: Respond/);assert.match(await page.locator('#result-details').textContent(),/Current interpretation: Negotiate/);
+ await run('withdraw',{facet:'goal',value:'Respond',location:directLocations[1]});assert.equal(await page.locator('#result-error').isVisible(),false);
+ const directSaved=await save();await page.reload();await ready();await page.locator('#open-session').setInputFiles({name:'direct-entries.prismlegal',mimeType:'application/octet-stream',buffer:directSaved});await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();assert.deepEqual(await save(),directSaved);
+ await run('inspect',{facet:'goal',page:'1'});assert.match(await page.locator('#result-details').textContent(),/Withdrawn: Respond/);assert.match(await page.locator('#result-details').textContent(),/Current interpretation: Negotiate/);
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
  await page.reload();await ready();assert.equal(await run('create',{title:'Learned amount'}),'Start with a source');await run('ingest',{title:'Training',content:'Amount: 50.'});await run('review',{facet:'amount',interpretation:'50'});await run('goal',{value:'75'});await run('ingest',{title:'Update',content:'Unrelated context\nAmount: 75.'});
  assert.match(await page.locator('#result-details').textContent(),/amount: 75/);const semanticBefore=await save();await page.locator('#next-form').click();assert.equal(await page.locator('#field-facet').inputValue(),'amount');assert.equal(await page.locator('#field-location').inputValue(),'Update · line 2');assert.deepEqual(await save(),semanticBefore);
  await page.locator('#guided-submit').click();await ready();assert.equal(await page.locator('#result-error').isVisible(),false);await run('inspect',{facet:'amount',page:'1'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: 75/);
@@ -211,6 +225,10 @@ try{
  await page.reload();await ready();const allGoals=Buffer.from(goalCapacity());
  await page.locator('#open-session').setInputFiles({name:'all-goals.prismlegal',mimeType:'application/octet-stream',buffer:allGoals});await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();assert.equal(await page.locator('#status').getAttribute('data-state'),'ready');assert.deepEqual(await save(),allGoals);
  assert.match(await page.locator('#result-details').textContent(),/Records · line 2/);await page.locator('#next-form').click();assert.equal(await page.locator('#field-location').inputValue(),'Records · line 2');assert.deepEqual(await save(),allGoals);
+ await page.reload();await ready();const directCapacity=Buffer.from(directEntryCapacity());
+ await page.locator('#open-session').setInputFiles({name:'repeated-entries.prismlegal',mimeType:'application/octet-stream',buffer:directCapacity});await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();assert.deepEqual(await save(),directCapacity);
+ await run('inspect',{facet:'goal',page:'128'});assert.equal(await page.locator('#result-error').isVisible(),false);
+ assert.equal(await page.locator('#result-details li').count(),8);assert.match(await page.locator('#result-details li').last().textContent(),/Current interpretation: Repeated outcome — Source location: Recorded directly · entry 1$/);assert.deepEqual(await save(),directCapacity);
  await page.reload();await ready();const archive=Buffer.from(reviewedArchive());
  await page.locator('#open-session').setInputFiles({name:'archive.prismlegal',mimeType:'application/octet-stream',buffer:archive});
  await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();assert.equal(await page.locator('#status').getAttribute('data-state'),'ready');assert.deepEqual(await save(),archive);

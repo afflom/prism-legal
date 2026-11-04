@@ -238,6 +238,24 @@ Existing strategies remain bound to their particular goal revision. Adding or
 correcting another goal preserves that binding; changing the bound goal makes
 its dependent reasoning inactive. Saving and reopening retains those relations.
 
+Identical directly recorded entries expose distinct, copyable entry locations
+in facet inspection. The number identifies the retained entry; correcting its
+wording does not renumber it. Correction and withdrawal accept that location
+without selecting another entry with the same wording. Unqualified repeated
+wording remains ambiguous. The earlier `Recorded directly` qualifier still
+selects a unique matching entry. A direct-entry location cannot select a cited
+passage or another facet, and it does not bypass workflow or dependency checks.
+Unique direct entries keep their shorter display; copied numbered locations
+remain usable after the wording becomes unique. Saved journals retain their
+existing format and replay identities.
+Location-based selection folds the existing bounded node groups, retaining the
+complete match count and the earliest matching node in the existing node order. A native
+boundary regression exposed stack exhaustion in the prior linear selection scan;
+the grouped scan keeps the normal stack limit and examines every entry.
+Facet inspection selects its page before rendering the visible rows. Formatting
+therefore retains no frame for each skipped entry; the full final-page regression
+keeps the existing eight-item view and normal native stack.
+
 Learned feature updates also preserve their original order and weights while
 processing bounded groups. A matter with 1,022 distinct goals and two pending passages exceeded the
 browser deadline with the initial guest allocator, despite native reference
@@ -298,7 +316,7 @@ Review context names the resource and its original text line. Duplicate resource
 titles include their resource number. UTF-8 and CRLF do not shift those locations.
 Detailed byte citations remain available in the lawyer view. Attention checks
 reuse the current-reference closure across their facet scan.
-`MatterWorkspace` exposes 23 operations for
+`MatterWorkspace` exposes 24 operations for
 creation, intake, review, assertions, chronology, source and rule revisions, strategy,
 proposals, restoration, additional interpretations, withdrawal, change impact,
 and paginated facet and strategy inspection. It selects objects by
@@ -318,7 +336,7 @@ Historical interpretations show their source revision and original line, using
 the retained source bytes rather than the replacement resource's text.
 
 `HolisticApp` declares the forms, plain-language copy, palette, density, file
-controls, errors, empty states, and 118 acceptance vectors. The shorter opening and help sections leave more room for the active matter. Unused help and
+controls, errors, empty states, and source acceptance vectors. The shorter opening and help sections leave more room for the active matter. Unused help and
 transport details are collapsed. Shorter field guidance and the neutral Continue
 action serve both review and read-only forms. Acceptance bytes are factored into
 closed byte aliases. Content-based boundaries let differently framed requests
@@ -375,13 +393,13 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`cb1a54eba44fb66a30af9a686ddefcf892fc3d5a410c02e79a9876e9eadf014b`
+`44de960b1c7722cc1945af25d70cec11636249b7506a3b9b4216ea9c499b6981`
 and semantic ID
-`24435175b9fe068b0cd2004f31abfeab25a09f2c2ac680838416ad3edfd01b37`
+`f6c8390b230543736c0c7a4813e03c3584287424e3cccde4033fc9e427bff060`
 passed LexLean verification with attestation
-`0327f9b2f0720ae407d7a3053b2d7bc0f6d897f67d6824a780bdd394461b1d92`.
+`a1858289ca53d282084460fc51213517cec2fa85b0298f397582baa07ffa65fc`.
 
-The generated native library passes 96 tests across `behavior.rs` and
+The generated native library passes 100 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
@@ -415,7 +433,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 131 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 139 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -489,7 +507,7 @@ which reuses temporary allocations while preserving resident ABI buffers and
 original V1 generation. `core_runtime.mjs` now executes the actual
 archive guest independently of the browser adapter and is a required CI step.
 
-The current 131-vector corpus also restores 1,022 distinct goals and two pending
+The preceding 131-vector corpus also restores 1,022 distinct goals and two pending
 passages at full node capacity, selecting the oldest relevant goal. Its actual
 Core-Wasm guest was regenerated from the compiled model with the final pinned
 Rust allocator and passed every source vector. The vocabulary case took 5,712 ms
@@ -503,6 +521,23 @@ This is generic SDK behavior; application learning and grouped feature updates
 remain LexLean definitions. The generated browser also restores the full goal
 file, retains its exact bytes, and prepares the selected source passage without
 accepting it. Its existing command deadline is unchanged.
+
+The current build
+`b53e44bf74861cc6efc0e260cfc225b42f4e2423183001caa484b7b017210468`
+passes all 139 source vectors in the browser adapter and the actual archive
+guest. New cases distinguish identical directly recorded goals, refuse ambiguous
+correction, preserve the other goal, withdraw a selected entry and replay the
+result. A full 1,024-entry journal also opens its final inspection page. That
+55,292-byte request completed locally in 145 ms using 11,403,264 bytes in the
+actual guest. Native boundary tests retain the normal stack size and check
+complete selection counts and node order; the independent page expectation
+retains all eight entries. The earlier implementation overflowed the native
+stack during both location selection and final-page formatting. No stack,
+input, memory or execution limit was increased.
+The generated-browser journey also corrects and withdraws the selected duplicate,
+saves and reopens the exact journal, and inspects the final page of the full file.
+Regenerating the source acceptance definitions from the final native driver is
+byte-identical; the final-page response is an independently specified expectation.
 
 Full pinned-image results belong to the exact commit and artifact reported by
 [the application PR](https://github.com/afflom/prism-legal/pull/1) and its Actions

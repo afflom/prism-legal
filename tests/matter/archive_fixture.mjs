@@ -23,3 +23,10 @@ export function goalCapacity(){
  for(let index=0;index<1022;index++)journal+=fields([fields(['assert',String(index+1),'client','client','goal',index===0?'target agreement':`another outcome ${index}`])]);
  return journal;
 }
+
+export function directEntryCapacity(){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ let journal=fields(['prism-legal/journal/1','Repeated entries']);
+ for(let index=0;index<1024;index++)journal+=fields([fields(['assert',String(index),'client','client','goal',index===0||index===1023?'Repeated outcome':'Other outcome'])]);
+ return journal;
+}

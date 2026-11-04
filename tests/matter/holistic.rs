@@ -1411,6 +1411,77 @@ fn grouped_synapse_updates_preserve_weights_order_and_first_match() {
 }
 
 #[test]
+fn identical_direct_goals_can_be_selected_without_changing_the_other_binding() {
+    let original=strategy_journal();let bound=original.session.rules[0].goal.clone();
+    let added=commit(original.journal,&original.session,"assert".into(),"client".into(),&["goal".into(),"Respond".into()]).unwrap();
+    assert_eq!(added.code,"");
+    let duplicate=added.session.matter.nodes.iter().max_by_key(|n|n.id).unwrap().clone();
+    let location=interpretationLocation(&added.session,&duplicate).unwrap();
+    assert_eq!(location,format!("Recorded directly · entry {}",duplicate.id));
+    let bound_node=findNode(&added.session.matter.nodes,bound.id).unwrap();
+    assert_eq!(interpretationLocation(&added.session,&bound_node).unwrap(),format!("Recorded directly · entry {}",bound.id));
+    for qualifier in ["", "Recorded directly", "Recorded directly · entry 9999"] {
+        let refused=editLocatedValue(added.journal.clone(),&added.session,"client".into(),"goal".into(),"Respond".into(),"Negotiate".into(),qualifier.into()).unwrap();
+        assert!(!refused.code.is_empty());assert_eq!(refused.session,added.session);assert_eq!(refused.journal,added.journal);
+    }
+    let corrected=editLocatedValue(added.journal,&added.session,"client".into(),"goal".into(),"Respond".into(),"Negotiate".into(),location.clone()).unwrap();
+    assert_eq!(corrected.code,"");
+    assert_eq!(findNode(&corrected.session.matter.nodes,bound.id).unwrap(),bound_node);
+    assert_eq!(corrected.session.rules[0].goal,bound);
+    assert_eq!(assess(&corrected.session.rules[0],&corrected.session.matter.nodes,&corrected.session.matter.sources).unwrap().status,ReasoningStatus::Supported);
+    assert_eq!(replay(corrected.journal.clone()).unwrap().session,corrected.session);
+    // A copied entry location remains usable after its wording becomes unique.
+    let fields=vec![corrected.journal.clone(),"client".into(),"goal".into(),"Negotiate".into(),location];
+    let withdrawn=changeFields("withdraw".into(),&fields,corrected.journal,&corrected.session,"client".into()).unwrap();
+    assert_eq!(withdrawn.code,"");assert!(!findNode(&withdrawn.session.matter.nodes,duplicate.id).unwrap().accepted);
+    assert_eq!(findNode(&withdrawn.session.matter.nodes,bound.id).unwrap(),bound_node);
+    assert_eq!(replay(withdrawn.journal).unwrap().session,withdrawn.session);
+}
+
+#[test]
+fn direct_entry_locations_preserve_roles_facets_and_cited_provenance() {
+    let original=strategy_journal();let goal=original.session.rules[0].goal.clone();
+    let location=format!("Recorded directly · entry {}",goal.id);
+    let denied=editLocatedValue(original.journal.clone(),&original.session,"reader".into(),"goal".into(),"Respond".into(),"Altered".into(),location.clone()).unwrap();
+    assert!(!denied.code.is_empty());assert_eq!(denied.session,original.session);assert_eq!(denied.journal,original.journal);
+    assert!(uniqueLocatedNode(&original.session,"jurisdiction".into(),"".into(),location).unwrap().is_none());
+    let authority=&original.session.rules[0].authority;
+    assert!(uniqueLocatedNode(&original.session,"authority".into(),"".into(),format!("Recorded directly · entry {}",authority.id)).unwrap().is_none());
+    assert_eq!(interpretationLocation(&original.session,&findNode(&original.session.matter.nodes,goal.id).unwrap()).unwrap(),"Recorded directly");
+    let changed=editLocatedValue(original.journal,&original.session,"client".into(),"goal".into(),"Respond".into(),"Negotiate".into(),"Recorded directly".into()).unwrap();
+    assert_eq!(changed.code,"");assert_eq!(assess(&changed.session.rules[0],&changed.session.matter.nodes,&changed.session.matter.sources).unwrap().status,ReasoningStatus::Inactive);
+}
+
+#[test]
+fn direct_entry_disambiguation_reaches_the_full_matter_boundary() {
+    let mut s=initial("Repeated entries".into());
+    for index in 0..1024 {s=assert_fact(&s,"goal",if index==0||index==1023 {"Repeated outcome"} else {"Other outcome"});}
+    for id in [1,1024] {
+        let node=findNode(&s.matter.nodes,id).unwrap();let location=interpretationLocation(&s,&node).unwrap();
+        assert_eq!(location,format!("Recorded directly · entry {id}"));
+        assert_eq!(uniqueLocatedNode(&s,"goal".into(),"Repeated outcome".into(),location).unwrap().unwrap(),node);
+    }
+    assert!(uniqueLocatedNode(&s,"goal".into(),"Repeated outcome".into(),"Recorded directly".into()).unwrap().is_none());
+    let admitted=current(&s.matter.nodes,&s.matter.sources).unwrap().references;
+    for (value,count,first_id) in [("Repeated outcome",2,1024),("Other outcome",1022,1023),("",1024,1024)] {
+        let selected=matchingLocatedNodes(&s.matter.nodes,&s,&admitted,"goal".into(),value.into(),"Recorded directly".into()).unwrap();
+        assert_eq!(selected.count,count);assert_eq!(selected.node.unwrap().id,first_id);
+    }
+}
+
+#[test]
+fn direct_entry_inspection_reaches_the_last_page_without_expanding_the_stack() {
+    let mut s=initial("Repeated entries".into());
+    for index in 0..1024 {s=assert_fact(&s,"goal",if index==0||index==1023 {"Repeated outcome"} else {"Other outcome"});}
+    let admitted=current(&s.matter.nodes,&s.matter.sources).unwrap().references;
+    let rows=facetPage(&s.matter.nodes,&s,&s.matter.nodes,&s.audit,&admitted,"goal".into(),Role::Client,1016,8).unwrap().values;
+    assert_eq!(rows.len(),8);
+    for (row,id) in rows.iter().zip((1..=8).rev()) {assert!(row.ends_with(&format!("Recorded directly · entry {id}")));}
+    assert!(rows[7].starts_with("Current interpretation: Repeated outcome"));
+    assert!(facetPage(&s.matter.nodes,&s,&s.matter.nodes,&s.audit,&admitted,"missing".into(),Role::Client,0,8).unwrap().values.is_empty());
+}
+
+#[test]
 fn full_capacity_goal_vocabulary_replays_and_focuses_the_oldest_relevant_goal() {
     let mut journal=initialJournal("All current goals".into());
     append_journal_command(&mut journal,vec!["ingest".into(),"0".into(),"client".into(),"client".into(),"Records".into(),"ordinary passage\ntarget agreement".into()]);

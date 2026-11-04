@@ -3,6 +3,7 @@
 \useglossary{lexlean.std.nat@1.2.0}
 \useglossary{prism.arch@1.0.0}
 \importmodule{Matter}
+\importmodule{MatterBatch}
 \importmodule{MatterSession}
 \importmodule{MatterInference}
 \importmodule{MatterNetwork}
@@ -250,9 +251,33 @@ definition{
 }
 
 definition{
+ name: directEntryLocation, parameters: [node : Matter::Node], result: String,
+ body: (MatterText::concat "Recorded directly · entry " (MatterText::decimalLoop 20 (project node id))),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: repeatedDirectEntry, parameters: [nodes : (List Matter::Node), selected : Matter::Node], result: Bool,
+ body: (match nodes | List.nil => false | List.cons node rest =>
+ (if ((not ((project node id) =? (project selected id))) &&
+ ((not (Matter::hasCitations (project node citations))) &&
+ ((prim equal (project node facet) (project selected facet) : Bool) &&
+ (prim equal (project node value) (project selected value) : Bool)))) then true else (repeatedDirectEntry rest selected))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
  name: interpretationLocation, parameters: [session : MatterSession::Session, node : Matter::Node], result: String,
  body: (if (Matter::hasCitations (project node citations)) then
- (displayText (prim join (project (MatterJourney::sourceHeadings (project node citations) session) values) "; " : String)) else "Recorded directly"),
+ (displayText (prim join (project (MatterJourney::sourceHeadings (project node citations) session) values) "; " : String)) else
+ (if (repeatedDirectEntry (project (project session matter) nodes) node) then (directEntryLocation node) else "Recorded directly")),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: interpretationLocationMatches, parameters: [session : MatterSession::Session, node : Matter::Node, location : String], result: Bool,
+ body: (if (Matter::hasCitations (project node citations)) then (prim equal (interpretationLocation session node) location : Bool) else
+ ((prim equal location "Recorded directly" : Bool) || (prim equal location (directEntryLocation node) : Bool))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
@@ -278,12 +303,27 @@ definition{
 }
 
 definition{
- name: matchingLocatedNodes, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), facet : String, value : String, location : String], result: NodeSelection,
+ name: matchingLocatedChunk, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), facet : String, value : String, location : String], result: NodeSelection,
  body: (match nodes | List.nil => (record NodeSelection {node := (ctor Option.none [Matter::Node]), count := 0}) | List.cons node rest =>
- (let following : NodeSelection := (matchingLocatedNodes rest session admitted facet value location);
- (if ((Matter::containsReference admitted (Matter::nodeReference node)) && ((prim equal (project node facet) facet : Bool) && (((prim equal value "" : Bool) || (prim equal (project node value) value : Bool)) && (prim equal (interpretationLocation session node) location : Bool)))) then
+ (let following : NodeSelection := (matchingLocatedChunk rest session admitted facet value location);
+ (if ((Matter::containsReference admitted (Matter::nodeReference node)) && ((prim equal (project node facet) facet : Bool) && (((prim equal value "" : Bool) || (prim equal (project node value) value : Bool)) && (interpretationLocationMatches session node location)))) then
  (record NodeSelection {node := (ctor Option.some [Matter::Node] node), count := ((project following count) + 1)}) else following))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
+}
+
+definition{
+ name: matchingLocatedChunks, parameters: [chunks : (List MatterBatch::NodeChunk), session : MatterSession::Session, admitted : (List Matter::Reference), facet : String, value : String, location : String], result: NodeSelection,
+ body: (match chunks | List.nil => (record NodeSelection {node := (ctor Option.none [Matter::Node]), count := 0}) | List.cons chunk rest =>
+ (let selectedChunk : NodeSelection := (matchingLocatedChunk (project chunk values) session admitted facet value location);
+ (let following : NodeSelection := (matchingLocatedChunks rest session admitted facet value location);
+ (record NodeSelection {node := (if (0 <? (project selectedChunk count)) then (project selectedChunk node) else (project following node)), count := ((project selectedChunk count) + (project following count))})))),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: chunks
+}
+
+definition{
+ name: matchingLocatedNodes, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, admitted : (List Matter::Reference), facet : String, value : String, location : String], result: NodeSelection,
+ body: (matchingLocatedChunks (project (MatterBatch::nodeChunks nodes) values) session admitted facet value location),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
@@ -505,13 +545,32 @@ definition{
 }
 
 definition{
- name: facetPage, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, allNodes : (List Matter::Node), audit : (List MatterSession::AuditEntry), admitted : (List Matter::Reference), facet : String, role : MatterSession::Role, skip : Nat, fuel : Nat], result: MatterText::TextItems,
+ name: facetPageNodes, parameters: [nodes : (List Matter::Node), facet : String, skip : Nat, fuel : Nat], result: MatterBatch::NodeChunk,
+ body: (match nodes | List.nil => (record MatterBatch::NodeChunk {values := (nil Matter::Node)}) | List.cons node rest =>
+ (match fuel | Nat.zero => (record MatterBatch::NodeChunk {values := (nil Matter::Node)}) | Nat.succ remainingFuel =>
+ (if (not (prim equal (project node facet) facet : Bool)) then (facetPageNodes rest facet skip fuel) else
+ (match skip | Nat.succ remainingSkip => (facetPageNodes rest facet remainingSkip fuel) | Nat.zero =>
+ (record MatterBatch::NodeChunk {values := (cons node (project (facetPageNodes rest facet 0 remainingFuel) values))}))))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+
+definition{
+ name: facetItem, parameters: [node : Matter::Node, session : MatterSession::Session, allNodes : (List Matter::Node), audit : (List MatterSession::AuditEntry), admitted : (List Matter::Reference), role : MatterSession::Role], result: String,
+ body: (displayText (prim join (cons (if (Matter::containsReference admitted (Matter::nodeReference node)) then (if (MatterInference::competingMeaning allNodes admitted node) then "Competing interpretation: " else "Current interpretation: ") else (if (MatterSession::isWithdrawn audit node) then "Withdrawn: " else "Needs review: ")) (cons (MatterText::concat (project node value) (MatterText::concat " — Source location: " (interpretationLocation session node))) (cons (if (MatterSession::isLawyer role) then (MatterText::concat " — " (prim join (project (MatterJourney::sourceContext (project node citations)) values) "; " : String)) else "") (nil String)))) "" : String)),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
+}
+
+definition{
+ name: facetPageItems, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, allNodes : (List Matter::Node), audit : (List MatterSession::AuditEntry), admitted : (List Matter::Reference), role : MatterSession::Role], result: MatterText::TextItems,
  body: (match nodes | List.nil => (record MatterText::TextItems {values := (nil String)}) | List.cons node rest =>
- (if (not (prim equal (project node facet) facet : Bool)) then (facetPage rest session allNodes audit admitted facet role skip fuel) else
- (match skip | Nat.succ remaining => (facetPage rest session allNodes audit admitted facet role remaining fuel) | Nat.zero =>
- (match fuel | Nat.zero => (record MatterText::TextItems {values := (nil String)}) | Nat.succ remaining =>
- (record MatterText::TextItems {values := (cons (displayText (prim join (cons (if (Matter::containsReference admitted (Matter::nodeReference node)) then (if (MatterInference::competingMeaning allNodes admitted node) then "Competing interpretation: " else "Current interpretation: ") else (if (MatterSession::isWithdrawn audit node) then "Withdrawn: " else "Needs review: ")) (cons (MatterText::concat (project node value) (MatterText::concat " — Source location: " (interpretationLocation session node))) (cons (if (MatterSession::isLawyer role) then (MatterText::concat " — " (prim join (project (MatterJourney::sourceContext (project node citations)) values) "; " : String)) else "") (nil String)))) "" : String)) (project (facetPage rest session allNodes audit admitted facet role 0 remaining) values))}))))),
+ (record MatterText::TextItems {values := (cons (facetItem node session allNodes audit admitted role) (project (facetPageItems rest session allNodes audit admitted role) values))})),
  executable: true, axioms: [Classical.choice, Quot.sound, propext], recursive_argument: nodes
+}
+
+definition{
+ name: facetPage, parameters: [nodes : (List Matter::Node), session : MatterSession::Session, allNodes : (List Matter::Node), audit : (List MatterSession::AuditEntry), admitted : (List Matter::Reference), facet : String, role : MatterSession::Role, skip : Nat, fuel : Nat], result: MatterText::TextItems,
+ body: (facetPageItems (project (facetPageNodes nodes facet skip fuel) values) session allNodes audit admitted role),
+ executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 
 definition{
