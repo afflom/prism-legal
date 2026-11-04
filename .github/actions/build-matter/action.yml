@@ -37,6 +37,16 @@ runs:
       with:
         version: v0.28.0
         driver-opts: image=docker.io/moby/buildkit@sha256:de10faf919fc71ba4eb1dd7bd6449566d012b0c9436b1c61bfee21d621b009aa
+    - name: Enable the workflow's SDK build cache
+      uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+      with:
+        script: |
+          for (const key of ['ACTIONS_RUNTIME_TOKEN', 'ACTIONS_RESULTS_URL']) {
+            const value = process.env[key];
+            if (!value) throw new Error(`Missing workflow cache configuration: ${key}`);
+            core.setSecret(value);
+            core.exportVariable(key, value);
+          }
     - name: Construct the SDK and its inventory from the pinned source
       shell: bash
       env:
@@ -49,6 +59,8 @@ runs:
           --platform linux/amd64 --tag "prism-legal-sdk:$SDK_REVISION" --load \
           --provenance=false --sbom=false --build-arg SOURCE_DATE_EPOCH=0 \
           --label "org.opencontainers.image.revision=$SDK_REVISION" \
+          --cache-from type=gha,version=2,scope=prism-legal-sdk-amd64 \
+          --cache-to type=gha,version=2,scope=prism-legal-sdk-amd64,mode=max \
           --metadata-file matter-sdk-build.json
         docker image inspect "prism-legal-sdk:$SDK_REVISION" > matter-sdk-image.json
     - name: Compile and verify the complete source application
