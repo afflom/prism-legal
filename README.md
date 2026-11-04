@@ -44,8 +44,10 @@ application runtime. Rust and JavaScript under `tests/matter/` are test harnesse
 [toolchain/prismpm.json](toolchain/prismpm.json) pins the SDK source fix.
 CI constructs its verification image and sealed tool inventory from that exact
 source using the SDK’s own image recipe. It does not patch an older installed
-inventory. The workflow reuses scoped BuildKit cache layers while preserving
-the exact source closure and complete application verification. Bounded retries
+inventory. The workflow caches only the SDK recipe’s stable compiler-tools stage; caching
+the entire SDK produced manifests referencing missing blobs. The complete SDK
+build reuses that stage in the same builder while preserving the exact source
+closure and complete application verification. Bounded retries
 for temporary SDK download failures and the cache transport are proposed in
 [PrismPM #523](https://github.com/UOR-Foundation/PrismPM/pull/523).
 Optimized portable reference-host execution and private file-session failure
