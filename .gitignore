@@ -11,6 +11,7 @@ node_modules
 
 .toolchain/
 matter-site/
+verified-matter/
 matter-build.json
 matter-verification.json
 matter-sdk-build.json

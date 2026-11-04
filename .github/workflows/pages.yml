@@ -5,10 +5,15 @@ name: Deploy PrismLegal to GitHub Pages
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - README.md
+      - docs/SEMANTIC_MATTER.md
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
+  pull-requests: read
 
 concurrency:
   group: pages
@@ -16,22 +21,47 @@ concurrency:
 
 jobs:
   view:
-    name: Compile and Verify Modeled Matter Workspace
+    name: Prepare Verified Matter Workspace
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    outputs:
+      provenance: ${{ steps.provenance.outputs.sha256 }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Build and verify the modeled matter workspace
-        uses: ./.github/actions/build-matter
-
-      - name: Upload view artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/checkout@v4
+      - name: Find an exact successful CI artifact
+        id: reuse
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
         with:
-          name: prism-legal-current-view
-          path: matter-site
-
+          script: |
+            const {execFileSync} = require('node:child_process');
+            const artifactName = execFileSync('python3', ['tools/ci/verified_view.py', 'name'], {encoding: 'utf8'}).trim();
+            const {findVerifiedView} = require('./tools/ci/find_verified_view.cjs');
+            const match = await findVerifiedView({github, context, artifactName});
+            core.setOutput('found', Boolean(match));
+            if (match) {
+              core.setOutput('run', match.runId);
+              core.setOutput('artifact', artifactName);
+            }
+      - name: Download the verified CI artifact
+        if: steps.reuse.outputs.found == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.reuse.outputs.artifact }}
+          run-id: ${{ steps.reuse.outputs.run }}
+          github-token: ${{ github.token }}
+          path: verified-matter
+      - name: Check source binding and artifact bytes
+        if: steps.reuse.outputs.found == 'true'
+        run: python3 tools/ci/verified_view.py restore
+      - name: Check source before a fresh verification
+        if: steps.reuse.outputs.found != 'true'
+        run: bash tools/ci/preflight.sh
+      - name: Build and verify on a cache miss
+        if: steps.reuse.outputs.found != 'true'
+        uses: ./.github/actions/build-matter
+      - name: Bind the deployed provenance
+        id: provenance
+        run: echo "sha256=$(sha256sum matter-site/provenance.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -52,26 +82,24 @@ jobs:
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy the rendered view to GitHub Pages
+      - name: Deploy the verified view to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
   verify:
     name: Verify Deployed Modeled Artifact
-    needs: deploy
+    needs: [view, deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
       PAGE_URL: ${{ needs.deploy.outputs.page_url }}
+      EXPECTED_PROVENANCE: ${{ needs.view.outputs.provenance }}
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: prism-legal-current-view
-          path: expected-view
       - name: Compare deployed provenance with this run's verified artifact
         run: |
           for attempt in 1 2 3 4 5 6; do
-            if curl -fsSL "${PAGE_URL%/}/provenance.json" --output deployed-provenance.json &&                cmp --silent expected-view/provenance.json deployed-provenance.json; then
+            if curl --max-time 30 -fsSL "${PAGE_URL%/}/provenance.json" --output deployed-provenance.json &&
+               echo "$EXPECTED_PROVENANCE  deployed-provenance.json" | sha256sum --check --status; then
               echo "$PAGE_URL serves the verified modeled artifact"
               exit 0
             fi

@@ -44,10 +44,15 @@ application runtime. Rust and JavaScript under `tests/matter/` are test harnesse
 [toolchain/prismpm.json](toolchain/prismpm.json) pins the SDK source fix.
 CI constructs its verification image and sealed tool inventory from that exact
 source using the SDK’s own image recipe. It does not patch an older installed
-inventory. The workflow reuses scoped BuildKit cache layers while preserving
-the exact source closure and complete application verification. Bounded retries
+inventory. The workflow caches only the SDK recipe’s stable compiler-tools stage; caching
+the entire SDK produced manifests referencing missing blobs. The complete SDK
+build reuses that stage in the same builder while preserving the exact source
+closure and complete application verification. Bounded retries
 for temporary SDK download failures and the cache transport are proposed in
 [PrismPM #523](https://github.com/UOR-Foundation/PrismPM/pull/523).
+Optimized portable reference-host execution and private file-session failure
+diagnostics are proposed in
+[PrismPM #533](https://github.com/UOR-Foundation/PrismPM/pull/533).
 The generic file-session capability is proposed upstream in
 [PrismPM #495](https://github.com/UOR-Foundation/PrismPM/pull/495), following
 [issue #491](https://github.com/UOR-Foundation/PrismPM/issues/491). The app uses
@@ -91,12 +96,22 @@ CHROMIUM_EXECUTABLE=/path/to/chromium \
 Native test instructions and evidence boundaries are in
 [docs/SEMANTIC_MATTER.md](docs/SEMANTIC_MATTER.md). A successful build, kernel
 proof, or development-browser run is not a full PrismPM verification attestation.
-CI runs the pinned SDK verification pipeline without a static fallback. Pages
-publishes only the emitted `matter-site/` after that gate passes.
+CI checks model drift and sanitization before constructing the SDK. The SDK's
+`prismpm verify` owns the application build and Lean proof; native, Core-Wasm,
+and browser tests then exercise that verified build. Superseded PR runs are
+cancelled, while deployments remain serialized without cancellation.
+
+Pages reuses a successful same-repository PR CI artifact only when its complete
+Git tree and SDK pin match the merged source. It checks every packaged file's
+hash and the verification/build binding before publishing. A changed merge
+tree, direct push, fork PR or expired/missing artifact runs full verification.
+The final live check still compares the deployed provenance with the verified
+artifact. Explanatory changes limited to `README.md` and
+`docs/SEMANTIC_MATTER.md` run preflight checks but need no application build or
+automatic deployment. Manual workflows retain full verification as needed.
 
 The prior Text/3 excerpt application remains selectable with
 `matter.prismpm.toml`. The older portal in `view/`, `site/`, and `docs/*.html`
 and its generators remain migration references; they are not the new runtime or
 the new Pages artifact. `bin/prism-legal api check` and `check` continue checking
-those legacy model-generated artifacts for drift. No deployment is implied by
-the draft implementation PR.
+those legacy model-generated artifacts for drift.

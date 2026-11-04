@@ -47,20 +47,31 @@ runs:
             core.setSecret(value);
             core.exportVariable(key, value);
           }
-    - name: Construct the SDK and its inventory from the pinned source
+    - name: Cache the stable compiler-tools stage
       shell: bash
       env:
         SDK_REVISION: ${{ steps.inputs.outputs.revision }}
       run: |
         test "$(git -C .toolchain/prismpm rev-parse HEAD)" = "$SDK_REVISION"
         test -z "$(git -C .toolchain/prismpm status --porcelain)"
+        # Full SDK cache manifests referenced missing blobs. Retain only this
+        # source-independent compiler-tools stage.
+        # The complete SDK build below uses the same builder and recipe stage.
+        docker buildx build .toolchain/prismpm \
+          --file .toolchain/prismpm/sdk/Dockerfile --target rust_oracle_tools \
+          --platform linux/amd64 --provenance=false --sbom=false --output type=cacheonly \
+          --cache-from type=gha,version=2,scope=prism-legal-oracle-tools-amd64 \
+          --cache-to type=gha,version=2,scope=prism-legal-oracle-tools-amd64,mode=min
+    - name: Construct the SDK and its inventory from the pinned source
+      shell: bash
+      env:
+        SDK_REVISION: ${{ steps.inputs.outputs.revision }}
+      run: |
         node .toolchain/prismpm/scripts/sdk-image-inputs.mjs build \
           .toolchain/prismpm "$SDK_REVISION" runtime \
           --platform linux/amd64 --tag "prism-legal-sdk:$SDK_REVISION" --load \
           --provenance=false --sbom=false --build-arg SOURCE_DATE_EPOCH=0 \
           --label "org.opencontainers.image.revision=$SDK_REVISION" \
-          --cache-from type=gha,version=2,scope=prism-legal-sdk-amd64 \
-          --cache-to type=gha,version=2,scope=prism-legal-sdk-amd64,mode=max \
           --metadata-file matter-sdk-build.json
         docker image inspect "prism-legal-sdk:$SDK_REVISION" > matter-sdk-image.json
     - name: Compile and verify the complete source application
