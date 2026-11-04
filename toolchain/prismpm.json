@@ -1,9 +1,10 @@
 {
   "repository": "UOR-Foundation/PrismPM",
-  "revision": "b03818074fa45f5981b1b21cc00febe4f1e4b0a8",
-  "upstream_pull_request": "https://github.com/UOR-Foundation/PrismPM/pull/523",
+  "revision": "74fc79ae3a9c510e2aa587ce022ccde3a81713bb",
+  "upstream_pull_request": "https://github.com/UOR-Foundation/PrismPM/pull/533",
   "allocator_pull_request": "https://github.com/UOR-Foundation/PrismPM/pull/508",
   "lexlean_revision": "e0b74b81e6f49c83596a957d232c8383a5db1a25",
   "lean_toolchain": "leanprover/lean4:v4.32.1",
-  "prerequisite_pull_request": "https://github.com/UOR-Foundation/PrismPM/pull/495"
+  "prerequisite_pull_request": "https://github.com/UOR-Foundation/PrismPM/pull/495",
+  "download_cache_pull_request": "https://github.com/UOR-Foundation/PrismPM/pull/523"
 }

@@ -48,6 +48,9 @@ inventory. The workflow reuses scoped BuildKit cache layers while preserving
 the exact source closure and complete application verification. Bounded retries
 for temporary SDK download failures and the cache transport are proposed in
 [PrismPM #523](https://github.com/UOR-Foundation/PrismPM/pull/523).
+Optimized portable reference-host execution and private file-session failure
+diagnostics are proposed in
+[PrismPM #533](https://github.com/UOR-Foundation/PrismPM/pull/533).
 The generic file-session capability is proposed upstream in
 [PrismPM #495](https://github.com/UOR-Foundation/PrismPM/pull/495), following
 [issue #491](https://github.com/UOR-Foundation/PrismPM/issues/491). The app uses

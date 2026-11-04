@@ -131,6 +131,7 @@ class WorkflowPolicy(unittest.TestCase):
         self.assertIn("cancel-in-progress: ${{ github.event_name == 'pull_request' }}", ci)
         self.assertIn("group: pages\n  cancel-in-progress: false", pages)
         self.assertIn("needs: validate", ci)
+        self.assertIn("  pull-requests: read\n", pages)
         # CI and Pages must agree on the only paths that avoid application work.
         ignored = pages.split("    paths-ignore:\n", 1)[1].split("  workflow_dispatch:", 1)[0]
         self.assertEqual({line.strip()[2:] for line in ignored.splitlines()}, changed.DOCS_ONLY)
