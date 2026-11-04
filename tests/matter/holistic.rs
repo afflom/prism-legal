@@ -141,6 +141,58 @@ fn ambiguous_rule_actions_never_select_an_arbitrary_rule() {
 }
 
 #[test]
+fn strategy_catalogue_preserves_every_rule_and_shared_exception_at_capacity() {
+    let mut session=reviewed_matter();
+    while session.matter.nodes.len()<896 {session=assert_fact(&session,"unrelated","Retained context");}
+    let mut template=session.rules[0].clone();template.definition=Reference{id:0,revision:0};
+    let mut actions=vec![template.action.clone()];
+    for index in 1..128 {
+        template.action=format!("Reviewed response option {index}");actions.push(template.action.clone());
+        session=accepted(commitRule(&session,session.matter.revision,Role::Lawyer,"lawyer".into(),&template).unwrap());
+    }
+    assert_eq!(session.rules.len(),128);assert_eq!(session.matter.nodes.len(),1023);
+    let refused=commitRule(&session,session.matter.revision,Role::Lawyer,"lawyer".into(),&template).unwrap();
+    assert_eq!(refused.code,"rule-limit");assert_eq!(refused.session,session);
+    let assessments=assessAll(&session.rules,&session.matter.nodes,&session.matter.sources).unwrap().values;
+    assert_eq!(assessments.len(),128);assert!(assessments.iter().all(|a|a.status==ReasoningStatus::Supported));
+    let report=String::from_utf8(relatedContext("strategies".into(),"unchanged".into(),&session,"16".into()).unwrap()).unwrap();
+    assert_eq!(report.matches("Supported proposal:").count(),8);
+    let expected=actions[120..].iter().map(|action|format!("\"Supported proposal: {action}\"")).collect::<Vec<_>>().join(",");
+    assert!(report.contains(&format!("\"details\":[{expected}]")),"{report}");
+    let changed=assert_fact(&session,"notice.withdrawal","withdrawn");
+    assert_eq!(changed.matter.nodes.len(),1024);
+    let assessments=assessAll(&changed.rules,&changed.matter.nodes,&changed.matter.sources).unwrap().values;
+    assert_eq!(assessments.len(),128);assert!(assessments.iter().all(|a|a.status==ReasoningStatus::Excepted));
+    let report=String::from_utf8(relatedContext("strategies".into(),"unchanged".into(),&changed,"16".into()).unwrap()).unwrap();
+    assert_eq!(report.matches("Exception applies:").count(),8);
+    let expected=actions[120..].iter().map(|action|format!("\"Exception applies: {action}\"")).collect::<Vec<_>>().join(",");
+    assert!(report.contains(&format!("\"details\":[{expected}]")),"{report}");
+}
+
+#[test]
+fn shared_assessment_context_matches_each_rule_after_relative_changes() {
+    let session=reviewed_matter();let mut second=session.rules[0].clone();
+    second.definition=Reference{id:0,revision:0};second.action="Review the payment".into();
+    second.premises=vec![Requirement{facet:"payment".into(),value:"received".into(),question:"Was payment received?".into()}];
+    let session=accepted(commitRule(&session,session.matter.revision,Role::Lawyer,"lawyer".into(),&second).unwrap());
+    let excepted=assert_fact(&session,"notice.withdrawal","withdrawn");
+    let source=accepted(reviseSource(&session,session.matter.revision,Role::Lawyer,"lawyer".into(),Reference{id:2,revision:1},b"Replaced authority".to_vec()).unwrap());
+    let withdrawn=accepted(withdraw(&session,session.matter.revision,Role::Client,"client".into(),node_ref(&session,"goal")).unwrap());
+    for (context,statuses) in [
+        (&session,vec![ReasoningStatus::Supported,ReasoningStatus::Missing]),
+        (&excepted,vec![ReasoningStatus::Excepted,ReasoningStatus::Excepted]),
+        (&source,vec![ReasoningStatus::Inactive,ReasoningStatus::Inactive]),
+        (&withdrawn,vec![ReasoningStatus::Inactive,ReasoningStatus::Inactive]),
+    ] {
+        let expected=context.rules.iter().map(|rule|assess(rule,&context.matter.nodes,&context.matter.sources).unwrap()).collect::<Vec<_>>();
+        assert_eq!(expected.iter().map(|assessment|assessment.status.clone()).collect::<Vec<_>>(),statuses);
+        assert_eq!(assessAll(&context.rules,&context.matter.nodes,&context.matter.sources).unwrap().values,expected);
+        assert_eq!(assessAllCurrent(&context.rules,&context.matter.nodes,&current(&context.matter.nodes,&context.matter.sources).unwrap()).values,expected);
+    }
+    assert!(assessAll(&[],&session.matter.nodes,&session.matter.sources).unwrap().values.is_empty());
+}
+
+#[test]
 fn lawyer_cannot_reaccept_a_conclusion_after_an_observed_exception() {
     let session = reviewed_matter();
     let rule = session.rules[0].definition.clone();

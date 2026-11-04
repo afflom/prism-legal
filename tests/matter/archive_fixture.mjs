@@ -47,3 +47,21 @@ export function sourceImpactCapacity(){
  journal+=fields([fields(['source','1','client','client','1','1','column 0\nchanged'])]);
  return journal;
 }
+
+export function strategyCapacity(excepted=false){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ let journal=fields(['prism-legal/journal/1','Complete strategy context']),revision=0;
+ const command=(operation,role,...values)=>{journal+=fields([fields([operation,String(revision++),role,role,...values])]);};
+ command('ingest','client','Notice','notice received');
+ command('review','client','1','1','notice.receipt','received','true');
+ command('assert','client','goal','Respond');command('assert','client','jurisdiction','Reviewed jurisdiction');
+ command('ingest','lawyer','Governing source','A received notice permits a response unless withdrawn.');
+ command('review','lawyer','4','1','authority','Reviewed source','true');
+ for(let index=0;index<891;index++)command('assert','client','unrelated','Retained context');
+ for(let index=0;index<128;index++){
+  const action=`Reviewed response option ${index}`;
+  command('rule','lawyer','0','0','4','2','3','1','2','1',fields(['notice.receipt','received','Was the notice received?']),fields(['notice.withdrawal','withdrawn','Was the notice withdrawn?']),'legal-conclusion',action,action);
+ }
+ if(excepted)command('assert','client','notice.withdrawal','withdrawn');
+ return journal;
+}

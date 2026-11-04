@@ -1,4 +1,4 @@
-import {reviewedArchive,correctionHistory,goalCapacity,directEntryCapacity,chronologyCapacity,sourceImpactCapacity} from './archive_fixture.mjs';
+import {reviewedArchive,correctionHistory,goalCapacity,directEntryCapacity,chronologyCapacity,sourceImpactCapacity,strategyCapacity} from './archive_fixture.mjs';
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -237,6 +237,12 @@ try{
  await page.locator('#open-session').setInputFiles({name:'source-impact.prismlegal',mimeType:'application/octet-stream',buffer:fullImpact});await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();
  await run('impact',{page:'126'});assert.deepEqual(await page.locator('#result-details li').allTextContents(),Array.from({length:8},(_,index)=>`Needs review: column ${index+8} — entry`));
  await run('impact',{page:'127'});assert.deepEqual(await page.locator('#result-details li').allTextContents(),['Needs review: column 0 — changed']);assert.deepEqual(await save(),fullImpact);
+ for(const excepted of [false,true]){
+  await page.reload();await ready();const allStrategies=Buffer.from(strategyCapacity(excepted));
+  await page.locator('#open-session').setInputFiles({name:'complete-strategies.prismlegal',mimeType:'application/octet-stream',buffer:allStrategies});await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();
+  await run('strategies',{page:'16'});assert.deepEqual(await page.locator('#result-details li').allTextContents(),Array.from({length:8},(_,index)=>`${excepted?'Exception applies':'Supported proposal'}: Reviewed response option ${index+120}`));
+  assert.deepEqual(await save(),allStrategies,'strategy inspection must retain the full original journal');
+ }
  await page.reload();await ready();const allGoals=Buffer.from(goalCapacity());
  await page.locator('#open-session').setInputFiles({name:'all-goals.prismlegal',mimeType:'application/octet-stream',buffer:allGoals});await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();assert.equal(await page.locator('#status').getAttribute('data-state'),'ready');assert.deepEqual(await save(),allGoals);
  assert.match(await page.locator('#result-details').textContent(),/Records · line 2/);await page.locator('#next-form').click();assert.equal(await page.locator('#field-location').inputValue(),'Records · line 2');assert.deepEqual(await save(),allGoals);

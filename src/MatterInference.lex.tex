@@ -87,7 +87,7 @@ definition{
 definition{
  name: contestedLoop, parameters: [remaining : (List Matter::Node), nodes : (List Matter::Node), admitted : (List Matter::Reference), requirement : Requirement], result: Bool,
  body: (match remaining | List.nil => false | List.cons node rest =>
- (((Matter::containsReference admitted (Matter::nodeReference node)) && ((prim equal (project node facet) (project requirement facet) : Bool) && ((prim equal (project node value) (project requirement value) : Bool) && (competingMeaning nodes admitted node)))) || (contestedLoop rest nodes admitted requirement))),
+ (((prim equal (project node facet) (project requirement facet) : Bool) && ((prim equal (project node value) (project requirement value) : Bool) && ((Matter::containsReference admitted (Matter::nodeReference node)) && (competingMeaning nodes admitted node)))) || (contestedLoop rest nodes admitted requirement))),
  executable: true, axioms: [], recursive_argument: remaining
 }
 
@@ -129,7 +129,7 @@ definition{
 definition{
  name: supportLoop, parameters: [requirement : Requirement, remaining : (List Matter::Node), nodes : (List Matter::Node), admitted : (List Matter::Reference)], result: (Option Matter::Reference),
  body: (match remaining | List.nil => (ctor Option.none [Matter::Reference]) | List.cons node rest =>
- (if ((Matter::containsReference admitted (Matter::nodeReference node)) && ((prim equal (project node facet) (project requirement facet) : Bool) && ((prim equal (project node value) (project requirement value) : Bool) && (not (competingMeaning nodes admitted node))))) then
+ (if ((prim equal (project node facet) (project requirement facet) : Bool) && ((prim equal (project node value) (project requirement value) : Bool) && ((Matter::containsReference admitted (Matter::nodeReference node)) && (not (competingMeaning nodes admitted node))))) then
  (ctor Option.some [Matter::Reference] (Matter::nodeReference node)) else (supportLoop requirement rest nodes admitted))),
  executable: true, axioms: [], recursive_argument: remaining
 }
@@ -158,9 +158,8 @@ definition{
 }
 
 definition{
- name: assess, parameters: [rule : Rule, nodes : (List Matter::Node), sources : (List Matter::Source)], result: Assessment,
- body: (let admitted : Matter::Admission := (Matter::current nodes sources);
- (let required : Evidence := (gather (project rule premises) nodes (project admitted references));
+ name: assessCurrent, parameters: [rule : Rule, nodes : (List Matter::Node), admitted : Matter::Admission], result: Assessment,
+ body: (let required : Evidence := (gather (project rule premises) nodes (project admitted references));
  (let excluded : Evidence := (gather (project rule exceptions) nodes (project admitted references));
  (let excludedConflict : String := (contestedFacet (project rule exceptions) nodes (project admitted references));
  (let contested : String := (if (prim equal excludedConflict "" : Bool) then (contestedFacet (project rule premises) nodes (project admitted references)) else excludedConflict);
@@ -172,16 +171,29 @@ definition{
  conclusionFacet := (project rule conclusionFacet), conclusionValue := (project rule conclusionValue), action := (project rule action),
  dependencies := (cons (project rule definition) (cons (project rule authority) (cons (project rule jurisdiction) (cons (project rule goal) (project required references))))),
  questions := (if (prim equal contested "" : Bool) then (project required questions) else (cons (competingQuestion contested) (nil String))), exceptions := (project excluded references)
- })))))),
+ }))))),
  executable: true, axioms: [propext]
 }
 
 definition{
- name: assessAll, parameters: [rules : (List Rule), nodes : (List Matter::Node), sources : (List Matter::Source)], result: Assessments,
+ name: assess, parameters: [rule : Rule, nodes : (List Matter::Node), sources : (List Matter::Source)], result: Assessment,
+ body: (assessCurrent rule nodes (Matter::current nodes sources)),
+ executable: true, axioms: [propext]
+}
+
+definition{
+ name: assessAllCurrent, parameters: [rules : (List Rule), nodes : (List Matter::Node), admitted : Matter::Admission], result: Assessments,
  body: (match rules | List.nil => (record Assessments {values := (nil Assessment)})
- | List.cons rule rest => (let following : Assessments := (assessAll rest nodes sources);
- (record Assessments {values := (cons (assess rule nodes sources) (project following values))}))),
+ | List.cons rule rest => (let following : Assessments := (assessAllCurrent rest nodes admitted);
+ (record Assessments {values := (cons (assessCurrent rule nodes admitted) (project following values))}))),
  executable: true, axioms: [propext], recursive_argument: rules
+}
+
+definition{
+ name: assessAll, parameters: [rules : (List Rule), nodes : (List Matter::Node), sources : (List Matter::Source)], result: Assessments,
+ body: (match rules | List.nil => (record Assessments {values := (nil Assessment)}) | List.cons first rest =>
+ (assessAllCurrent rules nodes (Matter::current nodes sources))),
+ executable: true, axioms: [propext]
 }
 
 definition{

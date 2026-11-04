@@ -71,6 +71,13 @@ facet for correction, separation or withdrawal. Resolving the conflict does not
 automatically reaccept an earlier conclusion. Separate source spans can carry
 different values without an invented mutual-exclusion rule.
 
+Assessing several rules derives the current-reference closure once and shares
+that exact context across the collection. Each rule retains its own conditions,
+exceptions, authority and goal binding. The context is reconstructed from the
+current matter for each assessment operation. Support and conflict searches
+check the requested facet and value before testing admission, preserving source
+order and the selected support while avoiding work for unrelated interpretations.
+
 Draft strategy text presents the reviewed goal, action, support, and citations.
 It is assembled from the current matter, not a generated pleading or invented
 legal analysis. A draft's revision and dependency references determine its
@@ -407,13 +414,13 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`aad349d88fc1ad0e562e37ef118764223af5cd9a4a59f715724cde11b7797c89`
+`cf2689a2d0cb8f6547861337dc48174d3557715e937d1cc7075301ba700f7b64`
 and semantic ID
-`c4dc52fc7fd7f5267c2b6e4c904f895f74888ecdcb5c788cd3daff5d0e3382df`
+`960c4299fcc59c82a53714525d6ff6be3a38454ebc8a06231bdb189cc19cfd5a`
 passed LexLean verification with attestation
-`f23438a812f518c4c9a3f00ccdaefd37d764081c29f17dd09eaede20ed950e25`.
+`c28bfae22fbb4c0959bf631ab32f9c26bb1f59ece28f8fba59912707e9e07122`.
 
-The generated native library passes 105 tests across `behavior.rs` and
+The generated native library passes 107 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
@@ -447,7 +454,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 148 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 150 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -565,7 +572,7 @@ saves and reopens the exact journal, and inspects the final page of the full fil
 Regenerating the source acceptance definitions from the final native driver is
 byte-identical; the final-page response is an independently specified expectation.
 
-The current build
+The preceding chronology/context build
 `78793f9c63764740df110f299ec729245d1a74aa0910bd670d92e2043610fb75`
 passes all 148 source vectors in both the browser adapter and the actual archive
 guest. Nine added cases cover complete dated, unresolved and mixed chronologies,
@@ -589,6 +596,29 @@ files. Desktop and mobile captures of the emitted UI retain original locations
 and have no horizontal overflow. Regenerating all acceptance definitions from
 this build's native driver is byte-identical to the checked source; chronology
 ordering and impact page expectations also have independent reference checks.
+
+The current build
+`f3a78de077461dacf4f8eabc4428fe33b6fd87c257bc8d96db8919b87eba6d3c`
+passes all 150 source vectors in both Wasm runtimes, 107 native tests, and the
+generated-browser journey. The added full-strategy journals retain 128 rules
+and reach 1,024 nodes after recording a shared exception. Their final pages
+preserve the exact eight actions, assessment statuses and saved bytes. Native
+checks also compare shared-context assessment with individual assessment after
+exceptions, authority-source replacement and goal withdrawal, including every
+dependency reference and question. All earlier acceptance bytes are unchanged;
+regeneration from the final native driver is byte-identical.
+
+Separate local actual-guest measurements, including journal replay, took 5,472 ms
+for the supported strategy page and 5,299 ms after the shared exception, using
+12,517,376 and 12,713,984 bytes respectively. The preceding build took 5,991 and
+6,130 ms for those same requests. These are observations with unchanged bounds,
+not latency guarantees. Initial concurrent Lean compilations exhausted the
+workspace's memory; the application build and SDK fixture proofs passed when
+the large compilations were run one at a time, without raising their limits.
+The SDK fixtures' stale application bindings are separately repaired in
+[PrismPM PR #518](https://github.com/UOR-Foundation/PrismPM/pull/518), following
+[issue #515](https://github.com/UOR-Foundation/PrismPM/issues/515). Their existing
+OSCAL artifact remains byte-identical; this test-data repair changes no runtime.
 
 Full pinned-image results belong to the exact commit and artifact reported by
 [the application PR](https://github.com/afflom/prism-legal/pull/1) and its Actions
