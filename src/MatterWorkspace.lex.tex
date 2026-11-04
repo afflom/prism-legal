@@ -589,10 +589,10 @@ definition{
  name: relatedContext, parameters: [operation : String, journal : String, session : MatterSession::Session, page : String], result: Bytes,
  body: (match (MatterJournal::natural page) | Option.none => (workspaceError operation "request" journal) | Option.some number =>
  (if ((number =? 0) || (128 <? number)) then (workspaceError operation "request" journal) else
- (let all : MatterText::TextItems := (if (prim equal operation "impact" : Bool) then
- (MatterContext::impactText (project (MatterContext::latestImpact session) references) session (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references)) else
- (MatterContext::strategyIndex (project (MatterInference::assessAll (project session rules) (project (project session matter) nodes) (project (project session matter) sources)) values)));
- (let items : MatterText::TextItems := (itemPage (project all values) (prim multiply (prim subtract number 1 : Nat) 8 : Nat) 8);
+ (let skip : Nat := (prim multiply (prim subtract number 1 : Nat) 8 : Nat);
+ (let items : MatterText::TextItems := (if (prim equal operation "impact" : Bool) then
+ (MatterContext::impactText (project (MatterBatch::referencePage (project (MatterContext::latestImpact session) references) skip 8) references) session (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references)) else
+ (itemPage (project (MatterContext::strategyIndex (project (MatterInference::assessAll (project session rules) (project (project session matter) nodes) (project (project session matter) sources)) values)) values) skip 8));
  (MatterWire::reportState "ok" operation (if (prim equal operation "impact" : Bool) then "How the last change connects" else "Strategies in this matter") 0 0 (nil String)
  (match (project items values) | List.nil => (cons "There are no items on this page." (nil String)) | List.cons first rest => (project (displayItems (project items values)) values)) "" journal))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
@@ -634,13 +634,17 @@ definition{
  (project (itemPage (project (facetNames (project (project session matter) nodes)) values) skip 8) values) "" journal) else
  (let admitted : (List Matter::Reference) := (project (Matter::current (project (project session matter) nodes) (project (project session matter) sources)) references);
  (let chronology : MatterChronology::Chronology := (MatterChronology::chronology session admitted (project facets values));
- (let dated : MatterText::TextItems := (datedChronologyRows (project chronology dated) session (1 <? (MatterText::wordCount (project facets values))));
- (let unresolved : MatterText::TextItems := (unresolvedChronologyRows (project chronology unresolved) session admitted (1 <? (MatterText::wordCount (project facets values))));
- (let items : MatterText::TextItems := (itemPage (prim append (project unresolved values) (project dated values) : (List String)) skip 8);
- (MatterWire::reportState "ok" operation (MatterText::concat "Chronology: " (displayText (prim join (project facets values) ", " : String))) 0 0 (nil String)
- (cons (MatterText::concat "Current dates: " (MatterText::concat (MatterText::decimalLoop 20 (MatterText::wordCount (project dated values)))
- (MatterText::concat "; dates needing review: " (MatterText::decimalLoop 20 (MatterText::wordCount (project unresolved values))))))
- (match (project items values) | List.nil => (cons "There are no entries on this page. Only current reviewed interpretations appear here." (nil String)) | List.cons first rest => (project items values))) "" journal)))))))))))),
+ (let unresolvedCount : Nat := (Matter::nodeCount (project chronology unresolved));
+ (let selectedUnresolved : MatterBatch::NodeChunk := (MatterBatch::nodePage (project chronology unresolved) skip 8);
+ (let selectedDated : MatterChronology::ChronologyEntries := (MatterChronology::chronologyEntryPage (project chronology dated) (prim subtract skip unresolvedCount : Nat) (prim subtract 8 (Matter::nodeCount (project selectedUnresolved values)) : Nat));
+ (let dated : MatterText::TextItems := (datedChronologyRows (project selectedDated values) session (1 <? (MatterText::wordCount (project facets values))));
+ (let unresolved : MatterText::TextItems := (unresolvedChronologyRows (project selectedUnresolved values) session admitted (1 <? (MatterText::wordCount (project facets values))));
+ (let items : MatterText::TextItems := (record MatterText::TextItems {values := (prim append (project unresolved values) (project dated values) : (List String))});
+ (MatterWire::reportState "ok" operation (MatterText::concat "Chronology: " (if (1 <? (MatterText::wordCount (project facets values))) then
+ (MatterText::concat (MatterText::decimalLoop 20 (MatterText::wordCount (project facets values))) " selected aspects") else (displayText (prim join (project facets values) "" : String)))) 0 0 (nil String)
+ (cons (MatterText::concat "Current dates: " (MatterText::concat (MatterText::decimalLoop 20 (MatterChronology::chronologyEntryCount (project chronology dated)))
+ (MatterText::concat "; dates needing review: " (MatterText::decimalLoop 20 unresolvedCount))))
+ (match (project items values) | List.nil => (cons "There are no entries on this page. Only current reviewed interpretations appear here." (nil String)) | List.cons first rest => (project items values))) "" journal))))))))))))))),
  executable: true, axioms: [Classical.choice, Quot.sound, propext]
 }
 

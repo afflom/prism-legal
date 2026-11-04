@@ -647,6 +647,102 @@ fn reviewed_chronology(session: &Session, facets: &[&str]) -> Chronology {
 }
 
 #[test]
+fn chronology_inspects_every_current_entry_at_full_matter_capacity() {
+    let mut s=initial("Full chronology".into());
+    for index in 0..1024 {
+        s=assert_fact(&s,"event.date",&format!("2026-11-{:02}",1+index%28));
+    }
+    let result=reviewed_chronology(&s,&["event.date"]);
+    assert_eq!(result.dated.len(),1024);
+    assert!(result.unresolved.is_empty());
+    assert!(result.dated.windows(2).all(|pair| (pair[0].order,pair[0].node.id)<(pair[1].order,pair[1].node.id)));
+    let last=chronologyEntryPage(&result.dated,1016,8).values;
+    assert_eq!(last,result.dated[1016..]);
+    let rows=datedChronologyRows(&last,&s,false).unwrap().values;
+    assert_eq!(rows.len(),8);
+    let report=String::from_utf8(chronologyView("timeline".into(),"unchanged".into(),&s,"event.date".into(),"128".into()).unwrap()).unwrap();
+    assert!(report.contains("Current dates: 1024; dates needing review: 0"));
+    assert!(report.contains("Recorded directly · entry 1008"));
+    assert_eq!(report.matches("Recorded directly").count(),8);
+    assert!(reviewed_chronology(&s,&["absent"]).dated.is_empty());
+}
+
+#[test]
+fn chronology_merge_preserves_all_entries_and_date_identity_order() {
+    let s=assert_fact(&initial("Merge reference".into()),"date","2026-11-01");
+    for count in [0,1,2,31,32,33,63,64,65,511,512,513,1023,1024,2048] {
+        let mut left=Vec::new();let mut right=Vec::new();
+        for index in 0..count {
+            let mut node=s.matter.nodes[0].clone();node.id=index+1;
+            let entry=ChronologyEntry{node,order:(index*17)%29};
+            if index%2==0 {left.push(entry);} else {right.push(entry);}
+        }
+        left.sort_by_key(|e|(e.order,e.node.id));right.sort_by_key(|e|(e.order,e.node.id));
+        let mut expected=left.clone();expected.extend(right.clone());expected.sort_by_key(|e|(e.order,e.node.id));
+        assert_eq!(mergeChronology(&left,&right).unwrap().values,expected,"entry count {count}");
+        let partial=mergeChronologyLevel(chronologyMergeDepth(count,count).unwrap(),&left,&right);
+        assert!(partial.left.is_empty()&&partial.right.is_empty());
+        assert_eq!(partial.values,expected);
+    }
+}
+
+#[test]
+fn chronology_paginates_full_unresolved_and_mixed_context_without_losing_counts() {
+    let mut s=initial("Unresolved chronology".into());
+    for _ in 0..1024 {s=assert_fact(&s,"event.date","Date not yet known");}
+    let result=reviewed_chronology(&s,&["event.date"]);
+    assert!(result.dated.is_empty());assert_eq!(result.unresolved,s.matter.nodes);
+    let report=String::from_utf8(chronologyView("timeline".into(),"unchanged".into(),&s,"event.date".into(),"128".into()).unwrap()).unwrap();
+    assert!(report.contains("Current dates: 0; dates needing review: 1024"));
+    assert_eq!(report.matches("Needs a valid YYYY-MM-DD date:").count(),8);
+    assert!(report.contains("Recorded directly · entry 1"));
+    let mut mixed=initial("Mixed chronology".into());
+    for index in 0..1024 {mixed=assert_fact(&mixed,"event.date",if index<5 {"Date not yet known"} else {"2026-11-01"});}
+    let first=String::from_utf8(chronologyView("timeline".into(),"unchanged".into(),&mixed,"event.date".into(),"1".into()).unwrap()).unwrap();
+    assert!(first.contains("Current dates: 1019; dates needing review: 5"));
+    assert_eq!(first.matches("Needs a valid YYYY-MM-DD date:").count(),5);
+    assert_eq!(first.matches("Recorded directly").count(),8);
+    assert!(first.find("entry 5").unwrap()<first.find("entry 1").unwrap());
+    assert!(first.find("entry 1").unwrap()<first.find("entry 6").unwrap());
+    let last=String::from_utf8(chronologyView("timeline".into(),"unchanged".into(),&mixed,"event.date".into(),"128".into()).unwrap()).unwrap();
+    assert_eq!(last.matches("Recorded directly").count(),8);
+    assert!(last.contains("Recorded directly · entry 1024"));
+}
+
+#[test]
+fn chronology_keeps_a_broad_selection_out_of_the_heading() {
+    let facets=(0..1024).map(|index|format!("{index:04}.{}","a".repeat(123))).collect::<Vec<_>>();
+    let s=assert_fact(&initial("Selected aspects".into()),&facets[0],"2026-11-01");
+    let report=String::from_utf8(chronologyView("timeline".into(),"unchanged".into(),&s,facets.join("\n"),"1".into()).unwrap()).unwrap();
+    assert!(report.contains("\"message\":\"Chronology: 1024 selected aspects\""));
+    assert!(report.contains("Current dates: 1; dates needing review: 0"));
+    assert!(report.contains(&format!("2026-11-01 ({}) — Recorded directly",facets[0])));
+    assert!(!report.contains(&facets[1]));
+    let single=String::from_utf8(chronologyView("timeline".into(),"unchanged".into(),&s,format!("{}\n{}\n",facets[0],facets[0]),"1".into()).unwrap()).unwrap();
+    assert!(single.contains(&format!("\"message\":\"Chronology: {}\"",facets[0])));
+}
+
+#[test]
+fn source_replacement_impact_reaches_every_original_cell_at_capacity() {
+    let header=(0..16).map(|index|format!("column {index}")).collect::<Vec<_>>().join(",");
+    let row=vec!["entry";16].join(",");
+    let content=format!("{header}\n{}",vec![row;63].join("\n"));
+    let s=accepted(ingestCsv(&initial("Complete source impact".into()),0,Role::Client,"client".into(),"Table".into(),content.into_bytes()).unwrap());
+    assert_eq!(s.matter.nodes.len(),1008);
+    let s=accepted(review(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:1},"column 0".into(),"entry".into(),true).unwrap());
+    assert!(current(&s.matter.nodes,&s.matter.sources).unwrap().references.iter().any(|reference|reference.id==1));
+    let changed=accepted(reviseSource(&s,s.matter.revision,Role::Client,"client".into(),Reference{id:1,revision:1},b"column 0\nchanged".to_vec()).unwrap());
+    assert_eq!(changed.matter.nodes.len(),1009);
+    assert!(!current(&changed.matter.nodes,&changed.matter.sources).unwrap().references.iter().any(|reference|reference.id==1));
+    let affected=latestImpact(&changed).unwrap().references;
+    assert_eq!(affected.len(),1009);
+    assert_eq!(affected.iter().map(|r|r.id).collect::<Vec<_>>(),(1..=1009).collect::<Vec<_>>());
+    let report=String::from_utf8(relatedContext("impact".into(),"unchanged".into(),&changed,"126".into()).unwrap()).unwrap();
+    assert!(report.contains("Needs review: column 15 — entry"));
+    assert_eq!(report.matches("Needs review:").count(),8);
+}
+
+#[test]
 fn chronology_combines_only_the_selected_date_aspects_without_duplicate_entries() {
     let mut s=initial("Related dates".into());
     for (facet,value) in [("notice.date","2024-03-01"),("response.date","2024-03-02"),("hearing.date","2024-04-01")] {

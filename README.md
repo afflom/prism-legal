@@ -22,7 +22,8 @@ have copyable entry locations, so correcting or withdrawing one preserves the
 others and their strategy bindings. Resource replacement can also use
 these locations to distinguish duplicate filenames. Source inspection opens the complete CSV row or the text page containing a passage, including retained earlier versions. From a selected current passage, users can open its review form without changing the automatic attention order. A chronology combines selected date
 aspects, orders valid dates, and keeps uncertain or conflicting dates visible
-for review.
+for review. It shows eight entries at a time with complete counts, and a compact
+selection heading keeps broad chronologies readable.
 
 **This is an implemented local workspace, not a completed production legal
 service.** Its associative classifier learns words and ordered word pairs from

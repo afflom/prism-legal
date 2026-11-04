@@ -1,4 +1,4 @@
-import {reviewedArchive,correctionHistory,goalCapacity,directEntryCapacity} from './archive_fixture.mjs';
+import {reviewedArchive,correctionHistory,goalCapacity,directEntryCapacity,chronologyCapacity,sourceImpactCapacity} from './archive_fixture.mjs';
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -104,6 +104,7 @@ try{
  await run('timeline',{facet:'notice.date'});assert.match(await page.locator('#result-details li').nth(1).textContent(),/^Needs a valid YYYY-MM-DD date: 2023-02-29/);
  await run('assertion',{facet:'response.date',value:'2024-03-04'});
  await run('timeline',{facet:'notice.date\nresponse.date\nnotice.date\n'});
+ assert.equal(await message(),'Chronology: 2 selected aspects');
  assert.match(await page.locator('#result-details li').first().textContent(),/Current dates: 2; dates needing review: 1/);
  assert.match(await page.locator('#result-details').textContent(),/2024-03-04 \(response.date\) — Recorded directly/);
 
@@ -222,6 +223,20 @@ try{
  assert.match(await page.locator('#result-details').textContent(),/amount: 75/);const semanticBefore=await save();await page.locator('#next-form').click();assert.equal(await page.locator('#field-facet').inputValue(),'amount');assert.equal(await page.locator('#field-location').inputValue(),'Update · line 2');assert.deepEqual(await save(),semanticBefore);
  await page.locator('#guided-submit').click();await ready();assert.equal(await page.locator('#result-error').isVisible(),false);await run('inspect',{facet:'amount',page:'1'});assert.match(await page.locator('#result-details').textContent(),/Current interpretation: 75/);
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
+ await page.reload();await ready();const fullTimeline=Buffer.from(chronologyCapacity(5));
+ await page.locator('#open-session').setInputFiles({name:'full-chronology.prismlegal',mimeType:'application/octet-stream',buffer:fullTimeline});await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();
+ const timelineEntries=Array.from({length:1019},(_,index)=>({id:index+6,day:1+(index+5)%28})).sort((left,right)=>left.day-right.day||left.id-right.id).map(entry=>`2026-11-${String(entry.day).padStart(2,'0')} — Recorded directly · entry ${entry.id}`);
+ const fullTimelineRows=[...Array.from({length:5},(_,index)=>`Needs a valid YYYY-MM-DD date: Date not yet known — Recorded directly · entry ${5-index}`),...timelineEntries];
+ for(const selectedPage of [1,2,128]){
+  await run('timeline',{facet:'event.date',page:String(selectedPage)});
+  assert.deepEqual(await page.locator('#result-details li').allTextContents(),['Current dates: 1019; dates needing review: 5',...fullTimelineRows.slice((selectedPage-1)*8,selectedPage*8)]);
+  assert.deepEqual(await save(),fullTimeline,'chronology inspection must retain the full original journal');
+ }
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));assert.deepEqual(errors,[]);
+ await page.reload();await ready();const fullImpact=Buffer.from(sourceImpactCapacity());
+ await page.locator('#open-session').setInputFiles({name:'source-impact.prismlegal',mimeType:'application/octet-stream',buffer:fullImpact});await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();
+ await run('impact',{page:'126'});assert.deepEqual(await page.locator('#result-details li').allTextContents(),Array.from({length:8},(_,index)=>`Needs review: column ${index+8} — entry`));
+ await run('impact',{page:'127'});assert.deepEqual(await page.locator('#result-details li').allTextContents(),['Needs review: column 0 — changed']);assert.deepEqual(await save(),fullImpact);
  await page.reload();await ready();const allGoals=Buffer.from(goalCapacity());
  await page.locator('#open-session').setInputFiles({name:'all-goals.prismlegal',mimeType:'application/octet-stream',buffer:allGoals});await page.waitForFunction(()=>document.querySelector('#save-session')?.disabled===false);await ready();assert.equal(await page.locator('#status').getAttribute('data-state'),'ready');assert.deepEqual(await save(),allGoals);
  assert.match(await page.locator('#result-details').textContent(),/Records · line 2/);await page.locator('#next-form').click();assert.equal(await page.locator('#field-location').inputValue(),'Records · line 2');assert.deepEqual(await save(),allGoals);

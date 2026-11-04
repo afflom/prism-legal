@@ -39,5 +39,21 @@ definition{
  body: (nodeChunksLoop (prim quotient ((Matter::nodeCount nodes) + 31) 32 0 : Nat) nodes),
  executable: true, axioms: []
 }
+definition{
+ name: nodePage, parameters: [nodes : (List Matter::Node), skip : Nat, fuel : Nat], result: NodeChunk,
+ body: (match nodes | List.nil => (record NodeChunk {values := (nil Matter::Node)}) | List.cons node rest =>
+ (match fuel | Nat.zero => (record NodeChunk {values := (nil Matter::Node)}) | Nat.succ remainingFuel =>
+ (match skip | Nat.succ remainingSkip => (nodePage rest remainingSkip fuel) | Nat.zero =>
+ (record NodeChunk {values := (cons node (project (nodePage rest 0 remainingFuel) values))})))),
+ executable: true, axioms: [], recursive_argument: nodes
+}
+definition{
+ name: referencePage, parameters: [references : (List Matter::Reference), skip : Nat, fuel : Nat], result: Matter::Admission,
+ body: (match references | List.nil => (record Matter::Admission {references := (nil Matter::Reference)}) | List.cons reference rest =>
+ (match fuel | Nat.zero => (record Matter::Admission {references := (nil Matter::Reference)}) | Nat.succ remainingFuel =>
+ (match skip | Nat.succ remainingSkip => (referencePage rest remainingSkip fuel) | Nat.zero =>
+ (record Matter::Admission {references := (cons reference (project (referencePage rest 0 remainingFuel) references))})))),
+ executable: true, axioms: [], recursive_argument: references
+}
 \end{semanticmodule}
 \end{lexlean}

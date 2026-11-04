@@ -90,6 +90,14 @@ labeled accordingly. Corrections reorder the chronology, withdrawal removes
 support, and source replacement excludes obsolete interpretations. The view is
 read-only and paginated; it computes neither legal deadlines nor missing dates.
 
+Chronology classification processes bounded node groups and merges their sorted
+entries with balanced recursion. Ordering remains date first, then interpretation
+identity; unresolved entries retain matter order ahead of dated entries. Counts
+include the complete selection. Pagination selects at most eight entries before
+formatting them, including pages crossing the unresolved/dated boundary. A
+selection of several aspects has a compact count in its heading; each displayed
+entry still names its aspect.
+
 ## Structured CSV intake
 
 `MatterCsv` parses actual comma-separated UTF-8 resource bytes. The first record
@@ -169,6 +177,12 @@ A newly observed exception therefore reaches an existing conclusion even though
 it was absent from that conclusion's original supporting references. Renaming a
 facet follows connections from both its immediately previous and current name;
 older facet history does not create unrelated current impacts.
+
+The change-summary view computes that complete closure, then selects its page
+of references before formatting the entries. Replacing a full CSV therefore
+keeps all original cells and the new version reachable without formatting the
+entire matter on every page request. Pagination does not limit propagation or
+alter the journal.
 
 Client commands cannot accept authority, rules, or rule-linked legal conclusions;
 reader commands cannot mutate the session. These are modeled workflow checks,
@@ -393,13 +407,13 @@ preserves the complete session. Lean checks the declared exact axiom policies.
 These properties do not prove legal correctness or complete application safety.
 
 The application source with source ID
-`44de960b1c7722cc1945af25d70cec11636249b7506a3b9b4216ea9c499b6981`
+`aad349d88fc1ad0e562e37ef118764223af5cd9a4a59f715724cde11b7797c89`
 and semantic ID
-`f6c8390b230543736c0c7a4813e03c3584287424e3cccde4033fc9e427bff060`
+`c4dc52fc7fd7f5267c2b6e4c904f895f74888ecdcb5c788cd3daff5d0e3382df`
 passed LexLean verification with attestation
-`a1858289ca53d282084460fc51213517cec2fa85b0298f397582baa07ffa65fc`.
+`f23438a812f518c4c9a3f00ccdaefd37d764081c29f17dd09eaede20ed950e25`.
 
-The generated native library passes 100 tests across `behavior.rs` and
+The generated native library passes 105 tests across `behavior.rs` and
 `holistic.rs`. They cover relative edits, transitive invalidation, source
 forgery, conflicts, cycles, learned abstention/retraining, exact rule binding,
 new exceptions, stale reacceptance, ambiguous actions, replay, draft freshness,
@@ -433,7 +447,7 @@ cargo test --offline --locked --manifest-path tests/matter/Cargo.toml \
   --config 'patch.crates-io.prism-stdlib.path="<sdk>/stdlib/generated/package"'
 ```
 
-`holistic_runtime.mjs` runs all 139 source vectors and unseen framing, Unicode,
+`holistic_runtime.mjs` runs all 148 source vectors and unseen framing, Unicode,
 control-display, malformed replay, pagination, and resource-boundary inputs
 against generated Wasm. `run_browser.mjs` serves only emitted files and runs
 `holistic_browser.mjs` through creation, exact file import, passage review,
@@ -477,10 +491,22 @@ a second diagnostic run passed direct/resident execution and all nine portable
 journeys. These observations establish intermittence, not a resolved gate.
 The 40-vector diagnostic observed a successful HTTP response followed by
 `ERR_ABORTED` during blank-file restoration; the application had reached its
-ready state. The cause remains unestablished. Earlier body capture did not
-resolve it. The required pinned-browser CI must
+ready state. Earlier body capture did not resolve it. The required pinned-browser CI must
 pass without replacing the response-body assertion or changing retention
 buffers to hide the failure.
+
+A later isolated transport probe reproduced the Chromium 154 failure with the
+actual emitted portable UI and Core-Wasm guest. Bounded stream readers failed
+despite a correct page result; retaining the response or reader, omitting the
+save operation, and a bounded transform did not resolve it. An unbounded native
+response reader passed its diagnostic sample, but would remove the required
+decoded-body bound and was not adopted. This matches
+[Playwright #42742](https://github.com/microsoft/playwright/issues/42742), whose
+Chromium fix first appeared in 157.0.8090.0. The SDK already pins 157.0.8099.0.
+This explains why the old development browser is unsuitable for establishing
+the portable gate; it does not replace verification of this application's exact
+artifact in the pinned browser. The diagnosis is recorded on
+[PrismPM #67](https://github.com/UOR-Foundation/PrismPM/issues/67#issuecomment-6635296641).
 
 The earlier 118-vector source corpus also restored a fully reviewed 1,008-passage
 intake and a 2,048-command correction history, inspects the final correction,
@@ -522,7 +548,7 @@ remain LexLean definitions. The generated browser also restores the full goal
 file, retains its exact bytes, and prepares the selected source passage without
 accepting it. Its existing command deadline is unchanged.
 
-The current build
+The preceding build
 `b53e44bf74861cc6efc0e260cfc225b42f4e2423183001caa484b7b017210468`
 passes all 139 source vectors in the browser adapter and the actual archive
 guest. New cases distinguish identical directly recorded goals, refuse ambiguous
@@ -538,6 +564,31 @@ The generated-browser journey also corrects and withdraws the selected duplicate
 saves and reopens the exact journal, and inspects the final page of the full file.
 Regenerating the source acceptance definitions from the final native driver is
 byte-identical; the final-page response is an independently specified expectation.
+
+The current build
+`78793f9c63764740df110f299ec729245d1a74aa0910bd670d92e2043610fb75`
+passes all 148 source vectors in both the browser adapter and the actual archive
+guest. Nine added cases cover complete dated, unresolved and mixed chronologies,
+a broad aspect selection, and the first and final pages of a replaced CSV's
+affected context. The native suite compares chronology merging with an
+independent ordering reference and checks every entry at full matter capacity.
+It also accepts a CSV cell before replacement, checks that its old support is
+invalidated, and verifies all 1,009 affected references in their original order.
+The prior implementations exhausted the normal native stack during chronology
+ordering and change-summary formatting. Grouped ordering and selection before
+formatting fix those failures without truncating the matter or raising limits.
+
+The final-page request for 1,024 reviewed dates used 11,599,872 bytes and completed
+locally in 806 ms in the actual guest. Mixed chronology pages retained all 1,019
+dated and five unresolved interpretations; the view shows complete counts and
+only the selected eight rows. A 132,345-byte selection of 1,024 aspect names
+retained the compact heading and the actual row's aspect. These are measured
+observations, not latency guarantees. The generated-browser journey checks exact
+page contents and byte-identical saves for the full chronology and source-impact
+files. Desktop and mobile captures of the emitted UI retain original locations
+and have no horizontal overflow. Regenerating all acceptance definitions from
+this build's native driver is byte-identical to the checked source; chronology
+ordering and impact page expectations also have independent reference checks.
 
 Full pinned-image results belong to the exact commit and artifact reported by
 [the application PR](https://github.com/afflom/prism-legal/pull/1) and its Actions

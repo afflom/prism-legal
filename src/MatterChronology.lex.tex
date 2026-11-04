@@ -7,6 +7,7 @@
 \importmodule{MatterInference}
 \importmodule{MatterJournal}
 \importmodule{MatterText}
+\importmodule{MatterBatch}
 \importmodule{Foundation.Bytes}
 \importmodule{Foundation.Utf8}
 \title{Text application model}
@@ -24,6 +25,63 @@ structure{
 structure{
  name: Chronology, type_parameters: [], parameters: [],
  fields: [{name: dated, type: (List ChronologyEntry)}, {name: unresolved, type: (List Matter::Node)}]
+}
+
+structure{
+ name: ChronologyMerge, type_parameters: [], parameters: [],
+ fields: [{name: values, type: (List ChronologyEntry)}, {name: left, type: (List ChronologyEntry)}, {name: right, type: (List ChronologyEntry)}]
+}
+
+definition{
+ name: chronologyEntryCount, parameters: [entries : (List ChronologyEntry)], result: Nat,
+ body: (match entries | List.nil => 0 | List.cons entry rest => (1 + (chronologyEntryCount rest))),
+ executable: true, axioms: [], recursive_argument: entries
+}
+
+definition{
+ name: chronologyBefore, parameters: [left : ChronologyEntry, right : ChronologyEntry], result: Bool,
+ body: (((project left order) <? (project right order)) || (((project left order) =? (project right order)) && (not ((project (project right node) id) <? (project (project left node) id))))),
+ executable: true, axioms: []
+}
+
+definition{
+ name: chronologyMergeDepth, parameters: [fuel : Nat, count : Nat], result: Nat,
+ body: (match fuel | Nat.zero => 0 | Nat.succ remaining =>
+ (if (not (1 <? count)) then 0 else (1 + (chronologyMergeDepth remaining (prim quotient (count + 1) 2 0 : Nat))))),
+ executable: true, axioms: [], recursive_argument: fuel
+}
+
+definition{
+ name: mergeChronologyLevel, parameters: [depth : Nat, left : (List ChronologyEntry), right : (List ChronologyEntry)], result: ChronologyMerge,
+ body: (match depth | Nat.zero =>
+ (match left | List.nil => (record ChronologyMerge {values := right, left := (nil ChronologyEntry), right := (nil ChronologyEntry)}) | List.cons firstLeft restLeft =>
+ (match right | List.nil => (record ChronologyMerge {values := left, left := (nil ChronologyEntry), right := (nil ChronologyEntry)}) | List.cons firstRight restRight =>
+ (if (chronologyBefore firstLeft firstRight) then
+ (record ChronologyMerge {values := (cons firstLeft (nil ChronologyEntry)), left := restLeft, right := right}) else
+ (record ChronologyMerge {values := (cons firstRight (nil ChronologyEntry)), left := left, right := restRight}))))
+ | Nat.succ remaining =>
+ (match left | List.nil => (record ChronologyMerge {values := right, left := (nil ChronologyEntry), right := (nil ChronologyEntry)}) | List.cons firstLeft restLeft =>
+ (match right | List.nil => (record ChronologyMerge {values := left, left := (nil ChronologyEntry), right := (nil ChronologyEntry)}) | List.cons firstRight restRight =>
+ (let earlier : ChronologyMerge := (mergeChronologyLevel remaining left right);
+ (let later : ChronologyMerge := (mergeChronologyLevel remaining (project earlier left) (project earlier right));
+ (record ChronologyMerge {values := (prim append (project earlier values) (project later values) : (List ChronologyEntry)), left := (project later left), right := (project later right)})))))),
+ executable: true, axioms: [], recursive_argument: depth
+}
+
+definition{
+ name: mergeChronology, parameters: [left : (List ChronologyEntry), right : (List ChronologyEntry)], result: ChronologyEntries,
+ body: (let count : Nat := ((chronologyEntryCount left) + (chronologyEntryCount right));
+ (record ChronologyEntries {values := (project (mergeChronologyLevel (chronologyMergeDepth count count) left right) values)})),
+ executable: true, axioms: []
+}
+
+definition{
+ name: chronologyEntryPage, parameters: [entries : (List ChronologyEntry), skip : Nat, fuel : Nat], result: ChronologyEntries,
+ body: (match entries | List.nil => (record ChronologyEntries {values := (nil ChronologyEntry)}) | List.cons entry rest =>
+ (match fuel | Nat.zero => (record ChronologyEntries {values := (nil ChronologyEntry)}) | Nat.succ remainingFuel =>
+ (match skip | Nat.succ remainingSkip => (chronologyEntryPage rest remainingSkip fuel) | Nat.zero =>
+ (record ChronologyEntries {values := (cons entry (project (chronologyEntryPage rest 0 remainingFuel) values))})))),
+ executable: true, axioms: [], recursive_argument: entries
 }
 
 definition{
@@ -81,8 +139,17 @@ definition{
 }
 
 definition{
+ name: chronologyChunks, parameters: [chunks : (List MatterBatch::NodeChunk), allNodes : (List Matter::Node), admitted : (List Matter::Reference), facets : (List String)], result: Chronology,
+ body: (match chunks | List.nil => (record Chronology {dated := (nil ChronologyEntry), unresolved := (nil Matter::Node)}) | List.cons chunk rest =>
+ (let selected : Chronology := (chronologyLoop (project chunk values) allNodes admitted facets);
+ (let following : Chronology := (chronologyChunks rest allNodes admitted facets);
+ (record Chronology {dated := (project (mergeChronology (project selected dated) (project following dated)) values), unresolved := (prim append (project selected unresolved) (project following unresolved) : (List Matter::Node))})))),
+ executable: true, axioms: [], recursive_argument: chunks
+}
+
+definition{
  name: chronology, parameters: [session : MatterSession::Session, admitted : (List Matter::Reference), facets : (List String)], result: Chronology,
- body: (chronologyLoop (project (project session matter) nodes) (project (project session matter) nodes) admitted facets),
+ body: (chronologyChunks (project (MatterBatch::nodeChunks (project (project session matter) nodes)) values) (project (project session matter) nodes) admitted facets),
  executable: true, axioms: []
 }
 \end{semanticmodule}

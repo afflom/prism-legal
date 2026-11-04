@@ -30,3 +30,20 @@ export function directEntryCapacity(){
  for(let index=0;index<1024;index++)journal+=fields([fields(['assert',String(index),'client','client','goal',index===0||index===1023?'Repeated outcome':'Other outcome'])]);
  return journal;
 }
+
+export function chronologyCapacity(unresolved=0){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ let journal=fields(['prism-legal/journal/1','Full chronology']);
+ for(let index=0;index<1024;index++)journal+=fields([fields(['assert',String(index),'client','client','event.date',index<unresolved?'Date not yet known':`2026-11-${String(1+index%28).padStart(2,'0')}`])]);
+ return journal;
+}
+
+export function sourceImpactCapacity(){
+ const fields=values=>values.map(value=>Buffer.byteLength(value)+':'+value).join('');
+ const header=Array.from({length:16},(_,index)=>`column ${index}`).join(',');
+ const row=Array(16).fill('entry').join(',');
+ let journal=fields(['prism-legal/journal/1','Complete source impact']);
+ journal+=fields([fields(['ingest-csv','0','client','client','Table',header+'\n'+Array(63).fill(row).join('\n')])]);
+ journal+=fields([fields(['source','1','client','client','1','1','column 0\nchanged'])]);
+ return journal;
+}
